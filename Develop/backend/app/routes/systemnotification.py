@@ -13,7 +13,6 @@ from sqlalchemy import and_, or_, func, desc
 from app.core.database import get_db
 from app.core.deps import get_current_user
 from app.core.permissions import check_permission
-from app.routes.transaction import require_txn_token
 from app.models.user import User
 from app.models.systemnotification import SystemNotification, NotificationCloseDate
 from app.schemas.systemnotification import (
@@ -104,7 +103,6 @@ async def get_notifications(
     search: Optional[str] = Query(None, description="全文檢索：主旨"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    _token: None = Depends(require_txn_token("system_notifications", "read"))
 ):
     """
     取得系統通知列表
@@ -174,7 +172,6 @@ async def get_notification(
     notification_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    _token: None = Depends(require_txn_token("system_notifications", "read"))
 ):
     """
     取得單一系統通知資訊
@@ -219,7 +216,6 @@ async def create_notification(
     notification_data: SystemNotificationCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    _token: None = Depends(require_txn_token("system_notifications", "create"))
 ):
     """
     建立系統通知
@@ -297,7 +293,6 @@ async def update_notification(
     notification_data: SystemNotificationUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    _token: None = Depends(require_txn_token("system_notifications", "update"))
 ):
     """
     更新系統通知
@@ -395,7 +390,6 @@ async def delete_notification(
     notification_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    _token: None = Depends(require_txn_token("system_notifications", "delete", one_time_use=True))
 ):
     """
     刪除系統通知
@@ -471,7 +465,6 @@ async def toggle_notification_active(
     notification_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    _token: None = Depends(require_txn_token("system_notifications", "update"))
 ):
     """
     切換通知的啟用狀態（用於 DataTables 點選切換）

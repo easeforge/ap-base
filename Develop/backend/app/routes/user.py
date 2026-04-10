@@ -17,8 +17,7 @@ from app.core.security import get_password_hash, verify_password
 from datetime import datetime, timezone, timedelta
 from app.models.user import User
 from app.models.organization import Organization
-from app.routes.transaction import require_txn_token
-from app.schemas.user_detail import (
+from app.schemas.user import (
     UserDetailResponse,
     UserDetailCreate,
     UserDetailUpdate,
@@ -63,7 +62,6 @@ async def get_users(
     search: Optional[str] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    _token: None = Depends(require_txn_token(["users", "tenant_users"], "read"))
 ):
     """
     取得使用者列表
@@ -126,7 +124,6 @@ async def update_my_profile(
     profile_data: UserDetailUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    _: None = Depends(require_txn_token("my_profile", "update"))
 ):
     """
     更新當前登入使用者的個人資料
@@ -223,7 +220,6 @@ async def get_user(
     user_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    _token: None = Depends(require_txn_token(["users", "tenant_users"], "read"))
 ):
     """
     取得使用者資訊
@@ -262,7 +258,6 @@ async def create_user(
     user_data: UserDetailCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    _token: None = Depends(require_txn_token(["users", "tenant_users"], "create"))
 ):
     """
     建立使用者
@@ -326,7 +321,6 @@ async def update_user(
     user_data: UserDetailUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    _token: None = Depends(require_txn_token(["users", "tenant_users"], "update"))
 ):
     """
     更新使用者
@@ -440,7 +434,6 @@ async def delete_user(
     user_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    _token: None = Depends(require_txn_token(["users", "tenant_users"], "delete", one_time_use=True))
 ):
     """
     刪除使用者（軟刪除，設定 is_active = False）
@@ -498,7 +491,6 @@ async def change_password(
     password_data: PasswordChange,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    _: None = Depends(require_txn_token("change_password", "update"))
 ):
     """
     變更當前使用者的密碼
@@ -576,7 +568,6 @@ async def get_my_organization_members(
     search: Optional[str] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    _token: None = Depends(require_txn_token("tenant_users", "read"))
 ):
     """
     取得我的組織成員 (便捷端點)
@@ -614,7 +605,6 @@ async def create_my_organization_member(
     user_data: UserDetailCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    _token: None = Depends(require_txn_token("tenant_users", "create"))
 ):
     """
     新增組織成員 (便捷端點)
@@ -672,7 +662,6 @@ async def get_my_organization_member(
     user_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    _token: None = Depends(require_txn_token("tenant_users", "read"))
 ):
     """
     取得組織成員資訊 (便捷端點)
@@ -706,7 +695,6 @@ async def update_my_organization_member(
     user_data: UserDetailUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    _token: None = Depends(require_txn_token("tenant_users", "update"))
 ):
     """
     更新組織成員 (便捷端點)
@@ -813,7 +801,6 @@ async def delete_my_organization_member(
     user_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    _token: None = Depends(require_txn_token("tenant_users", "delete", one_time_use=True))
 ):
     """
     刪除組織成員 (便捷端點，軟刪除)

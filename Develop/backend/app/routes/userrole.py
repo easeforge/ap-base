@@ -17,7 +17,6 @@ from app.models.userrole import UserRole
 from app.models.user import User
 from app.schemas.userrole import UserRoleResponse, UserRoleCreate, UserRoleUpdate
 from app.services.userlog_service import UserLogService
-from app.routes.transaction import require_txn_token
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -46,7 +45,6 @@ async def get_user_roless(
     search: Optional[str] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    _token: None = Depends(require_txn_token(["user_roles", "tenant_users"], "read"))
 ):
     """
     取得使用者角色列表
@@ -85,7 +83,6 @@ async def get_user_roles(
     role_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    _token: None = Depends(require_txn_token("user_roles", "read"))
 ):
     """
     取得使用者角色資訊
@@ -112,7 +109,6 @@ async def create_user_roles(
     role_data: UserRoleCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    _token: None = Depends(require_txn_token("user_roles", "create"))
 ):
     """
     建立使用者角色
@@ -153,7 +149,6 @@ async def update_user_roles(
     role_data: UserRoleUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    _token: None = Depends(require_txn_token("user_roles", "update"))
 ):
     """
     更新使用者角色
@@ -211,7 +206,6 @@ async def delete_user_roles(
     role_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    _token: None = Depends(require_txn_token("user_roles", "delete", one_time_use=True))
 ):
     """
     刪除使用者角色（真正刪除）

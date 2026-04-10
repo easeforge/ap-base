@@ -7,8 +7,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { useTransactionToken } from '../hooks/useTransactionToken';
 import { usePermission } from '../hooks/usePermission';
+import { useTransactionToken } from '../hooks/useTransactionToken';
 import TransactionExtendDialog from '../components/TransactionExtendDialog';
 import FunctionPageHeader from '../components/FunctionPageHeader';
 import { logUpdate } from '../utils/userLogHelper';
@@ -64,11 +64,6 @@ const ChangePasswordPage: React.FC = () => {
 
     if (formData.newPassword === formData.oldPassword) {
       alert(t('changePassword.samePassword', '新密碼不可與舊密碼相同'));
-      return;
-    }
-
-    if (!txnToken) {
-      alert(t('changePassword.noToken', '請先取得交易令牌'));
       return;
     }
 
@@ -223,18 +218,12 @@ const ChangePasswordPage: React.FC = () => {
             <button
               type="submit"
               className="btn-primary"
-              disabled={!txnToken}
+              
             >
               {t('changePassword.submit', '變更密碼')}
             </button>
           </div>
         </form>
-
-        {!txnToken && (
-          <div className="warning-message">
-            {t('changePassword.waitingToken', '正在取得交易令牌...')}
-          </div>
-        )}
       </div>
 
       {/* Transaction Extend Dialog */}

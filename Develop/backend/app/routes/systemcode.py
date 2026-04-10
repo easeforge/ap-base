@@ -11,7 +11,6 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.deps import get_current_user
 from app.models.systemcode import SystemCode
-from app.routes.transaction import require_txn_token
 from app.models.user import User
 from app.schemas.systemcode import (
     SystemCodeResponse,
@@ -58,7 +57,6 @@ async def get_system_codes(
     search: str = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    _token: None = Depends(require_txn_token("system_codes", "read"))
 ):
     """
     取得系統代碼列表
@@ -96,7 +94,6 @@ async def get_system_code(
     code_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    _token: None = Depends(require_txn_token("system_codes", "read"))
 ):
     """
     取得系統代碼資訊
@@ -124,7 +121,6 @@ async def create_system_code(
     code_data: SystemCodeCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    _token: None = Depends(require_txn_token("system_codes", "create"))
 ):
     """
     建立系統代碼
@@ -152,7 +148,6 @@ async def update_system_code(
     code_data: SystemCodeUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    _token: None = Depends(require_txn_token("system_codes", "update"))
 ):
     """
     更新系統代碼
@@ -189,7 +184,6 @@ async def delete_system_code(
     code_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    _token: None = Depends(require_txn_token("system_codes", "delete", one_time_use=True))
 ):
     """
     刪除系統代碼
@@ -237,7 +231,6 @@ async def get_system_codes_by_type(
     active_only: bool = True,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    _token: None = Depends(require_txn_token("system_codes", "read"))
 ):
     """
     根據代碼類別查詢系統代碼

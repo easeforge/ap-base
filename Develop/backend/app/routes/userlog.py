@@ -11,7 +11,6 @@ from datetime import datetime
 
 from app.core.database import get_db
 from app.core.deps import get_current_user
-from app.routes.transaction import require_txn_token
 from app.models.userlog import UserLog
 from app.models.user import User
 from app.models.systemfunction import SystemFunction
@@ -36,7 +35,6 @@ async def get_user_logs(
     limit: int = Query(100, ge=1, le=1000, description="取得筆數"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    _token: None = Depends(require_txn_token("user_logs", "read"))
 ):
     """
     取得使用者日誌列表（支援多條件查詢）
@@ -112,7 +110,6 @@ async def get_user_log(
     log_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    _token: None = Depends(require_txn_token("user_logs", "read"))
 ):
     """
     根據 ID 取得單筆日誌
@@ -155,7 +152,6 @@ async def get_user_logs_by_user(
     limit: int = Query(100, ge=1, le=1000),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    _token: None = Depends(require_txn_token("user_logs", "read"))
 ):
     """
     取得特定使用者的所有日誌
@@ -207,7 +203,6 @@ async def get_user_logs_by_function(
     limit: int = Query(100, ge=1, le=1000),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    _token: None = Depends(require_txn_token("user_logs", "read"))
 ):
     """
     取得特定功能的所有日誌

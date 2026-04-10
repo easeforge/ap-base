@@ -6,8 +6,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { useTransactionToken } from '../hooks/useTransactionToken';
 import { usePermission } from '../hooks/usePermission';
+import { useTransactionToken } from '../hooks/useTransactionToken';
 import TransactionExtendDialog from '../components/TransactionExtendDialog';
 import FunctionPageHeader from '../components/FunctionPageHeader';
 import { logRead, logUpdate } from '../utils/userLogHelper';

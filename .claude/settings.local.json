@@ -375,7 +375,18 @@
       "Bash(rm -f file_service.py project_service.py report_service.py sequence_service.py)",
       "Bash(rm -f transaction_token.py transaction_token_redis.py dynamic_router.py)",
       "Bash(rm -f 'NDH6SA~M' build.log frontend.log frontend_error.log frontend_test.log i18n設定完成說明.md Dockerfile)",
-      "Bash(rm -rf build)"
+      "Bash(rm -rf build)",
+      "Bash(PGPASSWORD='DC1qaz2wsx' psql -h 10.1.0.20 -p 5433 -U admin -d postgres -c \"SELECT 1\")",
+      "Read(//c/Program Files/**)",
+      "Read(//c/Program Files \\(x86\\)/**)",
+      "Bash(ls venv/Scripts/python.exe)",
+      "Bash(ls venv/bin/python)",
+      "Bash(venv/Scripts/python -m uvicorn app.main:app --host 0.0.0.0 --port 10181 --reload)",
+      "Bash(sed -i 's/    txnToken,//' ChangePasswordPage.tsx)",
+      "Bash(sed -i '/if \\(!txnToken\\)/,/}$/{ /if \\(!txnToken\\)/d; /return;/d; /}$/d; }' ChangePasswordPage.tsx)",
+      "Bash(sed -i 's/        txnToken//' ChangePasswordPage.tsx)",
+      "Bash(sed -i 's/disabled={!txnToken}//' ChangePasswordPage.tsx)",
+      "Bash(sed -i '/!txnToken && \\(/,/}$/d' ChangePasswordPage.tsx)"
     ]
   }
 }

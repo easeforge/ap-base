@@ -13,7 +13,6 @@ from app.core.database import get_db
 from app.core.deps import get_current_user
 from app.core.permissions import check_permission  # 保留用於資料層級安全控制
 from app.models.organization import Organization
-from app.routes.transaction import require_txn_token
 from app.models.user import User
 from app.schemas.organization import OrganizationResponse, OrganizationCreate, OrganizationUpdate
 from app.services.userlog_service import UserLogService
@@ -51,7 +50,6 @@ async def get_organizations(
     search: Optional[str] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    _token: None = Depends(require_txn_token(["organizations", "tenant_profile"], "read"))
 ):
     """
     取得組織單位列表
@@ -135,7 +133,6 @@ async def create_organization(
     organization_data: OrganizationCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    _token: None = Depends(require_txn_token("organizations", "create"))
 ):
     """
     建立組織單位
@@ -173,7 +170,6 @@ async def update_organization(
     organization_data: OrganizationUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    _token: None = Depends(require_txn_token(["organizations", "tenant_profile"], "update"))
 ):
     """
     更新組織單位
@@ -235,7 +231,6 @@ async def delete_organization(
     organization_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    _token: None = Depends(require_txn_token("organizations", "delete", one_time_use=True))
 ):
     """
     刪除組織單位（真正刪除）
@@ -283,7 +278,6 @@ async def delete_organization(
 async def get_my_organization_profile(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    _token: None = Depends(require_txn_token("tenant_profile", "read"))
 ):
     """
     取得我的組織資料 (便捷端點)
@@ -313,7 +307,6 @@ async def update_my_organization_profile(
     organization_data: OrganizationUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    _token: None = Depends(require_txn_token("tenant_profile", "update"))
 ):
     """
     更新我的組織資料 (便捷端點)

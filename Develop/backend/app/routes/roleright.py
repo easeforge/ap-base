@@ -10,7 +10,6 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.deps import get_current_user
-from app.routes.transaction import require_txn_token
 from app.models.roleright import RoleRight
 from app.models.userrole import UserRole
 from app.models.systemfunction import SystemFunction
@@ -32,7 +31,6 @@ async def get_functions_with_permissions(
     role_id: int = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    _token: None = Depends(require_txn_token("role_rights", "read"))
 ):
     """
     取得所有已啟用功能及其支援的權限項目
@@ -104,7 +102,6 @@ async def get_role_rights(
     role_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    _token: None = Depends(require_txn_token("role_rights", "read"))
 ):
     """
     取得指定角色的權限設定
@@ -165,7 +162,6 @@ async def save_role_rights(
     batch_data: RoleRightBatchCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    _token: None = Depends(require_txn_token("role_rights", "update"))
 ):
     """
     批次儲存角色權限設定
@@ -306,7 +302,6 @@ async def delete_role_rights(
     role_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    _token: None = Depends(require_txn_token("role_rights", "delete", one_time_use=True))
 ):
     """
     刪除指定角色的所有權限設定

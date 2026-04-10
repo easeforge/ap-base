@@ -51,6 +51,19 @@ class UserResponse(UserBase):
         from_attributes = True
 
 
+class PasswordChange(BaseModel):
+    """密碼變更"""
+
+    old_password: str = Field(..., description="舊密碼")
+    new_password: str = Field(..., description="新密碼", min_length=6)
+
+
+# 別名 (相容舊的 user_detail 命名)
+UserDetailResponse = UserResponse
+UserDetailCreate = UserCreate
+UserDetailUpdate = UserUpdate
+
+
 class UserProfile(BaseModel):
     """使用者個人資料"""
 

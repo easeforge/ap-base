@@ -11,7 +11,6 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.deps import get_current_user
 from app.models.systemfunction import SystemFunction
-from app.routes.transaction import require_txn_token
 from app.models.user import User
 from app.schemas.systemfunction import (
     SystemFunctionResponse,
@@ -134,7 +133,6 @@ async def get_function_by_code(
     func_code: str,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    _token: None = Depends(require_txn_token("system_functions", "read"))
 ):
     """
     根據 func_code 取得系統功能資訊（包含 module_item）
@@ -167,7 +165,6 @@ async def get_function(
     function_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    _token: None = Depends(require_txn_token("system_functions", "read"))
 ):
     """
     取得系統功能資訊
@@ -188,7 +185,6 @@ async def create_function(
     function_data: SystemFunctionCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    _token: None = Depends(require_txn_token("system_functions", "create"))
 ):
     """
     建立系統功能
@@ -229,7 +225,6 @@ async def update_function(
     function_data: SystemFunctionUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    _token: None = Depends(require_txn_token("system_functions", "update"))
 ):
     """
     更新系統功能
@@ -277,7 +272,6 @@ async def delete_function(
     function_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    _token: None = Depends(require_txn_token("system_functions", "delete", one_time_use=True))
 ):
     """
     刪除系統功能

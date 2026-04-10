@@ -19,7 +19,6 @@ import {
 } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
 import { useSystem } from '../contexts/SystemContext';
-import { useProject } from '../contexts/ProjectContext';
 import { getSystemFunctions } from '../services/systemFunctionsService';
 import type { SystemFunction } from '../types/systemFunctions';
 import Sidebar from './Sidebar';
@@ -51,111 +50,11 @@ const getIconComponent = (iconName?: string): React.ReactNode => {
   return <span style={{ fontSize: '16px' }}>{iconName}</span>;
 };
 
-// ── 案件選擇器（支援 HTML 渲染） ─────────────────────────
-interface CaseItemDropdownProps {
-  caseType: 'pdd' | 'nmeth';
-  projects: any[];
-  proposals: any[];
-  selectedId: number | null;
-  onSelect: (id: number | null) => void;
-  loading: boolean;
-  isZh: boolean;
-}
-
-const CaseItemDropdown: React.FC<CaseItemDropdownProps> = ({
-  caseType, projects, proposals, selectedId, onSelect, loading, isZh
-}) => {
-  const [open, setOpen] = useState(false);
-  const ref = React.useRef<HTMLDivElement>(null);
-
-  // 點擊外部關閉
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, []);
-
-  // 移除 HTML 中的 block 標籤（如 <p>），保留 inline 標籤（如 <sub><sup>）
-  const stripBlock = (html: string) => html.replace(/<\/?p[^>]*>/gi, '').replace(/<\/?div[^>]*>/gi, '').trim();
-
-  const items = caseType === 'pdd'
-    ? projects.map(p => ({ id: p.id, html: `[${p.id}] ${stripBlock(p.project_title || '')}` }))
-    : proposals.map(p => ({ id: p.id, html: `[${p.id}] ${stripBlock(p.title || '')}` }));
-
-  const selectedItem = items.find(i => i.id === selectedId);
-  const placeholder = loading
-    ? (isZh ? '載入中...' : 'Loading...')
-    : caseType === 'pdd'
-      ? (isZh ? '— 請選擇專案 —' : '— Select Project —')
-      : (isZh ? '— 請選擇提案 —' : '— Select Proposal —');
-
-  return (
-    <div ref={ref} style={{ position: 'relative', minWidth: '320px', maxWidth: '600px', flex: 1 }}>
-      {/* 觸發按鈕 */}
-      <div
-        className="case-item-select"
-        onClick={() => { if (!loading) setOpen(!open); }}
-        style={{ cursor: loading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', height: '34px', padding: '0 32px 0 10px', overflow: 'hidden', whiteSpace: 'nowrap' }}
-      >
-        {selectedItem
-          ? <span dangerouslySetInnerHTML={{ __html: selectedItem.html }} style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} />
-          : <span style={{ color: '#999' }}>{placeholder}</span>}
-      </div>
-      {/* 下拉選單 */}
-      {open && (
-        <div style={{
-          position: 'absolute', top: '38px', left: 0, right: 0, zIndex: 9999,
-          background: '#fff', border: '1px solid #d9d9d9', borderRadius: '6px',
-          boxShadow: '0 4px 16px rgba(0,0,0,0.15)', maxHeight: '300px', overflowY: 'auto',
-        }}>
-          {/* 清除選擇 */}
-          <div
-            onClick={() => { onSelect(null); setOpen(false); }}
-            style={{ padding: '8px 12px', fontSize: '13px', color: '#999', cursor: 'pointer', borderBottom: '1px solid #f0f0f0' }}
-            onMouseEnter={e => (e.currentTarget.style.background = '#f5f5f5')}
-            onMouseLeave={e => (e.currentTarget.style.background = '#fff')}
-          >
-            {placeholder}
-          </div>
-          {items.map(item => (
-            <div
-              key={item.id}
-              onClick={() => { onSelect(item.id); setOpen(false); }}
-              style={{
-                padding: '8px 12px', fontSize: '13px', cursor: 'pointer',
-                background: item.id === selectedId ? '#e6f7ff' : '#fff',
-                fontWeight: item.id === selectedId ? 600 : 400,
-              }}
-              onMouseEnter={e => { if (item.id !== selectedId) e.currentTarget.style.background = '#f5f5f5'; }}
-              onMouseLeave={e => { if (item.id !== selectedId) e.currentTarget.style.background = '#fff'; }}
-            >
-              <span dangerouslySetInnerHTML={{ __html: item.html }} />
-            </div>
-          ))}
-          {items.length === 0 && (
-            <div style={{ padding: '12px', fontSize: '13px', color: '#999', textAlign: 'center' }}>
-              {isZh ? '無可選擇的項目' : 'No items available'}
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
-};
-
 const MainLayout: React.FC = () => {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const { user, logout } = useAuth();
   const { systemProfile, getCopyright } = useSystem();
-  const {
-    caseType, setCaseType,
-    projects, selectedProjectId, setSelectedProjectId,
-    proposals, selectedProposalId, setSelectedProposalId,
-    loading: projectLoading
-  } = useProject();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
   const [sidebarWidth, setSidebarWidth] = useState(() => {
     const saved = localStorage.getItem('sidebarWidth');
@@ -304,28 +203,9 @@ const MainLayout: React.FC = () => {
             <img src="/logo.png" alt="Logo" className="header-logo" />
             <span className="header-system-title">
               {i18n.language === 'en'
-                ? (systemProfile?.sys_etitle || 'Paris Agreement Article 6.4 Management System')
-                : (systemProfile?.sys_ctitle || '碳排專案活動申請系統(Article 6.4)')}
+                ? (systemProfile?.sys_etitle || 'Base AP Management System')
+                : (systemProfile?.sys_ctitle || '後臺管理基底平台')}
             </span>
-            <div className="case-selector-wrap">
-              <select
-                className="case-type-select"
-                value={caseType}
-                onChange={e => setCaseType(e.target.value as 'pdd' | 'nmeth')}
-              >
-                <option value="pdd">{i18n.language === 'en' ? 'Project Design Document' : '專案設計文件'}</option>
-                <option value="nmeth">{i18n.language === 'en' ? 'Methodology Proposal' : '方法論申請文件'}</option>
-              </select>
-              <CaseItemDropdown
-                caseType={caseType}
-                projects={projects}
-                proposals={proposals}
-                selectedId={caseType === 'pdd' ? selectedProjectId : selectedProposalId}
-                onSelect={(id) => caseType === 'pdd' ? setSelectedProjectId(id) : setSelectedProposalId(id)}
-                loading={projectLoading}
-                isZh={i18n.language === 'zh-TW'}
-              />
-            </div>
           </div>
           <div className="header-right">
             <LanguageSwitcher />
