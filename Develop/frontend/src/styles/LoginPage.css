@@ -1,0 +1,368 @@
+/* 登入頁面樣式 */
+
+.login-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: url('../assets/images/login-bg.jpg') center center / cover no-repeat;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  padding: 20px;
+}
+
+.login-container {
+  position: relative;
+  background-color: #fff;
+  background-image: url('../assets/images/login-card-bg.png');
+  background-position: -6px -4px;
+  background-size: auto calc(100% + 8px);
+  background-repeat: no-repeat;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 20px;
+  padding: 32px 72px 28px 430px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  max-width: 1000px;
+  width: 100%;
+  min-height: 580px;
+  animation: fadeIn 0.5s ease-in;
+  overflow: hidden;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.header-lang-switcher {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 20px;
+}
+
+/* 登入頁白色背景下覆寫語系切換器配色 */
+.header-lang-switcher .language-switcher {
+  background: rgba(102, 126, 234, 0.08);
+}
+
+.header-lang-switcher .lang-button {
+  color: #888;
+}
+
+.header-lang-switcher .lang-button:hover {
+  color: #5b6abf;
+  background: rgba(102, 126, 234, 0.1);
+}
+
+.header-lang-switcher .lang-button.active {
+  color: #5b6abf;
+  background: rgba(102, 126, 234, 0.15);
+}
+
+.header-lang-switcher .lang-divider {
+  color: #ccc;
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: 36px;
+}
+
+.login-logo {
+  height: 24px;
+  width: auto;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+.system-title {
+  font-size: 26px;
+  font-weight: 900;
+  color: #1a1a2e;
+  margin: 0;
+  line-height: 1.4;
+  letter-spacing: 1px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.system-title.lang-zh {
+  font-size: 28px;
+}
+
+.system-title.lang-en {
+  font-size: 22px;
+}
+
+
+.login-form-container {
+  margin-bottom: 30px;
+}
+
+.login-form-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 25px 0;
+  text-align: center;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.login-form .form-group {
+  display: flex;
+  flex-direction: row !important;
+  align-items: center;
+  gap: 12px;
+}
+
+.login-form .form-group label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #444;
+  min-width: 65px;
+  text-align: right;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.login-form .form-group input {
+  flex: 1;
+  padding: 12px 16px;
+  font-size: 15px;
+  border: 1px solid #d0d0d0;
+  border-radius: 8px;
+  outline: none;
+  background: rgba(255, 255, 255, 0.9);
+  transition: all 0.3s ease;
+}
+
+.login-form .form-group input:focus {
+  border-color: #5b6abf;
+  box-shadow: 0 0 0 3px rgba(91, 106, 191, 0.1);
+}
+
+.login-form .form-group input:disabled {
+  background-color: #f5f5f5;
+  cursor: not-allowed;
+}
+
+.password-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.password-input-wrapper input {
+  flex: 1;
+  padding-right: 48px;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.2s ease;
+  opacity: 0.6;
+}
+
+.password-toggle-btn:hover {
+  opacity: 1;
+}
+
+.password-toggle-btn:focus {
+  outline: 2px solid #5b6abf;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* CAPTCHA */
+.captcha-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+}
+
+.captcha-input {
+  flex: 1;
+  text-transform: uppercase;
+  letter-spacing: 4px;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.captcha-image {
+  cursor: pointer;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid #ddd;
+  flex-shrink: 0;
+  transition: opacity 0.2s;
+}
+
+.captcha-image:hover {
+  opacity: 0.7;
+}
+
+.captcha-image svg {
+  display: block;
+}
+
+.error-message {
+  background-color: #fee;
+  border: 1px solid #fcc;
+  border-radius: 8px;
+  padding: 12px 16px;
+  color: #c33;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.login-button {
+  margin-top: 10px;
+  padding: 14px 20px;
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+  background: linear-gradient(135deg, #5b6abf 0%, #7c5cbf 100%);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.login-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(91, 106, 191, 0.3);
+}
+
+.login-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.login-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.login-footer {
+  text-align: center;
+  padding-top: 24px;
+}
+
+.login-footer p {
+  margin: 0;
+  font-size: 13px;
+  color: #888;
+}
+
+/* ===== RWD ===== */
+
+/* 平板 (≤768px)：隱藏左側背景圖，縮小 padding */
+@media (max-width: 768px) {
+  .login-container {
+    padding: 32px 36px 28px 36px;
+    background-image: none;
+    min-height: auto;
+    border-radius: 16px;
+  }
+
+  .system-title,
+  .system-title.lang-zh {
+    font-size: 22px;
+    height: auto;
+  }
+
+  .system-title.lang-en {
+    font-size: 18px;
+  }
+
+  .login-header {
+    margin-bottom: 24px;
+  }
+
+  .login-form-title {
+    font-size: 16px;
+    margin-bottom: 18px;
+  }
+}
+
+/* 手機 (≤480px)：表單改為垂直排列 */
+@media (max-width: 480px) {
+  .login-page {
+    padding: 10px;
+  }
+
+  .login-container {
+    padding: 24px 20px 20px 20px;
+    border-radius: 12px;
+  }
+
+  .system-title,
+  .system-title.lang-zh {
+    font-size: 18px;
+  }
+
+  .system-title.lang-en {
+    font-size: 15px;
+  }
+
+  .login-form .form-group {
+    flex-direction: column !important;
+    align-items: stretch;
+    gap: 6px;
+  }
+
+  .login-form .form-group label {
+    text-align: left;
+    min-width: auto;
+  }
+
+  .captcha-row {
+    flex-wrap: wrap;
+  }
+
+  .captcha-image svg {
+    width: 120px;
+    height: auto;
+  }
+
+  .login-button {
+    padding: 12px 16px;
+    font-size: 15px;
+  }
+
+  .login-footer p {
+    font-size: 11px;
+  }
+
+  .login-logo {
+    height: 18px;
+  }
+}

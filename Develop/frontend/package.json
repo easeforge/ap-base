@@ -1,0 +1,70 @@
+{
+  "name": "frontend",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@lexical/html": "^0.39.0",
+    "@lexical/react": "^0.39.0",
+    "@lexical/selection": "^0.39.0",
+    "@mui/icons-material": "^7.3.7",
+    "@mui/material": "^7.3.7",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.1",
+    "@testing-library/user-event": "^13.5.0",
+    "@tinymce/tinymce-react": "^6.3.0",
+    "@types/jest": "^27.5.2",
+    "@types/leaflet": "^1.9.21",
+    "@types/node": "^16.18.126",
+    "@types/react": "^19.2.8",
+    "@types/react-datepicker": "^6.2.0",
+    "@types/react-dom": "^19.2.3",
+    "@types/react-katex": "^3.0.4",
+    "axios": "^1.13.2",
+    "i18next": "^25.7.4",
+    "i18next-browser-languagedetector": "^8.2.0",
+    "katex": "^0.16.40",
+    "leaflet": "^1.9.4",
+    "lexical": "^0.39.0",
+    "react": "^19.2.3",
+    "react-datepicker": "^9.1.0",
+    "react-dom": "^19.2.3",
+    "react-i18next": "^16.5.3",
+    "react-katex": "^3.1.0",
+    "react-leaflet": "^5.0.0",
+    "react-router-dom": "^7.12.0",
+    "react-scripts": "5.0.1",
+    "tinymce": "^8.3.2",
+    "typescript": "^5.7.2",
+    "web-vitals": "^2.1.4"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "@types/uuid": "^10.0.0"
+  }
+}

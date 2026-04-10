@@ -1,0 +1,359 @@
+/* 側邊欄樣式 */
+
+.sidebar {
+  background: #13386B;
+  color: white;
+  position: fixed;
+  left: 0;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  transition: width 0.3s ease;
+  z-index: 1000;
+  box-shadow: 4px 0 12px rgba(0, 0, 0, 0.15);
+}
+
+/* 側邊欄標題區 */
+.sidebar-header {
+  padding: 15px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  height: 60px;
+}
+
+.sidebar.collapsed .sidebar-header {
+  justify-content: center;
+}
+
+.toggle-button {
+  width: 30px;
+  height: 30px;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 6px;
+  color: white;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease;
+}
+
+.toggle-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.sidebar-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+  white-space: nowrap;
+}
+
+/* 導航選單 */
+.sidebar-nav {
+  padding: 10px 0;
+}
+
+.menu-item {
+  margin: 2px 0;
+}
+
+.menu-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 16px;
+  color: rgba(255, 255, 255, 0.85);
+  text-decoration: none;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  position: relative;
+}
+
+.menu-link:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.menu-link.active {
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  border-left: 4px solid #667eea;
+}
+
+.menu-link.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: #667eea;
+}
+
+.menu-icon {
+  font-size: 18px;
+  min-width: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.menu-text {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.expand-icon {
+  font-size: 10px;
+}
+
+/* 子選單 */
+.submenu {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.submenu .menu-link {
+  padding-left: 48px;
+  font-size: 12px;
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+
+.submenu .menu-icon {
+  font-size: 15px;
+}
+
+/* 收合狀態 */
+.sidebar.collapsed .sidebar-title,
+.sidebar.collapsed .menu-link .menu-text,
+.sidebar.collapsed .expand-icon {
+  display: none;
+}
+
+.sidebar.collapsed .menu-link {
+  justify-content: center;
+  padding: 8px;
+}
+
+.sidebar.collapsed .submenu {
+  display: none;
+}
+
+/* 懸浮彈出式子選單（收合狀態使用） */
+.menu-item {
+  position: relative;
+}
+
+.menu-item-wrapper {
+  position: relative;
+}
+
+.popup-submenu {
+  position: fixed;
+  left: 68px;  /* 調整為緊鄰收合狀態的側邊欄,避免滑鼠移動時失去焦點 */
+  min-width: 220px;
+  max-width: 320px;
+  width: auto;
+  max-height: calc(100vh - 40px);
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  padding: 8px 0;
+  z-index: 9999;
+  animation: slideIn 0.2s ease;
+  pointer-events: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.popup-submenu-header {
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #2c3e50;
+  border-bottom: 1px solid #e9ecef;
+  margin-bottom: 4px;
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 1;
+}
+
+/* 懸浮選單捲軸樣式 */
+.popup-submenu::-webkit-scrollbar {
+  width: 6px;
+}
+
+.popup-submenu::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.popup-submenu::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.popup-submenu::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+.popup-menu-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  color: #495057;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.popup-menu-link:hover {
+  background: #f8f9fa;
+  color: #13386B;
+}
+
+.popup-menu-link.active {
+  background: #e3f2fd;
+  color: #13386B;
+  font-weight: 600;
+  border-left: 3px solid #13386B;
+}
+
+.popup-menu-link .menu-icon {
+  font-size: 16px;
+  min-width: 20px;
+  color: #495057;
+}
+
+.popup-menu-link .menu-text {
+  font-size: 13px;
+  white-space: nowrap;
+  color: #495057;
+  display: inline-block;
+  opacity: 1;
+  visibility: visible;
+}
+
+.popup-menu-link:hover .menu-icon,
+.popup-menu-link:hover .menu-text {
+  color: #13386B;
+}
+
+.popup-menu-link.active .menu-icon,
+.popup-menu-link.active .menu-text {
+  color: #13386B;
+}
+
+/* 滾動條樣式 */
+.sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* 層級縮排 */
+.menu-item.level-1 .menu-link {
+  padding-left: 40px;
+}
+
+.menu-item.level-2 .menu-link {
+  padding-left: 60px;
+}
+
+/* 多層次懸浮選單 */
+.popup-submenu-item {
+  position: relative;
+  overflow: hidden;
+}
+
+.popup-submenu-parent {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  color: #495057;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+  user-select: none;
+}
+
+.popup-submenu-parent:hover {
+  background: #f8f9fa;
+  color: #13386B;
+}
+
+.popup-submenu-parent .expand-icon {
+  margin-left: auto;
+  font-size: 10px;
+  color: #6c757d;
+  transition: transform 0.2s ease;
+}
+
+.popup-submenu-children {
+  padding-left: 16px;
+  background: rgba(0, 0, 0, 0.02);
+  border-left: 2px solid #e9ecef;
+  margin-left: 16px;
+  animation: slideDown 0.2s ease;
+  overflow: hidden;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 1000px;
+  }
+}
+
+.popup-submenu-item.level-0 {
+  border-bottom: none;
+}
+
+.popup-submenu-item.level-1 .popup-menu-link,
+.popup-submenu-item.level-1 .popup-submenu-parent {
+  padding-left: 12px;
+  font-size: 12px;
+}
+
+.popup-submenu-item.level-2 .popup-menu-link,
+.popup-submenu-item.level-2 .popup-submenu-parent {
+  padding-left: 8px;
+  font-size: 11px;
+}
