@@ -14,25 +14,25 @@ class Settings(BaseSettings):
     """應用程式設定"""
 
     # Application
-    ENVIRONMENT: str = Field(default="development")
-    DEBUG: bool = Field(default=True)
-    LOG_LEVEL: str = Field(default="DEBUG")
+    ENVIRONMENT: str = Field(default="production")
+    DEBUG: bool = Field(default=False)
+    LOG_LEVEL: str = Field(default="INFO")
     PORT: int = Field(default=10181)
 
-    # Database
+    # Database (必須透過 .env 或環境變數設定)
     DATABASE_URL: str = Field(
-        default="postgresql://admin:DC1qaz2wsx@10.1.0.20:5433/baseAP"
+        default="postgresql://user:password@localhost:5432/baseAP"
     )
 
     # Redis
-    REDIS_HOST: str = Field(default="10.1.0.20")
+    REDIS_HOST: str = Field(default="localhost")
     REDIS_PORT: int = Field(default=6379)
     REDIS_DB: int = Field(default=1)
-    REDIS_PASSWORD: str = Field(default="!DC1qaz2wsx")
+    REDIS_PASSWORD: str = Field(default="")
 
-    # Security
+    # Security (生產環境務必更換)
     SECRET_KEY: str = Field(
-        default="dev-secret-key-change-in-production"
+        default="CHANGE-THIS-SECRET-KEY-IN-PRODUCTION"
     )
     ALGORITHM: str = Field(default="HS256")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(default=30)

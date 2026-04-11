@@ -218,16 +218,6 @@ const SystemFunctionsPage: React.FC = () => {
       // axios 攔截器會自動從 localStorage 讀取 txn_token 並添加到 X-Txn-Token header
       // 後端會驗證 token 的有效性和 delete 權限
 
-      // Debug: 檢查 localStorage 中的 token
-      const txnToken = localStorage.getItem('txn_token');
-      const accessToken = localStorage.getItem('access_token');
-      console.log('[SystemFunctionsPage] Before delete:', {
-        hasTxnToken: !!txnToken,
-        txnTokenLength: txnToken?.length,
-        hasAccessToken: !!accessToken,
-        funcId: func.id
-      });
-
       await deleteSystemFunction(func.id);
       await loadFunctions();
       alert(t('message.deleteSuccess'));

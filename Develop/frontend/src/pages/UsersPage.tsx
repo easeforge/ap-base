@@ -57,7 +57,6 @@ const UsersPage: React.FC = () => {
 
   const loadUsers = async () => {
     if (!txnToken) {
-      console.log('等待交易令牌...');
       return;
     }
     try {
@@ -159,7 +158,6 @@ const UsersPage: React.FC = () => {
   const openModal = (user?: UserDetail, viewMode: boolean = false) => {
     setIsViewMode(viewMode);
     if (user) {
-      console.log('[openModal] user.user_role:', user.user_role);
       setEditingUser(user);
       setFormData({
         organization_id: user.organization_id,
@@ -172,7 +170,6 @@ const UsersPage: React.FC = () => {
         user_role: user.user_role || [],
         is_active: user.is_active
       });
-      console.log('[openModal] formData.user_role set to:', user.user_role || []);
     } else {
       setEditingUser(null);
       setFormData({
@@ -197,7 +194,6 @@ const UsersPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('[handleSubmit] formData.user_role:', formData.user_role);
     try {
       if (editingUser) {
         // 編輯時，如果密碼為空則不更新密碼
@@ -211,7 +207,6 @@ const UsersPage: React.FC = () => {
           user_role: formData.user_role,
           is_active: formData.is_active
         };
-        console.log('[handleSubmit] updateData.user_role:', updateData.user_role);
         if (formData.password) {
           updateData.password = formData.password;
         }

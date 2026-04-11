@@ -393,7 +393,8 @@
       "Bash(PYTHONIOENCODING=utf-8 venv/Scripts/python insert_tw_area_moi.py)",
       "Bash(find . -name \"__pycache__\" -type d -exec rm -rf {} +)",
       "Bash(taskkill //F //IM python.exe)",
-      "Bash(venv/Scripts/python -c \"from app.main import app; print\\('Backend imports OK'\\)\")"
+      "Bash(venv/Scripts/python -c \"from app.main import app; print\\('Backend imports OK'\\)\")",
+      "Bash(venv/Scripts/python -c \"import opencc; print\\('opencc available'\\)\")"
     ]
   }
 }

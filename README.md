@@ -281,4 +281,6 @@ The sidebar menu, breadcrumb, permission checks, and activity logging will work 
 
 ## License
 
-Copyright (c) 2026 JiangYun Co., Ltd. All rights reserved.
+This project is licensed under the [MIT License](LICENSE).
+
+Copyright (c) 2026 JiangYun Co., Ltd.

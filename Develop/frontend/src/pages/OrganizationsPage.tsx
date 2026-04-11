@@ -147,21 +147,16 @@ const OrganizationsPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('[OrganizationsPage] handleSubmit called');
     try {
       if (editingOrg) {
         // 修改組織
-        console.log('[OrganizationsPage] Updating organization...', formData);
         const updatedOrg = await updateOrganization(editingOrg.id, formData);
-        console.log('[OrganizationsPage] Update successful:', updatedOrg);
         // 記錄成功的更新操作 - 使用舊資料和新回傳的完整資料
         await logUpdate('organizations', editingOrg as any, updatedOrg as any);
         alert(t('message.saveSuccess'));
       } else {
         // 新增組織
-        console.log('[OrganizationsPage] Creating organization...', formData);
         const newOrg = await createOrganization(formData);
-        console.log('[OrganizationsPage] Create successful:', newOrg);
         // 記錄成功的新增操作 - 使用後端回傳的完整資料
         await logCreate('organizations', newOrg as any);
         alert(t('message.createSuccess'));
@@ -170,10 +165,7 @@ const OrganizationsPage: React.FC = () => {
       loadOrganizations();
     } catch (err: any) {
       // 記錄失敗的操作
-      console.error('[OrganizationsPage] Operation failed:', err);
-      console.error('[OrganizationsPage] Error response:', err.response);
       const errorMsg = err.response?.data?.detail || err.message || t('common.error');
-      console.log('[OrganizationsPage] Error message:', errorMsg);
 
       // 先記錄失敗日誌
       try {

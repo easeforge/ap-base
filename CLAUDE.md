@@ -7,7 +7,7 @@
 - Backend: Python FastAPI + SQLAlchemy + PostgreSQL (baseAP) + Redis
 - Frontend: React + TypeScript + i18next + i18next-http-backend (動態語系載入)
 - Port: Backend 10181, Frontend 10180
-- DB: 10.1.0.20:5433/baseAP (admin/DC1qaz2wsx)
+- DB: PostgreSQL (設定於 backend/.env)
 
 ## 目前開發狀態（2026-04-11）
 

@@ -24,7 +24,7 @@ export const getTenantUsers = async (params?: {
     const response = await axios.get<TenantUser[]>('/api/users/me/members', { params });
     return response.data;
   } catch (error) {
-    console.error('[TenantUsersService] Failed to get tenant users:', error);
+    console.error('Failed to get tenant users');
     throw error;
   }
 };
@@ -40,7 +40,7 @@ export const getTenantUser = async (id: number): Promise<TenantUser> => {
     const response = await axios.get<TenantUser>(`/api/users/me/members/${id}`);
     return response.data;
   } catch (error) {
-    console.error('[TenantUsersService] Failed to get tenant user:', error);
+    console.error('Failed to get tenant user');
     throw error;
   }
 };
@@ -57,7 +57,7 @@ export const createTenantUser = async (data: TenantUserCreate): Promise<TenantUs
     const response = await axios.post<TenantUser>('/api/users/me/members', data);
     return response.data;
   } catch (error) {
-    console.error('[TenantUsersService] Failed to create tenant user:', error);
+    console.error('Failed to create tenant user');
     throw error;
   }
 };
@@ -74,7 +74,7 @@ export const updateTenantUser = async (id: number, data: TenantUserUpdate): Prom
     const response = await axios.put<TenantUser>(`/api/users/me/members/${id}`, data);
     return response.data;
   } catch (error) {
-    console.error('[TenantUsersService] Failed to update tenant user:', error);
+    console.error('Failed to update tenant user');
     throw error;
   }
 };
@@ -89,7 +89,7 @@ export const deleteTenantUser = async (id: number): Promise<void> => {
   try {
     await axios.delete(`/api/users/me/members/${id}`);
   } catch (error) {
-    console.error('[TenantUsersService] Failed to delete tenant user:', error);
+    console.error('Failed to delete tenant user');
     throw error;
   }
 };
@@ -118,7 +118,7 @@ export const checkAccountUniqueness = async (account: string, excludeId?: number
     const existingUser = users.find(u => u.account === account && u.id !== excludeId);
     return !existingUser; // true = 唯一，false = 已存在
   } catch (error) {
-    console.error('[tenantUsersService] Failed to check account uniqueness:', error);
+    console.error('Failed to check account uniqueness');
     return false;
   }
 };
