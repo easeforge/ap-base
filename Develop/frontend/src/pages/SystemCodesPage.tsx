@@ -36,6 +36,9 @@ const SystemCodesPage: React.FC = () => {
   const [isViewMode, setIsViewMode] = useState(false);
   const hasInitialized = useRef(false);
 
+  // 關鍵字搜尋
+  const [keyword, setKeyword] = useState('');
+
   // 篩選欄位
   const [filters, setFilters] = useState({
     codeType: '',    // 代碼類別 (2,3)
@@ -61,11 +64,12 @@ const SystemCodesPage: React.FC = () => {
     note5: ''
   });
 
-  const loadCodes = async () => {
+  const loadCodes = async (searchKeyword?: string) => {
     try {
       setLoading(true);
       setError(null);
-      const data = await getSystemCodes();
+      const params = searchKeyword ? { search: searchKeyword } : undefined;
+      const data = await getSystemCodes(params);
       setCodes(data);
       setFilteredCodes(data);
     } catch (err: any) {
@@ -232,6 +236,7 @@ const SystemCodesPage: React.FC = () => {
   }, [permissionLoading]);
 
   const handleReset = () => {
+    setKeyword('');
     setFilters({
       codeType: '',
       code: '',
@@ -240,6 +245,13 @@ const SystemCodesPage: React.FC = () => {
     setSortField('id');
     setSortOrder('asc');
     setCurrentPage(1);
+    loadCodes();
+  };
+
+  const handleSearch = () => {
+    setFilters({ codeType: '', code: '', codeName: '' });
+    setCurrentPage(1);
+    loadCodes(keyword.trim() || undefined);
   };
 
   // 切換啟用狀態
@@ -499,8 +511,34 @@ const SystemCodesPage: React.FC = () => {
         )}
       </div>
 
-      {/* 篩選欄位 - 下拉選單 */}
-      <div className="search-bar" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr) auto', gap: '10px', alignItems: 'end' }}>
+      {/* 篩選區域 */}
+      <div className="search-bar" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        {/* 關鍵字搜尋列 */}
+        <div style={{
+          display: 'flex', gap: '10px', alignItems: 'center',
+          padding: '10px 14px',
+          background: '#f0f4f8', borderRadius: '6px', border: '1px solid #d0d7de'
+        }}>
+          <label style={{ fontWeight: '600', fontSize: '14px', color: '#24292f', whiteSpace: 'nowrap' }}>
+            {t('systemCodes.searchKeyword', '關鍵字搜尋')}
+          </label>
+          <input
+            type="text"
+            value={keyword}
+            onChange={(e) => setKeyword(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') handleSearch(); }}
+            placeholder={t('systemCodes.searchPlaceholder', '搜尋代碼類別、代碼編號、代碼名稱、說明...')}
+            style={{ flex: 1, padding: '7px 12px', borderRadius: '4px', border: '1px solid #ced4da', fontSize: '14px' }}
+          />
+          <button className="btn-primary" onClick={handleSearch} style={{ whiteSpace: 'nowrap', padding: '7px 16px' }}>
+            {t('common.search')}
+          </button>
+          <button className="btn-secondary" onClick={handleReset} style={{ whiteSpace: 'nowrap', padding: '7px 16px' }}>
+            {t('common.reset')}
+          </button>
+        </div>
+        {/* 下拉篩選列 */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr) auto', gap: '10px', alignItems: 'end' }}>
         <div>
           <label style={{ display: 'block', marginBottom: '4px', fontSize: '14px', fontWeight: '500' }}>
             {t('systemCodes.codeTypeCombined')}
@@ -546,9 +584,7 @@ const SystemCodesPage: React.FC = () => {
             ))}
           </select>
         </div>
-        <button className="btn-secondary" onClick={handleReset} style={{ marginBottom: '0' }}>
-          {t('common.reset')}
-        </button>
+        </div>
       </div>
 
       <div className="data-table-container">

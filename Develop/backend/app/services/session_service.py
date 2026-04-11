@@ -16,6 +16,9 @@ logger = logging.getLogger(__name__)
 SESSION_EXPIRE_SECONDS = 3600  # 60 分鐘（初始時效）
 SESSION_EXTEND_SECONDS = 1800  # 30 分鐘（每次延長）
 
+# Memory fallback（Redis 不可用時使用）
+_memory_sessions: Dict[str, Any] = {}
+
 # 台北時區 (UTC+8)
 TAIPEI_TZ = timezone(timedelta(hours=8))
 
@@ -55,41 +58,42 @@ class SessionService:
         Returns:
             是否建立成功
         """
+        session_data = {
+            "user_id": user_id,
+            "role_ids": role_ids,
+            "roles": roles or [],
+            "organization_id": organization_id,
+            "username": username,
+            "account": account,
+            "authorized_function_ids": authorized_function_ids or [],
+            "created_at": get_taipei_now().isoformat(),
+            "last_access": get_taipei_now().isoformat()
+        }
+
         redis_client = get_redis()
-        if not redis_client:
-            logger.warning("Redis 未連線，無法建立 Session")
-            return False
+        if redis_client:
+            try:
+                key = f"session:{session_id}"
+                redis_client.setex(
+                    key,
+                    SESSION_EXPIRE_SECONDS,
+                    json.dumps(session_data)
+                )
+                logger.info(
+                    f"Session 已建立 (Redis): {session_id} "
+                    f"(User: {user_id}, Roles: {role_ids})"
+                )
+                return True
+            except Exception as e:
+                logger.error(f"Redis 建立 Session 失敗: {e}")
 
-        try:
-            session_data = {
-                "user_id": user_id,
-                "role_ids": role_ids,
-                "roles": roles or [],
-                "organization_id": organization_id,
-                "username": username,
-                "account": account,
-                "authorized_function_ids": authorized_function_ids or [],
-                "created_at": get_taipei_now().isoformat(),
-                "last_access": get_taipei_now().isoformat()
-            }
-
-            key = f"session:{session_id}"
-            redis_client.setex(
-                key,
-                SESSION_EXPIRE_SECONDS,
-                json.dumps(session_data)
-            )
-
-            logger.info(
-                f"✅ Session 已建立: {session_id} "
-                f"(User: {user_id}, Roles: {role_ids}, "
-                f"Authorized Functions: {len(authorized_function_ids or [])})"
-            )
-            return True
-
-        except Exception as e:
-            logger.error(f"❌ 建立 Session 失敗: {e}")
-            return False
+        # Memory fallback
+        _memory_sessions[session_id] = session_data
+        logger.info(
+            f"Session 已建立 (Memory): {session_id} "
+            f"(User: {user_id}, Roles: {role_ids})"
+        )
+        return True
 
     @staticmethod
     def get_session(session_id: str) -> Optional[Dict[str, Any]]:
@@ -103,34 +107,31 @@ class SessionService:
             Session 資料字典，如果不存在或過期則返回 None
         """
         redis_client = get_redis()
-        if not redis_client:
-            logger.warning("Redis 未連線，無法取得 Session")
-            return None
+        if redis_client:
+            try:
+                key = f"session:{session_id}"
+                session_json = redis_client.get(key)
 
-        try:
-            key = f"session:{session_id}"
-            session_json = redis_client.get(key)
+                if session_json:
+                    session_data = json.loads(session_json)
+                    session_data["last_access"] = get_taipei_now().isoformat()
+                    redis_client.setex(
+                        key,
+                        SESSION_EXTEND_SECONDS,
+                        json.dumps(session_data)
+                    )
+                    return session_data
+            except Exception as e:
+                logger.error(f"Redis 取得 Session 失敗: {e}")
 
-            if not session_json:
-                logger.warning(f"Session 不存在或已過期: {session_id}")
-                return None
-
-            session_data = json.loads(session_json)
-
-            # 更新最後存取時間並延長過期時間（延長 30 分鐘）
+        # Memory fallback
+        session_data = _memory_sessions.get(session_id)
+        if session_data:
             session_data["last_access"] = get_taipei_now().isoformat()
-            redis_client.setex(
-                key,
-                SESSION_EXTEND_SECONDS,
-                json.dumps(session_data)
-            )
-
-            logger.debug(f"Session 已讀取並更新: {session_id}")
             return session_data
 
-        except Exception as e:
-            logger.error(f"❌ 取得 Session 失敗: {e}")
-            return None
+        logger.warning(f"Session 不存在或已過期: {session_id}")
+        return None
 
     @staticmethod
     def update_session_roles(
@@ -297,24 +298,20 @@ class SessionService:
             是否刪除成功
         """
         redis_client = get_redis()
-        if not redis_client:
-            logger.warning("Redis 未連線，無法刪除 Session")
-            return False
+        if redis_client:
+            try:
+                key = f"session:{session_id}"
+                redis_client.delete(key)
+            except Exception as e:
+                logger.error(f"Redis 刪除 Session 失敗: {e}")
 
-        try:
-            key = f"session:{session_id}"
-            result = redis_client.delete(key)
+        # Memory fallback
+        removed = _memory_sessions.pop(session_id, None)
+        if removed:
+            logger.info(f"Session 已刪除: {session_id}")
+            return True
 
-            if result:
-                logger.info(f"✅ Session 已刪除: {session_id}")
-                return True
-            else:
-                logger.warning(f"Session 不存在: {session_id}")
-                return False
-
-        except Exception as e:
-            logger.error(f"❌ 刪除 Session 失敗: {e}")
-            return False
+        return False
 
     @staticmethod
     def delete_user_sessions(user_id: int) -> int:

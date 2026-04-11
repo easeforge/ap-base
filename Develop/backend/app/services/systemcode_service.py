@@ -39,7 +39,12 @@ class SystemCodeService:
                     SystemCode.code_ctype.ilike(f"%{query.search}%"),
                     SystemCode.code.ilike(f"%{query.search}%"),
                     SystemCode.code_cname.ilike(f"%{query.search}%"),
-                    SystemCode.code_ename.ilike(f"%{query.search}%")
+                    SystemCode.code_ename.ilike(f"%{query.search}%"),
+                    SystemCode.note1.ilike(f"%{query.search}%"),
+                    SystemCode.note2.ilike(f"%{query.search}%"),
+                    SystemCode.note3.ilike(f"%{query.search}%"),
+                    SystemCode.note4.ilike(f"%{query.search}%"),
+                    SystemCode.note5.ilike(f"%{query.search}%"),
                 )
                 q = q.filter(search_filter)
             else:

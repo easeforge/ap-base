@@ -5,13 +5,13 @@ User Schemas
 
 from typing import Optional, List
 from datetime import datetime
-from pydantic import BaseModel, Field, EmailStr
+from pydantic import BaseModel, Field
 
 
 class UserBase(BaseModel):
     """使用者基本資訊"""
 
-    account: EmailStr = Field(..., description="登入帳號 (電子郵件)")
+    account: str = Field(..., description="登入帳號")
     username: str = Field(..., description="使用者名稱")
     organization_id: int = Field(..., description="組織 ID")
     department: Optional[str] = Field(None, description="部門")

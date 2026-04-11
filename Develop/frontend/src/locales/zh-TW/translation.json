@@ -48,7 +48,9 @@
   "auth": {
     "login": "使用者登入",
     "logout": "登出",
+    "account": "帳號",
     "email": "電子郵件",
+    "accountPlaceholder": "請輸入帳號",
     "password": "密碼",
     "emailPlaceholder": "請輸入您的電子郵件",
     "passwordPlaceholder": "請輸入您的密碼",
@@ -331,6 +333,8 @@
   },
   "systemCodes": {
     "title": "系統代碼設定",
+    "searchKeyword": "關鍵字搜尋",
+    "searchPlaceholder": "搜尋代碼類別、代碼編號、代碼名稱、說明...",
     "list": "系統代碼列表",
     "add": "新增系統代碼",
     "edit": "編輯系統代碼",

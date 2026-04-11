@@ -48,7 +48,9 @@
   "auth": {
     "login": "User Login",
     "logout": "Logout",
+    "account": "Account",
     "email": "Email",
+    "accountPlaceholder": "Please enter your account",
     "password": "Password",
     "emailPlaceholder": "Please enter your email",
     "passwordPlaceholder": "Please enter your password",
@@ -331,6 +333,8 @@
   },
   "systemCodes": {
     "title": "System Codes",
+    "searchKeyword": "Keyword Search",
+    "searchPlaceholder": "Search code type, code, name, notes...",
     "list": "System Code List",
     "add": "Add System Code",
     "edit": "Edit System Code",

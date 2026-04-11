@@ -386,7 +386,11 @@
       "Bash(sed -i '/if \\(!txnToken\\)/,/}$/{ /if \\(!txnToken\\)/d; /return;/d; /}$/d; }' ChangePasswordPage.tsx)",
       "Bash(sed -i 's/        txnToken//' ChangePasswordPage.tsx)",
       "Bash(sed -i 's/disabled={!txnToken}//' ChangePasswordPage.tsx)",
-      "Bash(sed -i '/!txnToken && \\(/,/}$/d' ChangePasswordPage.tsx)"
+      "Bash(sed -i '/!txnToken && \\(/,/}$/d' ChangePasswordPage.tsx)",
+      "Bash(venv/Scripts/python -c ':*)",
+      "Bash(PYTHONIOENCODING=utf-8 venv/Scripts/python insert_iso3166.py)",
+      "Bash(PYTHONIOENCODING=utf-8 venv/Scripts/python insert_tw_area.py)",
+      "Bash(PYTHONIOENCODING=utf-8 venv/Scripts/python insert_tw_area_moi.py)"
     ]
   }
 }

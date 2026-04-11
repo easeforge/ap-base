@@ -105,17 +105,17 @@ const LoginPage: React.FC = () => {
 
           <form onSubmit={handleSubmit} className="login-form">
             <div className="form-group">
-              <label htmlFor="account">{t('auth.email')}</label>
+              <label htmlFor="account">{t('auth.account', '帳號')}</label>
               <input
-                type="email"
+                type="text"
                 id="account"
                 name="account"
                 value={formData.account}
                 onChange={handleChange}
-                placeholder={t('auth.emailPlaceholder')}
+                placeholder={t('auth.accountPlaceholder', '請輸入帳號')}
                 required
                 disabled={isLoading}
-                autoComplete="email"
+                autoComplete="username"
               />
             </div>
 

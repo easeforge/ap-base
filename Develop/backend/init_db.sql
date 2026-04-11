@@ -351,22 +351,27 @@ ON CONFLICT (id) DO NOTHING;
 
 -- 預設管理員帳號 (密碼: admin123, bcrypt hash)
 INSERT INTO users (id, organization_id, account, username, password, user_role, is_active, edit_by)
-VALUES (1, 1, 'admin', '系統管理員', '$2b$12$LJ3m4ys3PxGSwUFJqYFE6.bnDn6rDPjFhHsNx0r/IhcXbLMbXCdcq', '[1]', TRUE, 1)
+VALUES (1, 1, 'admin', '系統管理員', '$2b$12$BjTX831P1VnmDOagITw/He9wfHDai1qeK.W0d2OiSFyH8WF7GQd/C', '[1]', TRUE, 1)
 ON CONFLICT (id) DO NOTHING;
 
 -- 預設系統功能選單 (後台管理)
 INSERT INTO system_functions (id, func_code, upper_func_id, func_cname, func_ename, func_type, func_order, func_icon, module_code, module_item, description, is_mana, is_active, edit_by)
 VALUES
-(1, 'system_mana', 0, '系統管理後台', 'System Management', 1, 10, 'settings', NULL, '[]', '', TRUE, TRUE, 1),
-(2, 'sys_profile', 1, '系統設定資料', 'System Profile', 2, 1010, 'settings', 'sys_profile', '["Create","Read","Update","Delete","Print","File"]', '', TRUE, TRUE, 1),
-(3, 'organizations', 1, '組織設定', 'Organizations', 2, 1020, 'business', 'organizations', '["Create","Read","Update","Delete","Print","File"]', '', TRUE, TRUE, 1),
-(4, 'user_roles', 1, '使用者角色設定', 'User Roles', 2, 1030, 'users', 'user_roles', '["Create","Read","Update","Delete","Print","File"]', '', TRUE, TRUE, 1),
-(5, 'users', 1, '使用者設定', 'Users', 2, 1040, 'user', 'users', '["Create","Read","Update","Delete","Print","File"]', '', TRUE, TRUE, 1),
-(6, 'system_functions', 1, '系統功能管理', 'System Functions', 2, 1050, 'functions', 'system_functions', '["Create","Read","Update","Delete","Print","File"]', '', TRUE, TRUE, 1),
-(7, 'role_rights', 1, '角色權限設定', 'Role Rights', 2, 1060, 'shield', 'role_rights', '["Create","Read","Update","Delete","Print","File"]', '', TRUE, TRUE, 1),
-(8, 'system_codes', 1, '系統代碼管理', 'System Codes', 2, 1070, 'code', 'system_codes', '["Create","Read","Update","Delete","Print","File"]', '', TRUE, TRUE, 1),
-(9, 'system_notifications', 1, '系統通知管理', 'System Notifications', 2, 1080, 'bell', 'system_notifications', '["Create","Read","Update","Delete","Print","File"]', '', TRUE, TRUE, 1),
-(10, 'user_logs', 1, '使用者日誌', 'User Logs', 2, 1090, 'log', 'user_logs', '["Read"]', '', TRUE, TRUE, 1)
+-- 系統管理後台 (節點)
+(1, 'system_mana', 0, '系統管理後台', 'System Management', 1, 10, '🗂️', NULL, '[]', '', TRUE, TRUE, 1),
+(2, 'sys_profile', 1, '系統設定資料', 'System Profile', 2, 1010, '🏷️', 'sys_profile', '["Create","Read","Update","Delete","Print","File"]', '', TRUE, TRUE, 1),
+(3, 'organizations', 1, '組織設定', 'Organizations', 2, 1020, '🏷️', 'organizations', '["Create","Read","Update","Delete","Print","File"]', '', TRUE, TRUE, 1),
+(4, 'user_roles', 1, '使用者角色設定', 'User Roles', 2, 1030, '🏷️', 'user_roles', '["Create","Read","Update","Delete","Print","File"]', '', TRUE, TRUE, 1),
+(5, 'users', 1, '使用者設定', 'Users', 2, 1040, '🏷️', 'users', '["Create","Read","Update","Delete","Print","File"]', '', TRUE, TRUE, 1),
+(6, 'system_functions', 1, '系統功能管理', 'System Functions', 2, 1050, '🏷️', 'system_functions', '["Create","Read","Update","Delete","Print","File"]', '', TRUE, TRUE, 1),
+(7, 'role_rights', 1, '角色權限設定', 'Role Rights', 2, 1060, '🏷️', 'role_rights', '["Create","Read","Update","Delete","Print","File"]', '', TRUE, TRUE, 1),
+(8, 'system_codes', 1, '系統代碼管理', 'System Codes', 2, 1070, '🏷️', 'system_codes', '["Create","Read","Update","Delete","Print","File"]', '', TRUE, TRUE, 1),
+(9, 'system_notifications', 1, '系統通知管理', 'System Notifications', 2, 1080, '🏷️', 'system_notifications', '["Create","Read","Update","Delete","Print","File"]', '', TRUE, TRUE, 1),
+(10, 'user_logs', 1, '使用者日誌', 'User Logs', 2, 1090, '🏷️', 'user_logs', '["Read"]', '', TRUE, TRUE, 1),
+-- 租戶管理 (節點)
+(11, 'tenant_mana', 0, '租戶管理', 'Tenant Management', 1, 20, '🗂️', NULL, '[]', '', FALSE, TRUE, 1),
+(12, 'tenant_profile', 11, '組織資料維護', 'Tenant Profile', 2, 2010, '🏷️', 'tenant_profile', '["Create","Read","Update","Delete","Print","File"]', '', FALSE, TRUE, 1),
+(13, 'tenant_users', 11, '組織使用者管理', 'Tenant Users', 2, 2020, '🏷️', 'tenant_users', '["Create","Read","Update","Delete","Print","File"]', '', FALSE, TRUE, 1)
 ON CONFLICT (id) DO NOTHING;
 
 -- 預設系統設定

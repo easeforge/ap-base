@@ -113,7 +113,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle, width = 260 })
 
   // 根據功能類型取得預設圖示
   const getDefaultIcon = (funcType: number): string => {
-    return funcType === 1 ? '📁' : '🪧';
+    return funcType === 1 ? '🗂️' : '🏷️';
   };
 
   // 遞迴渲染懸浮選單的多層次項目
