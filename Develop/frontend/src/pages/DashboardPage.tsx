@@ -22,7 +22,6 @@ import {
   closeNotificationsToday,
   SystemNotification
 } from '../services/systemNotificationsService';
-import { logView } from '../utils/userLogHelper';
 import { getI18nValue } from '../utils/i18nHelper';
 import '../styles/DashboardPage.css';
 
@@ -40,33 +39,17 @@ const DashboardPage: React.FC = () => {
 
   // 載入今日通知
   useEffect(() => {
-    console.log('DashboardPage mounted, loading notifications...');
-    const initPage = async () => {
-      await loadTodayNotifications();
-      // 記錄瀏覽日誌
-      try {
-        await logView('dashboard', { action: 'view_dashboard' });
-      } catch (logErr) {
-        console.error('[DashboardPage] Failed to log view:', logErr);
-      }
-    };
-    initPage();
+    loadTodayNotifications();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadTodayNotifications = async () => {
-    console.log('loadTodayNotifications called');
     try {
-      console.log('Calling getHomeNotifications API...');
       const response = await getHomeNotifications();
-      console.log('API response:', response);
       if (response.notifications && response.notifications.length > 0) {
-        console.log('Found notifications:', response.notifications.length);
         setNotifications(response.notifications);
         setCurrentNotificationIndex(0);
         setShowNotificationModal(true);
-      } else {
-        console.log('No notifications to display');
       }
     } catch (error) {
       console.error('Failed to load today notifications:', error);
@@ -128,23 +111,16 @@ const DashboardPage: React.FC = () => {
   // 取得組織資料
   useEffect(() => {
     const fetchOrganization = async () => {
-      console.log('DashboardPage - user:', user);
-      console.log('DashboardPage - organization_id:', user?.organization_id);
-
       if (user?.organization_id) {
         try {
-          console.log('Fetching organization data for ID:', user.organization_id);
           setOrgLoading(true);
           const orgData = await getOrganization(user.organization_id);
-          console.log('Organization data received:', orgData);
           setOrganization(orgData);
         } catch (error) {
           console.error('Failed to fetch organization:', error);
         } finally {
           setOrgLoading(false);
         }
-      } else {
-        console.log('No organization_id found in user data');
       }
     };
 

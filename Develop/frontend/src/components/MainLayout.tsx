@@ -239,26 +239,28 @@ const MainLayout: React.FC = () => {
                 }
               }}
             >
-              {userMenuItems.map((item, index) => {
+              {userMenuItems.flatMap((item) => {
                 const isLogout = item.func_code === 'logout';
-                return (
-                  <React.Fragment key={item.id}>
-                    {isLogout && <Divider />}
-                    <MenuItem onClick={() => handleMenuItemClick(item.func_code)}>
-                      <ListItemIcon>
-                        {item.func_icon
-                          ? getIconComponent(item.func_icon)
-                          : isLogout
-                          ? <LogoutIcon fontSize="small" />
-                          : <AccountCircle fontSize="small" />
-                        }
-                      </ListItemIcon>
-                      <ListItemText>
-                        {getI18nValue(item.func_name, i18n.language)}
-                      </ListItemText>
-                    </MenuItem>
-                  </React.Fragment>
+                const elements = [];
+                if (isLogout) {
+                  elements.push(<Divider key={`divider-${item.id}`} />);
+                }
+                elements.push(
+                  <MenuItem key={item.id} onClick={() => handleMenuItemClick(item.func_code)}>
+                    <ListItemIcon>
+                      {item.func_icon
+                        ? getIconComponent(item.func_icon)
+                        : isLogout
+                        ? <LogoutIcon fontSize="small" />
+                        : <AccountCircle fontSize="small" />
+                      }
+                    </ListItemIcon>
+                    <ListItemText>
+                      {getI18nValue(item.func_name, i18n.language)}
+                    </ListItemText>
+                  </MenuItem>
                 );
+                return elements;
               })}
             </Menu>
           </div>

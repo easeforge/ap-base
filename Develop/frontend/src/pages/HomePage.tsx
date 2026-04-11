@@ -3,7 +3,7 @@
  * 使用者登入後的首頁儀表板
  */
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import {
   Box,
   Container,
@@ -13,23 +13,12 @@ import {
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
-import { logView } from '../utils/userLogHelper';
 
 const HomePage: React.FC = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
 
-  // 記錄瀏覽日誌
-  useEffect(() => {
-    const initPage = async () => {
-      try {
-        await logView('dashboard', { action: 'view_home' });
-      } catch (logErr) {
-        console.error('[HomePage] Failed to log view:', logErr);
-      }
-    };
-    initPage();
-  }, []);
+  // Dashboard/Home 不記錄瀏覽日誌（非功能頁面）
 
   return (
     <Container maxWidth="xl">
