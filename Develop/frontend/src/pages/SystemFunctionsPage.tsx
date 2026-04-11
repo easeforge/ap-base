@@ -16,6 +16,7 @@ import {
 } from '../services/systemFunctionsService';
 import { usePermission } from '../hooks/usePermission';
 import { useFunctionName } from '../hooks/useFunctionName';
+import { useSystem } from '../contexts/SystemContext';
 import { logView, logCreate, logRead, logUpdate, logDelete } from '../utils/userLogHelper';
 import { getI18nValue } from '../utils/i18nHelper';
 import FunctionPageHeader from '../components/FunctionPageHeader';
@@ -25,6 +26,8 @@ import '../styles/DataTable.css';
 const SystemFunctionsPage: React.FC = () => {
   const { t, i18n } = useTranslation();
   const { hasPermission, loading: permissionLoading } = usePermission();
+  const { availableLanguages } = useSystem();
+  const enabledLangs = availableLanguages.map(l => l.code);
   const pageTitle = useFunctionName('system_functions');
   const hasInitialized = useRef(false);
   const [functions, setFunctions] = useState<SystemFunction[]>([]);
@@ -628,26 +631,18 @@ const SystemFunctionsPage: React.FC = () => {
                   </select>
                 </div>
 
-                <div className="form-group">
-                  <label>{t('sysFunctions.funcCname')} *</label>
-                  <input
-                    type="text"
-                    value={formData.func_name?.['zh-TW'] || ''}
-                    onChange={(e) => setFormData({ ...formData, func_name: { ...formData.func_name, 'zh-TW': e.target.value } as I18nField })}
-                    disabled={isViewMode}
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label>{t('sysFunctions.funcEname')} *</label>
-                  <input
-                    type="text"
-                    value={formData.func_name?.['en'] || ''}
-                    onChange={(e) => setFormData({ ...formData, func_name: { ...formData.func_name, 'en': e.target.value } as I18nField })}
-                    disabled={isViewMode}
-                    required
-                  />
-                </div>
+                {enabledLangs.map((lang, idx) => (
+                  <div className="form-group" key={`fn-${lang}`}>
+                    <label>{t('sysFunctions.funcName', '功能名稱')} ({lang}){idx === 0 ? ' *' : ''}</label>
+                    <input
+                      type="text"
+                      value={formData.func_name?.[lang] || ''}
+                      onChange={(e) => setFormData({ ...formData, func_name: { ...formData.func_name, [lang]: e.target.value } as I18nField })}
+                      disabled={isViewMode}
+                      required={idx === 0}
+                    />
+                  </div>
+                ))}
 
                 <div className="form-group">
                   <label>{t('sysFunctions.funcType')} *</label>

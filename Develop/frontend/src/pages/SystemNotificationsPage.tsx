@@ -22,12 +22,15 @@ import {
 } from '../services/systemNotificationsService';
 import { logView, logCreate, logUpdate, logDelete } from '../utils/userLogHelper';
 import { getI18nValue } from '../utils/i18nHelper';
+import { useSystem } from '../contexts/SystemContext';
 import { I18nField } from '../types';
 import '../styles/DataTable.css';
 
 const SystemNotificationsPage: React.FC = () => {
   const { t, i18n } = useTranslation();
   const { hasPermission, loading: permissionLoading } = usePermission();
+  const { availableLanguages } = useSystem();
+  const enabledLangs = availableLanguages.map(l => l.code);
   const pageTitle = useFunctionName('system_notifications');
 
   const [notifications, setNotifications] = useState<SystemNotification[]>([]);
@@ -221,18 +224,17 @@ const SystemNotificationsPage: React.FC = () => {
   const validateForm = (): boolean => {
     const errors: { [key: string]: string } = {};
 
-    if (!formData.notice_subject['zh-TW']?.trim()) {
-      errors.notice_subject_zhTW = t('system_notifications.validationNoticeCSubjectRequired');
-    }
-    if (!formData.notice_subject['en']?.trim()) {
-      errors.notice_subject_en = t('system_notifications.validationNoticeESubjectRequired');
-    }
-    if (!formData.notice_description['zh-TW']?.trim()) {
-      errors.notice_description_zhTW = t('system_notifications.validationNoticeCDescriptionRequired');
-    }
-    if (!formData.notice_description['en']?.trim()) {
-      errors.notice_description_en = t('system_notifications.validationNoticeEDescriptionRequired');
-    }
+    // Validate first enabled language is required for subject and description
+    enabledLangs.forEach((lang, idx) => {
+      if (idx === 0) {
+        if (!formData.notice_subject[lang]?.trim()) {
+          errors[`notice_subject_${lang}`] = t('system_notifications.validationNoticeSubjectRequired', '通知主旨為必填');
+        }
+        if (!formData.notice_description[lang]?.trim()) {
+          errors[`notice_description_${lang}`] = t('system_notifications.validationNoticeDescriptionRequired', '通知說明為必填');
+        }
+      }
+    });
 
     // Validate end time is after start time
     const startTime = new Date(formData.notice_start_at);
@@ -625,75 +627,44 @@ const SystemNotificationsPage: React.FC = () => {
             <form onSubmit={handleSubmit}>
               <div className="modal-body">
                 <div className="form-grid">
-                <div className="form-group">
-                  <label>{t('system_notifications.noticeCSubject')} *</label>
-                  <input
-                    type="text"
-                    value={formData.notice_subject['zh-TW'] || ''}
-                    onChange={(e) => setFormData({...formData, notice_subject: {...formData.notice_subject, 'zh-TW': e.target.value}})}
-                    disabled={isViewMode}
-                    maxLength={200}
-                    style={{ borderColor: formErrors.notice_subject_zhTW ? '#e74c3c' : undefined }}
-                  />
-                  {formErrors.notice_subject_zhTW && (
-                    <span style={{ color: '#e74c3c', fontSize: '12px', marginTop: '4px' }}>
-                      {formErrors.notice_subject_zhTW}
-                    </span>
-                  )}
-                </div>
-
-                <div className="form-group">
-                  <label>{t('system_notifications.noticeESubject')} *</label>
-                  <input
-                    type="text"
-                    value={formData.notice_subject['en'] || ''}
-                    onChange={(e) => setFormData({...formData, notice_subject: {...formData.notice_subject, 'en': e.target.value}})}
-                    disabled={isViewMode}
-                    maxLength={200}
-                    style={{ borderColor: formErrors.notice_subject_en ? '#e74c3c' : undefined }}
-                  />
-                  {formErrors.notice_subject_en && (
-                    <span style={{ color: '#e74c3c', fontSize: '12px', marginTop: '4px' }}>
-                      {formErrors.notice_subject_en}
-                    </span>
-                  )}
-                </div>
-
-                <div className="form-group full-width">
-                  <label>{t('system_notifications.noticeCDescription')} *</label>
-                  {showModal && (
-                    <RichTextEditor
-                      key={`cdesc-${editingNotification?.id || 'new'}`}
-                      value={editingNotification?.notice_description?.['zh-TW'] || formData.notice_description['zh-TW'] || ''}
-                      onChange={(html) => setFormData({ ...formData, notice_description: {...formData.notice_description, 'zh-TW': html} })}
+                {enabledLangs.map((lang, idx) => (
+                  <div className="form-group" key={`ns-${lang}`}>
+                    <label>{t('system_notifications.noticeSubject', '通知主旨')} ({lang}){idx === 0 ? ' *' : ''}</label>
+                    <input
+                      type="text"
+                      name={`notice_subject_${lang}`}
+                      value={formData.notice_subject[lang] || ''}
+                      onChange={(e) => setFormData({...formData, notice_subject: {...formData.notice_subject, [lang]: e.target.value}})}
                       disabled={isViewMode}
-                      placeholder={t('system_notifications.noticeCDescription')}
+                      maxLength={200}
+                      style={{ borderColor: formErrors[`notice_subject_${lang}`] ? '#e74c3c' : undefined }}
                     />
-                  )}
-                  {formErrors.notice_description_zhTW && (
-                    <span style={{ color: '#e74c3c', fontSize: '12px', marginTop: '4px', display: 'block' }}>
-                      {formErrors.notice_description_zhTW}
-                    </span>
-                  )}
-                </div>
+                    {formErrors[`notice_subject_${lang}`] && (
+                      <span style={{ color: '#e74c3c', fontSize: '12px', marginTop: '4px' }}>
+                        {formErrors[`notice_subject_${lang}`]}
+                      </span>
+                    )}
+                  </div>
+                ))}
 
-                <div className="form-group full-width">
-                  <label>{t('system_notifications.noticeEDescription')} *</label>
-                  {showModal && (
-                    <RichTextEditor
-                      key={`edesc-${editingNotification?.id || 'new'}`}
-                      value={editingNotification?.notice_description?.['en'] || formData.notice_description['en'] || ''}
-                      onChange={(html) => setFormData({ ...formData, notice_description: {...formData.notice_description, 'en': html} })}
-                      disabled={isViewMode}
-                      placeholder={t('system_notifications.noticeEDescription')}
-                    />
-                  )}
-                  {formErrors.notice_description_en && (
-                    <span style={{ color: '#e74c3c', fontSize: '12px', marginTop: '4px', display: 'block' }}>
-                      {formErrors.notice_description_en}
-                    </span>
-                  )}
-                </div>
+                {enabledLangs.map((lang, idx) => (
+                  <div className="form-group full-width" key={`nd-${lang}`}>
+                    <label>{t('system_notifications.noticeDescription', '通知說明')} ({lang}){idx === 0 ? ' *' : ''}</label>
+                    {showModal && (
+                      <RichTextEditor
+                        key={`desc-${lang}-${editingNotification?.id || 'new'}`}
+                        value={editingNotification?.notice_description?.[lang] || formData.notice_description[lang] || ''}
+                        onChange={(html) => setFormData({...formData, notice_description: {...formData.notice_description, [lang]: html}})}
+                        disabled={isViewMode}
+                      />
+                    )}
+                    {formErrors[`notice_description_${lang}`] && (
+                      <span style={{ color: '#e74c3c', fontSize: '12px', marginTop: '4px', display: 'block' }}>
+                        {formErrors[`notice_description_${lang}`]}
+                      </span>
+                    )}
+                  </div>
+                ))}
 
                 <div className="form-group">
                   <label>{t('system_notifications.noticeStartAt')} *</label>

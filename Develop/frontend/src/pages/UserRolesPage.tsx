@@ -17,6 +17,7 @@ import { I18nField } from '../types';
 import { getI18nValue } from '../utils/i18nHelper';
 import { usePermission } from '../hooks/usePermission';
 import { useFunctionName } from '../hooks/useFunctionName';
+import { useSystem } from '../contexts/SystemContext';
 import { logView, logCreate, logUpdate, logDelete } from '../utils/userLogHelper';
 import { validateSession } from '../utils/sessionValidator';
 import FunctionPageHeader from '../components/FunctionPageHeader';
@@ -25,6 +26,8 @@ import '../styles/DataTable.css';
 const UserRolesPage: React.FC = () => {
   const { t, i18n } = useTranslation();
   const { hasPermission, loading: permissionLoading } = usePermission();
+  const { availableLanguages } = useSystem();
+  const enabledLangs = availableLanguages.map(l => l.code);
   const pageTitle = useFunctionName('user_roles');
   const [roles, setRoles] = useState<UserRole[]>([]);
   const [loading, setLoading] = useState(false);
@@ -397,32 +400,21 @@ const UserRolesPage: React.FC = () => {
             <form onSubmit={handleSubmit}>
               <div className="modal-body">
                 <div className="form-grid">
-                <div className="form-group">
-                  <label>{t('userRoles.roleCname')} *</label>
-                  <input
-                    type="text"
-                    value={formData.role_name['zh-TW'] || ''}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      role_name: { ...formData.role_name, 'zh-TW': e.target.value }
-                    })}
-                    required
-                    disabled={isViewMode}
-                  />
-                </div>
-                <div className="form-group">
-                  <label>{t('userRoles.roleEname')} *</label>
-                  <input
-                    type="text"
-                    value={formData.role_name['en'] || ''}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      role_name: { ...formData.role_name, 'en': e.target.value }
-                    })}
-                    required
-                    disabled={isViewMode}
-                  />
-                </div>
+                {enabledLangs.map((lang, idx) => (
+                  <div className="form-group" key={`rn-${lang}`}>
+                    <label>{t('userRoles.roleName', '角色名稱')} ({lang}){idx === 0 ? ' *' : ''}</label>
+                    <input
+                      type="text"
+                      value={formData.role_name[lang] || ''}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        role_name: { ...formData.role_name, [lang]: e.target.value }
+                      })}
+                      required={idx === 0}
+                      disabled={isViewMode}
+                    />
+                  </div>
+                ))}
                 <div className="form-group full-width">
                   <label>{t('userRoles.description')}</label>
                   <textarea

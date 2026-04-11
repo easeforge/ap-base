@@ -17,6 +17,7 @@ import {
 import { I18nField } from '../types';
 import { getI18nValue } from '../utils/i18nHelper';
 import { usePermission } from '../hooks/usePermission';
+import { useSystem } from '../contexts/SystemContext';
 import { useFunctionName } from '../hooks/useFunctionName';
 import { logView, logCreate, logRead, logUpdate, logDelete } from '../utils/userLogHelper';
 import { validateSession } from '../utils/sessionValidator';
@@ -26,6 +27,8 @@ import '../styles/DataTable.css';
 const SystemCodesPage: React.FC = () => {
   const { t, i18n } = useTranslation();
   const { hasPermission, loading: permissionLoading } = usePermission();
+  const { availableLanguages } = useSystem();
+  const enabledLangs = availableLanguages.map(l => l.code);
   const pageTitle = useFunctionName('system_codes');
   const [codes, setCodes] = useState<SystemCode[]>([]);
   const [filteredCodes, setFilteredCodes] = useState<SystemCode[]>([]);
@@ -366,36 +369,38 @@ const SystemCodesPage: React.FC = () => {
 
   /**
    * 依照語系顯示代碼類別
-   * 主要語系名稱為主，code_type 識別碼顯示於下方
+   * 上方：當前選定語系名稱，下方：基礎語系(en)名稱
    */
   const renderCodeType = (code: SystemCode) => {
-    const displayName = getI18nValue(code.code_type_name, i18n.language);
+    const primary = getI18nValue(code.code_type_name, i18n.language);
+    const base = code.code_type_name?.['en'] || '';
 
     return (
       <div style={{ display: 'flex', flexDirection: 'column' }}>
-        <span>{displayName}</span>
-        <span style={{ fontSize: '0.85em', color: '#666' }}>
-          {code.code_type}
-        </span>
+        <span>{primary}</span>
+        {base && base !== primary && (
+          <span style={{ fontSize: '0.85em', color: '#666' }}>
+            {base}
+          </span>
+        )}
       </div>
     );
   };
 
   /**
    * 依照語系顯示代碼名稱
-   * 當前語系為主，另一語系換行縮小顯示於下方
+   * 上方：當前選定語系名稱，下方：基礎語系(en)名稱
    */
   const renderCodeName = (code: SystemCode) => {
     const primary = getI18nValue(code.code_name, i18n.language);
-    const otherLang = i18n.language === 'zh-TW' ? 'en' : 'zh-TW';
-    const secondary = getI18nValue(code.code_name, otherLang);
+    const base = code.code_name?.['en'] || '';
 
     return (
       <div style={{ display: 'flex', flexDirection: 'column' }}>
         <span>{primary}</span>
-        {secondary && secondary !== primary && (
+        {base && base !== primary && (
           <span style={{ fontSize: '0.85em', color: '#666' }}>
-            {secondary}
+            {base}
           </span>
         )}
       </div>
@@ -561,8 +566,9 @@ const SystemCodesPage: React.FC = () => {
                 onClick={() => handleSort('codeType')}
                 title="點擊排序"
               >
-                {t('systemCodes.codeTypeCombined')} {sortField === 'codeType' && (sortOrder === 'asc' ? '▲' : '▼')}
+                {t('systemCodes.codeType', '代碼類別識別碼')} {sortField === 'codeType' && (sortOrder === 'asc' ? '▲' : '▼')}
               </th>
+              <th>{t('systemCodes.codeTypeCombined')}</th>
               <th>{t('systemCodes.code')}</th>
               <th>{t('systemCodes.codeNameCombined')}</th>
               <th
@@ -580,6 +586,7 @@ const SystemCodesPage: React.FC = () => {
             {currentCodes.map((code) => (
               <tr key={code.id}>
                 <td>{code.id}</td>
+                <td>{code.code_type}</td>
                 <td>{renderCodeType(code)}</td>
                 <td>{code.code}</td>
                 <td>{renderCodeName(code)}</td>
@@ -720,27 +727,19 @@ const SystemCodesPage: React.FC = () => {
                       ))}
                     </datalist>
                   </div>
-                  <div className="form-group">
-                    <label>{t('systemCodes.codeTypeName', '代碼類別名稱')} (zh-TW) *</label>
-                    <input
-                      type="text"
-                      value={formData.code_type_name['zh-TW'] || ''}
-                      onChange={(e) => updateI18nField('code_type_name', 'zh-TW', e.target.value)}
-                      required
-                      disabled={isViewMode}
-                      maxLength={200}
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>{t('systemCodes.codeTypeName', '代碼類別名稱')} (en)</label>
-                    <input
-                      type="text"
-                      value={formData.code_type_name['en'] || ''}
-                      onChange={(e) => updateI18nField('code_type_name', 'en', e.target.value)}
-                      disabled={isViewMode}
-                      maxLength={200}
-                    />
-                  </div>
+                  {enabledLangs.map((lang, idx) => (
+                    <div className="form-group" key={`ctn-${lang}`}>
+                      <label>{t('systemCodes.codeTypeName', '代碼類別名稱')} ({lang}){idx === 0 ? ' *' : ''}</label>
+                      <input
+                        type="text"
+                        value={formData.code_type_name[lang] || ''}
+                        onChange={(e) => updateI18nField('code_type_name', lang, e.target.value)}
+                        required={idx === 0}
+                        disabled={isViewMode}
+                        maxLength={200}
+                      />
+                    </div>
+                  ))}
 
                   {/* 第二區：代碼編號 + 次序 + 啟用 */}
                   <div className="form-group">
@@ -766,27 +765,19 @@ const SystemCodesPage: React.FC = () => {
                   </div>
 
                   {/* 第三區：代碼名稱 */}
-                  <div className="form-group">
-                    <label>{t('systemCodes.codeName', '代碼名稱')} (zh-TW) *</label>
-                    <input
-                      type="text"
-                      value={formData.code_name['zh-TW'] || ''}
-                      onChange={(e) => updateI18nField('code_name', 'zh-TW', e.target.value)}
-                      required
-                      disabled={isViewMode}
-                      maxLength={300}
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>{t('systemCodes.codeName', '代碼名稱')} (en)</label>
-                    <input
-                      type="text"
-                      value={formData.code_name['en'] || ''}
-                      onChange={(e) => updateI18nField('code_name', 'en', e.target.value)}
-                      disabled={isViewMode}
-                      maxLength={300}
-                    />
-                  </div>
+                  {enabledLangs.map((lang, idx) => (
+                    <div className="form-group" key={`cn-${lang}`}>
+                      <label>{t('systemCodes.codeName', '代碼名稱')} ({lang}){idx === 0 ? ' *' : ''}</label>
+                      <input
+                        type="text"
+                        value={formData.code_name[lang] || ''}
+                        onChange={(e) => updateI18nField('code_name', lang, e.target.value)}
+                        required={idx === 0}
+                        disabled={isViewMode}
+                        maxLength={300}
+                      />
+                    </div>
+                  ))}
 
                   {/* 第四區：說明 1~5 */}
                   <div className="form-group">
