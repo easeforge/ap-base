@@ -25,6 +25,7 @@
     "axios": "^1.13.2",
     "i18next": "^25.7.4",
     "i18next-browser-languagedetector": "^8.2.0",
+    "i18next-http-backend": "^3.0.4",
     "katex": "^0.16.40",
     "leaflet": "^1.9.4",
     "lexical": "^0.39.0",

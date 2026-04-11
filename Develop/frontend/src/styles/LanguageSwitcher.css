@@ -36,3 +36,25 @@
   color: rgba(255, 255, 255, 0.4);
   font-size: 12px;
 }
+
+/* 3+ 語系時的下拉選單樣式 */
+.lang-select {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  outline: none;
+}
+
+.lang-select:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.lang-select option {
+  background: #2c3e50;
+  color: #ffffff;
+}
