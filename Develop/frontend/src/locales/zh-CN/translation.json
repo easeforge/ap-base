@@ -265,7 +265,8 @@
     "roleCname": "角色中文名称",
     "roleEname": "角色英文名称",
     "description": "角色说明",
-    "searchPlaceholder": "搜寻角色名称"
+    "searchPlaceholder": "搜寻角色名称",
+    "roleName": "角色名称"
   },
   "sysProfile": {
     "title": "系统设定资料",
@@ -279,7 +280,13 @@
     "sysECopyright": "英文版权宣告",
     "serviceEnabled": "服务启用",
     "serviceDisabled": "服务停用",
-    "sysOrganization": "所属组织"
+    "sysOrganization": "所属组织",
+    "sysTitle": "系统标题",
+    "sysCopyright": "版权宣告",
+    "languageSettings": "语系设定",
+    "languageSettingsHint": "勾选要启用的语系，系统标题和版权宣告将依启用语系提供多语系输入栏位",
+    "atLeastOneLanguage": "至少需要启用一个语系",
+    "noLanguagesAvailable": "尚未建立语系资料"
   },
   "validation": {
     "required": "此栏位为必填",
@@ -332,7 +339,10 @@
     "selectOrInput": "可选择或自行输入",
     "codeNameCombined": "代码名称",
     "codeTypeCombined": "代码类别",
-    "searchPlaceholder": "搜寻代码类别、代码编号或名称"
+    "searchPlaceholder": "搜寻代码类别、代码编号或名称",
+    "codeType": "代码类别识别码",
+    "codeTypeName": "代码类别名称",
+    "codeName": "代码名称"
   },
   "tenantUsers": {
     "phone": "电话",
