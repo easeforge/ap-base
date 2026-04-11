@@ -5,7 +5,7 @@
 
 ## 技術架構
 - Backend: Python FastAPI + SQLAlchemy + PostgreSQL (baseAP) + Redis
-- Frontend: React + TypeScript + i18next (zh-TW/en)
+- Frontend: React + TypeScript + i18next + i18next-http-backend (動態語系載入)
 - Port: Backend 10181, Frontend 10180
 - DB: 10.1.0.20:5433/baseAP (admin/DC1qaz2wsx)
 
@@ -18,70 +18,49 @@
 - 語系管理後端完成（sys_languages 資料表, CRUD API, 語系檔同步, 補值機制）
 - 系統啟動時自動同步語系檔
 - ISO 3166-1 國家代碼（249國）+ 台灣行政區域（內政部行政區碼 390筆）已匯入
+- **Phase 8**: 前端頁面 JSONB 多語系取值改造完成
+  - 新增 I18nField 型別 + getI18nValue() 工具函式 (src/utils/i18nHelper.ts)
+  - types/ services/ components/ hooks/ contexts/ pages/ 全面改造（30+ files）
+  - 所有 cname/ename 雙欄改為 JSONB 單欄取值
+  - 表單輸入改為每個語系一個 input
+- **Phase 9**: 前端語系機制改造完成
+  - i18n.ts 改用 i18next-http-backend 從 API 動態載入翻譯，保留靜態檔案 fallback
+  - SystemContext 新增 availableLanguages / defaultLanguage 狀態
+  - LanguageSwitcher 從 GET /api/system/languages 取得可用語系（1個不顯示，2個按鈕，3+下拉選單）
+- **Phase 10**: 系統設定頁面語系設定完成
+  - SysProfilePage 新增語系設定區塊（checkbox 勾選啟用語系）
+  - sys_title / sys_copyright 依啟用語系��態顯示多語系輸入欄位
+- **Phase 11**: init_db.sql 重建完成
+  - 版本 2.0.0，11 張表（含 sys_languages）
+  - 所有 JSONB 欄位、初始資料含 zh-TW/en 雙語系值
+  - 新增隱藏功能（my_profile, change_password, logout）
+  - Language 語系代碼 + sys_languages 初始資料
+  - 翻譯資料(lang_data)不包含，需另行匯入
 
-### 待完成（Phase 8-11）
-請依序完成以下工作：
+## 資料庫表結構（11 張表）
+| 表名 | 說明 | JSONB 多語系欄位 |
+|------|------|-----------------|
+| organizations | 組織單位 | - |
+| users | 使用者 | user_role (角色ID陣列) |
+| user_roles | 使用者角色 | role_name |
+| system_functions | 系統功能 | func_name, module_item |
+| sys_profiles | 系統設定(唯一) | sys_title, sys_copyright, sys_languages |
+| role_rights | 角色權限 | - |
+| system_codes | 系統代碼 | code_type_name, code_name |
+| system_notifications | 系統通知 | notice_subject, notice_description |
+| notification_closedates | 通知關閉記錄 | - |
+| user_logs | 使���者日誌 | look_data, change_data |
+| sys_languages | 語系管理 | lang_data (完整翻譯JSON) |
 
-#### Phase 8: 前端頁面 - JSONB 取值改造
-所有前端頁面需將舊的 cname/ename 欄位改為從 JSONB 依語系取值。
-
-API 回傳格式變更對照：
-```
-舊: { func_cname: "系統管理", func_ename: "System Management" }
-新: { func_name: {"zh-TW": "系統管理", "en": "System Management"} }
-
-舊: { code_cname: "台灣", code_ename: "Taiwan", code_ctype: "國家代碼", code_etype: "Country_Codes_2" }
-新: { code_name: {"zh-TW": "台灣", "en": "Taiwan"}, code_type_name: {"zh-TW": "國家代碼", "en": "Country Codes"}, code_type: "Country_Codes_2" }
-
-舊: { role_cname: "管理員", role_ename: "Admin" }
-新: { role_name: {"zh-TW": "管理員", "en": "Admin"} }
-
-舊: { sys_ctitle: "後臺管理", sys_etitle: "Base AP", sys_ccopyright: "版權", sys_ecopyright: "Copyright" }
-新: { sys_title: {"zh-TW": "後臺管理", "en": "Base AP"}, sys_copyright: {"zh-TW": "版權", "en": "Copyright"}, sys_languages: ["zh-TW", "en"] }
-
-舊: { notice_csubject: "主旨", notice_esubject: "Subject" }
-新: { notice_subject: {"zh-TW": "主旨", "en": "Subject"}, notice_description: {"zh-TW": "...", "en": "..."} }
-```
-
-需改的前端檔案：
-- src/components/Sidebar.tsx (func_cname/func_ename → func_name)
-- src/components/Breadcrumb.tsx
-- src/components/MainLayout.tsx (sys_ctitle/sys_etitle → sys_title)
-- src/contexts/SystemContext.tsx (sys_ctitle/sys_etitle → sys_title)
-- src/hooks/useFunctionName.ts (func_cname/func_ename → func_name)
-- src/pages/SystemCodesPage.tsx (code_cname/code_ename/code_ctype/code_etype → JSONB)
-- src/pages/SystemFunctionsPage.tsx (func_cname/func_ename → func_name)
-- src/pages/UserRolesPage.tsx (role_cname/role_ename → role_name)
-- src/pages/RoleRightsPage.tsx (func_cname/func_ename, role_cname/role_ename → JSONB)
-- src/pages/SystemNotificationsPage.tsx (notice_csubject etc → JSONB)
-- src/pages/HomePage.tsx
-- src/pages/DashboardPage.tsx
-- src/services/*.ts (對應的 TypeScript interface)
-- src/types/*.ts (SystemFunction, SystemCode 等型別定義)
-- src/api/systemService.ts (profile 回傳格式)
-
-取值方式：用 i18n.language 從 JSONB 取對應語系值
+## 前端多語系取值方式
 ```typescript
-// 範例：取功能名稱
-const name = func.func_name[i18n.language] || func.func_name['zh-TW'] || '';
-// 範例：取代碼名稱
-const codeName = code.code_name[i18n.language] || code.code_name['zh-TW'] || '';
+import { getI18nValue } from '../utils/i18nHelper';
+import { I18nField } from '../types';
+
+// 從 JSONB 欄位取當前語系值，fallback 到 zh-TW
+const name = getI18nValue(item.func_name, i18n.language);
+const title = getI18nValue(profile?.sys_title, i18n.language, 'fallback');
 ```
-
-#### Phase 9: 前端語系機制改造
-- src/i18n.ts: 改為動態載入（使用 i18next-http-backend 或動態 import）
-- src/components/LanguageSwitcher.tsx: 從 GET /api/system/languages 取得可用語系，1個不顯示，2個以上顯示切換器
-- src/contexts/SystemContext.tsx: 新增 availableLanguages, defaultLanguage, languageOptions state
-
-#### Phase 10: 系統設定頁面語系設定
-- src/pages/SysProfilePage.tsx: 新增語系設定區塊（checkbox 勾選啟用語系）
-- sys_title, sys_copyright 改為多語系輸入（每個啟用語系一個 input）
-
-#### Phase 11: init_db.sql 重建
-重建 Develop/backend/init_db.sql，包含：
-- 所有表結構（含 JSONB 欄位、sys_languages 表）
-- 初始資料（admin 帳號、系統功能、系統設定含 sys_languages、Language 代碼）
-- 翻譯資料不放 init_db.sql（太大），用獨立腳本匯入
 
 ## 關鍵設計決策
 - 基底平台多語系欄位用 JSONB（資料量小，彈性高）
@@ -90,6 +69,7 @@ const codeName = code.code_name[i18n.language] || code.code_name['zh-TW'] || '';
 - JSONB 存所有已建立語系，不論是否啟用，顯示由 sys_profiles.sys_languages 控制
 - 新增語系時以預設語系為模板自動補值
 - 系統設定儲存時寫出語系檔 + 啟動時比對同步
+- 前端語系載入：i18next-http-backend 從 API 動態載入 + 靜態檔案 fallback
 
 ## 規格文件
 - 系統設計/system_codes_系統代碼設計規格.md
