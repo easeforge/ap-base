@@ -365,19 +365,6 @@ const SystemCodesPage: React.FC = () => {
   };
 
   /**
-   * 渲染 HTML 內容（支援上下標）
-   * 安全處理：只允許 <sub> 和 <sup> 標籤
-   */
-  const renderHTML = (html: string) => {
-    if (!html) return '';
-    // 只允許 sub 和 sup 標籤，其他轉義
-    const sanitized = html
-      .replace(/<(?!\/?su[bp]>)/g, '&lt;')
-      .replace(/(?<!<\/?su[bp])>/g, '&gt;');
-    return <span dangerouslySetInnerHTML={{ __html: sanitized }} />;
-  };
-
-  /**
    * 依照語系顯示代碼類別
    * 主要語系名稱為主，code_type 識別碼顯示於下方
    */
@@ -386,9 +373,9 @@ const SystemCodesPage: React.FC = () => {
 
     return (
       <div style={{ display: 'flex', flexDirection: 'column' }}>
-        <span>{renderHTML(displayName)}</span>
+        <span>{displayName}</span>
         <span style={{ fontSize: '0.85em', color: '#666' }}>
-          {renderHTML(code.code_type)}
+          {code.code_type}
         </span>
       </div>
     );
@@ -405,10 +392,10 @@ const SystemCodesPage: React.FC = () => {
 
     return (
       <div style={{ display: 'flex', flexDirection: 'column' }}>
-        <span>{renderHTML(primary)}</span>
+        <span>{primary}</span>
         {secondary && secondary !== primary && (
           <span style={{ fontSize: '0.85em', color: '#666' }}>
-            {renderHTML(secondary)}
+            {secondary}
           </span>
         )}
       </div>
@@ -594,7 +581,7 @@ const SystemCodesPage: React.FC = () => {
               <tr key={code.id}>
                 <td>{code.id}</td>
                 <td>{renderCodeType(code)}</td>
-                <td>{renderHTML(code.code)}</td>
+                <td>{code.code}</td>
                 <td>{renderCodeName(code)}</td>
                 <td>{code.order}</td>
                 <td>
@@ -714,7 +701,8 @@ const SystemCodesPage: React.FC = () => {
             <form onSubmit={handleSubmit}>
               <div className="modal-body">
                 <div className="form-grid">
-                  <div className="form-group">
+                  {/* 第一區：代碼類別 */}
+                  <div className="form-group full-width">
                     <label>{t('systemCodes.codeType', '代碼類別識別碼')} *</label>
                     <input
                       type="text"
@@ -732,6 +720,29 @@ const SystemCodesPage: React.FC = () => {
                       ))}
                     </datalist>
                   </div>
+                  <div className="form-group">
+                    <label>{t('systemCodes.codeTypeName', '代碼類別名稱')} (zh-TW) *</label>
+                    <input
+                      type="text"
+                      value={formData.code_type_name['zh-TW'] || ''}
+                      onChange={(e) => updateI18nField('code_type_name', 'zh-TW', e.target.value)}
+                      required
+                      disabled={isViewMode}
+                      maxLength={200}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>{t('systemCodes.codeTypeName', '代碼類別名稱')} (en)</label>
+                    <input
+                      type="text"
+                      value={formData.code_type_name['en'] || ''}
+                      onChange={(e) => updateI18nField('code_type_name', 'en', e.target.value)}
+                      disabled={isViewMode}
+                      maxLength={200}
+                    />
+                  </div>
+
+                  {/* 第二區：代碼編號 + 次序 + 啟用 */}
                   <div className="form-group">
                     <label>{t('systemCodes.code')} *</label>
                     <input
@@ -753,6 +764,81 @@ const SystemCodesPage: React.FC = () => {
                       disabled={isViewMode}
                     />
                   </div>
+
+                  {/* 第三區：代碼名稱 */}
+                  <div className="form-group">
+                    <label>{t('systemCodes.codeName', '代碼名稱')} (zh-TW) *</label>
+                    <input
+                      type="text"
+                      value={formData.code_name['zh-TW'] || ''}
+                      onChange={(e) => updateI18nField('code_name', 'zh-TW', e.target.value)}
+                      required
+                      disabled={isViewMode}
+                      maxLength={300}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>{t('systemCodes.codeName', '代碼名稱')} (en)</label>
+                    <input
+                      type="text"
+                      value={formData.code_name['en'] || ''}
+                      onChange={(e) => updateI18nField('code_name', 'en', e.target.value)}
+                      disabled={isViewMode}
+                      maxLength={300}
+                    />
+                  </div>
+
+                  {/* 第四區：說明 1~5 */}
+                  <div className="form-group">
+                    <label>{t('systemCodes.note1')}</label>
+                    <input
+                      type="text"
+                      value={formData.note1}
+                      onChange={(e) => setFormData({ ...formData, note1: e.target.value })}
+                      disabled={isViewMode}
+                      maxLength={500}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>{t('systemCodes.note2')}</label>
+                    <input
+                      type="text"
+                      value={formData.note2}
+                      onChange={(e) => setFormData({ ...formData, note2: e.target.value })}
+                      disabled={isViewMode}
+                      maxLength={500}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>{t('systemCodes.note3')}</label>
+                    <input
+                      type="text"
+                      value={formData.note3}
+                      onChange={(e) => setFormData({ ...formData, note3: e.target.value })}
+                      disabled={isViewMode}
+                      maxLength={500}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>{t('systemCodes.note4')}</label>
+                    <input
+                      type="text"
+                      value={formData.note4}
+                      onChange={(e) => setFormData({ ...formData, note4: e.target.value })}
+                      disabled={isViewMode}
+                      maxLength={500}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>{t('systemCodes.note5')}</label>
+                    <input
+                      type="text"
+                      value={formData.note5}
+                      onChange={(e) => setFormData({ ...formData, note5: e.target.value })}
+                      disabled={isViewMode}
+                      maxLength={500}
+                    />
+                  </div>
                   <div className="form-group">
                     <label>
                       <input
@@ -763,100 +849,6 @@ const SystemCodesPage: React.FC = () => {
                       />
                       {t('common.active')}
                     </label>
-                  </div>
-                  <div className="form-group full-width">
-                    <label>{t('systemCodes.codeTypeName', '代碼類別名稱')} (zh-TW) *</label>
-                    <input
-                      type="text"
-                      value={formData.code_type_name['zh-TW'] || ''}
-                      onChange={(e) => updateI18nField('code_type_name', 'zh-TW', e.target.value)}
-                      required
-                      disabled={isViewMode}
-                      maxLength={200}
-                    />
-                  </div>
-                  <div className="form-group full-width">
-                    <label>{t('systemCodes.codeTypeName', '代碼類別名稱')} (en)</label>
-                    <input
-                      type="text"
-                      value={formData.code_type_name['en'] || ''}
-                      onChange={(e) => updateI18nField('code_type_name', 'en', e.target.value)}
-                      disabled={isViewMode}
-                      maxLength={200}
-                    />
-                  </div>
-                  <div className="form-group full-width">
-                    <label>{t('systemCodes.codeName', '代碼名稱')} (zh-TW) *</label>
-                    <input
-                      type="text"
-                      value={formData.code_name['zh-TW'] || ''}
-                      onChange={(e) => updateI18nField('code_name', 'zh-TW', e.target.value)}
-                      required
-                      disabled={isViewMode}
-                      maxLength={300}
-                      placeholder="支援 HTML 上下標: <sup>上標</sup> <sub>下標</sub>"
-                    />
-                  </div>
-                  <div className="form-group full-width">
-                    <label>{t('systemCodes.codeName', '代碼名稱')} (en)</label>
-                    <input
-                      type="text"
-                      value={formData.code_name['en'] || ''}
-                      onChange={(e) => updateI18nField('code_name', 'en', e.target.value)}
-                      disabled={isViewMode}
-                      maxLength={300}
-                      placeholder="Supports HTML: <sup>superscript</sup> <sub>subscript</sub>"
-                    />
-                  </div>
-                  <div className="form-group full-width">
-                    <label>{t('systemCodes.note1')}</label>
-                    <input
-                      type="text"
-                      value={formData.note1}
-                      onChange={(e) => setFormData({ ...formData, note1: e.target.value })}
-                      disabled={isViewMode}
-                      maxLength={500}
-                    />
-                  </div>
-                  <div className="form-group full-width">
-                    <label>{t('systemCodes.note2')}</label>
-                    <input
-                      type="text"
-                      value={formData.note2}
-                      onChange={(e) => setFormData({ ...formData, note2: e.target.value })}
-                      disabled={isViewMode}
-                      maxLength={500}
-                    />
-                  </div>
-                  <div className="form-group full-width">
-                    <label>{t('systemCodes.note3')}</label>
-                    <input
-                      type="text"
-                      value={formData.note3}
-                      onChange={(e) => setFormData({ ...formData, note3: e.target.value })}
-                      disabled={isViewMode}
-                      maxLength={500}
-                    />
-                  </div>
-                  <div className="form-group full-width">
-                    <label>{t('systemCodes.note4')}</label>
-                    <input
-                      type="text"
-                      value={formData.note4}
-                      onChange={(e) => setFormData({ ...formData, note4: e.target.value })}
-                      disabled={isViewMode}
-                      maxLength={500}
-                    />
-                  </div>
-                  <div className="form-group full-width">
-                    <label>{t('systemCodes.note5')}</label>
-                    <input
-                      type="text"
-                      value={formData.note5}
-                      onChange={(e) => setFormData({ ...formData, note5: e.target.value })}
-                      disabled={isViewMode}
-                      maxLength={500}
-                    />
                   </div>
                 </div>
               </div>

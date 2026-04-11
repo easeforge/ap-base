@@ -11,10 +11,12 @@ import HttpBackend from 'i18next-http-backend';
 // 靜態匯入作為 fallback（確保離線或 API 不可用時仍可使用）
 import translationZhTW from './locales/zh-TW/translation.json';
 import translationEn from './locales/en/translation.json';
+import translationZhCN from './locales/zh-CN/translation.json';
 
 const fallbackResources: Record<string, any> = {
   'zh-TW': translationZhTW,
   'en': translationEn,
+  'zh-CN': translationZhCN,
 };
 
 i18n
@@ -83,6 +85,7 @@ i18n
     resources: {
       'zh-TW': { translation: fallbackResources['zh-TW'] },
       'en': { translation: fallbackResources['en'] },
+      'zh-CN': { translation: fallbackResources['zh-CN'] },
     },
   });
 
