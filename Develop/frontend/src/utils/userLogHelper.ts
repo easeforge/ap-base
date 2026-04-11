@@ -43,7 +43,7 @@ const getFunctionId = async (funcCode: string): Promise<number | null> => {
  */
 export const logUserAction = async (
   funcCode: string,
-  moduleItem: 'View' | 'Create' | 'Read' | 'Update' | 'Delete' | 'Print' | 'File' | 'Login',
+  moduleItem: 'Create' | 'Read' | 'Update' | 'Delete' | 'Print' | 'File' | 'Login',
   lookData?: Record<string, any>,
   changeData?: Record<string, any>,
   errDetail?: string | null
@@ -91,7 +91,7 @@ export const logView = async (
   filters?: Record<string, any>,
   error?: string | null
 ): Promise<void> => {
-  await logUserAction(funcCode, 'View', { action: 'view_list', filters }, undefined, error);
+  await logUserAction(funcCode, 'Read', { action: 'view_list', filters }, undefined, error);
 };
 
 /**
