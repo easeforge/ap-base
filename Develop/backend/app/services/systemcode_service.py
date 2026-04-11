@@ -5,8 +5,8 @@ SystemCode Service
 
 import logging
 from sqlalchemy.orm import Session
+from sqlalchemy import or_, text, cast, String
 from typing import List, Optional
-from sqlalchemy import or_, and_
 
 from app.models.systemcode import SystemCode
 from app.schemas.systemcode import SystemCodeCreate, SystemCodeUpdate, SystemCodeQuery
@@ -19,86 +19,49 @@ class SystemCodeService:
 
     @staticmethod
     def get_all(db: Session, query: Optional[SystemCodeQuery] = None) -> List[SystemCode]:
-        """
-        查詢系統代碼列表
-
-        Args:
-            db: 資料庫 Session
-            query: 查詢參數
-
-        Returns:
-            SystemCode 列表
-        """
+        """查詢系統代碼列表"""
         q = db.query(SystemCode)
 
         if query:
-            # 綜合搜尋
             if query.search:
+                # 綜合搜尋：code_type、code、所有語系名稱、note1~5
+                search_term = f"%{query.search}%"
                 search_filter = or_(
-                    SystemCode.code_etype.ilike(f"%{query.search}%"),
-                    SystemCode.code_ctype.ilike(f"%{query.search}%"),
-                    SystemCode.code.ilike(f"%{query.search}%"),
-                    SystemCode.code_cname.ilike(f"%{query.search}%"),
-                    SystemCode.code_ename.ilike(f"%{query.search}%"),
-                    SystemCode.note1.ilike(f"%{query.search}%"),
-                    SystemCode.note2.ilike(f"%{query.search}%"),
-                    SystemCode.note3.ilike(f"%{query.search}%"),
-                    SystemCode.note4.ilike(f"%{query.search}%"),
-                    SystemCode.note5.ilike(f"%{query.search}%"),
+                    SystemCode.code_type.ilike(search_term),
+                    SystemCode.code.ilike(search_term),
+                    # JSONB 多語系欄位：搜尋所有語系的值
+                    cast(SystemCode.code_type_name, String).ilike(search_term),
+                    cast(SystemCode.code_name, String).ilike(search_term),
+                    SystemCode.note1.ilike(search_term),
+                    SystemCode.note2.ilike(search_term),
+                    SystemCode.note3.ilike(search_term),
+                    SystemCode.note4.ilike(search_term),
+                    SystemCode.note5.ilike(search_term),
                 )
                 q = q.filter(search_filter)
             else:
-                # 個別欄位搜尋
-                if query.code_etype:
-                    q = q.filter(SystemCode.code_etype.ilike(f"%{query.code_etype}%"))
-                if query.code_ctype:
-                    q = q.filter(SystemCode.code_ctype.ilike(f"%{query.code_ctype}%"))
+                if query.code_type:
+                    q = q.filter(SystemCode.code_type.ilike(f"%{query.code_type}%"))
                 if query.code:
                     q = q.filter(SystemCode.code.ilike(f"%{query.code}%"))
-                if query.code_cname:
-                    q = q.filter(SystemCode.code_cname.ilike(f"%{query.code_cname}%"))
-                if query.code_ename:
-                    q = q.filter(SystemCode.code_ename.ilike(f"%{query.code_ename}%"))
 
-            # 啟用狀態
             if query.is_active is not None:
                 q = q.filter(SystemCode.is_active == query.is_active)
 
-        # 排序：依照 code_etype, code_ctype, order, code
         return q.order_by(
-            SystemCode.code_etype,
-            SystemCode.code_ctype,
+            SystemCode.code_type,
             SystemCode.order,
             SystemCode.code
         ).all()
 
     @staticmethod
     def get_by_id(db: Session, code_id: int) -> Optional[SystemCode]:
-        """
-        根據ID查詢系統代碼
-
-        Args:
-            db: 資料庫 Session
-            code_id: 代碼ID
-
-        Returns:
-            SystemCode 或 None
-        """
+        """根據ID查詢系統代碼"""
         return db.query(SystemCode).filter(SystemCode.id == code_id).first()
 
     @staticmethod
     def create(db: Session, code_data: SystemCodeCreate, user_id: int) -> SystemCode:
-        """
-        建立系統代碼
-
-        Args:
-            db: 資料庫 Session
-            code_data: 系統代碼資料
-            user_id: 建立者ID
-
-        Returns:
-            新建立的 SystemCode
-        """
+        """建立系統代碼"""
         db_code = SystemCode(
             **code_data.model_dump(),
             edit_by=user_id
@@ -111,23 +74,11 @@ class SystemCodeService:
 
     @staticmethod
     def update(db: Session, code_id: int, code_data: SystemCodeUpdate, user_id: int) -> Optional[SystemCode]:
-        """
-        更新系統代碼
-
-        Args:
-            db: 資料庫 Session
-            code_id: 代碼ID
-            code_data: 更新資料
-            user_id: 更新者ID
-
-        Returns:
-            更新後的 SystemCode 或 None
-        """
+        """更新系統代碼"""
         db_code = SystemCodeService.get_by_id(db, code_id)
         if not db_code:
             return None
 
-        # 更新欄位
         update_data = code_data.model_dump(exclude_unset=True)
         for field, value in update_data.items():
             setattr(db_code, field, value)
@@ -140,16 +91,7 @@ class SystemCodeService:
 
     @staticmethod
     def delete(db: Session, code_id: int) -> bool:
-        """
-        刪除系統代碼
-
-        Args:
-            db: 資料庫 Session
-            code_id: 代碼ID
-
-        Returns:
-            是否刪除成功
-        """
+        """刪除系統代碼"""
         db_code = SystemCodeService.get_by_id(db, code_id)
         if not db_code:
             return False
@@ -160,23 +102,9 @@ class SystemCodeService:
         return True
 
     @staticmethod
-    def get_by_type(db: Session, code_etype: str, code_ctype: Optional[str] = None, active_only: bool = True) -> List[SystemCode]:
-        """
-        根據代碼類別查詢系統代碼
-
-        Args:
-            db: 資料庫 Session
-            code_etype: 代碼類別英文名稱
-            code_ctype: 代碼類別中文名稱（可選）
-            active_only: 只查詢啟用的代碼
-
-        Returns:
-            SystemCode 列表
-        """
-        q = db.query(SystemCode).filter(SystemCode.code_etype == code_etype)
-
-        if code_ctype:
-            q = q.filter(SystemCode.code_ctype == code_ctype)
+    def get_by_type(db: Session, code_type: str, active_only: bool = True) -> List[SystemCode]:
+        """根據代碼類別查詢系統代碼"""
+        q = db.query(SystemCode).filter(SystemCode.code_type == code_type)
 
         if active_only:
             q = q.filter(SystemCode.is_active == True)

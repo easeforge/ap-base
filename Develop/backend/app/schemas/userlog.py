@@ -40,9 +40,7 @@ class UserLogResponse(UserLogBase):
     id: int
     action_at: datetime
     user_name: Optional[str] = Field(None, description="使用者名稱")
-    function_name: Optional[str] = Field(None, description="功能名稱（中文，向後相容）")
-    function_cname: Optional[str] = Field(None, description="功能中文名稱")
-    function_ename: Optional[str] = Field(None, description="功能英文名稱")
+    function_name: Optional[Any] = Field(None, description="功能名稱 (JSONB)")
 
     class Config:
         from_attributes = True

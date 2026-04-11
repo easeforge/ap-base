@@ -17,7 +17,7 @@ from app.routes import (
     auth, system, organization, sysprofile,
     user, permissions,
     systemcode, systemfunction, systemnotification,
-    userrole, roleright, userlog,
+    userrole, roleright, userlog, syslanguage,
 )
 
 # 配置日誌
@@ -70,6 +70,23 @@ async def lifespan(app: FastAPI):
         )
     except Exception as e:
         logger.warning(f"Redis 初始化失敗,使用記憶體儲存: {e}")
+
+    # 同步語系檔案
+    try:
+        from app.core.database import SessionLocal
+        from app.services.language_service import LanguageService
+        sync_db = SessionLocal()
+        try:
+            results = LanguageService.sync_locale_files(sync_db)
+            if results:
+                synced = [f"{k}({v})" for k, v in results.items()]
+                logger.info(f"語系檔同步: {', '.join(synced)}")
+            else:
+                logger.info("語系檔同步: 無需同步")
+        finally:
+            sync_db.close()
+    except Exception as e:
+        logger.warning(f"語系檔同步失敗: {e}")
 
     logger.info("應用程式啟動完成")
 
@@ -136,6 +153,7 @@ app.include_router(sysprofile.router, prefix="/api/sys_profiles", tags=["系統�
 app.include_router(systemcode.router, prefix="/api/system_codes", tags=["系統代碼管理"])
 app.include_router(systemfunction.router, prefix="/api/system_functions", tags=["系統功能管理"])
 app.include_router(systemnotification.router, prefix="/api/system_notifications", tags=["系統通知管理"])
+app.include_router(syslanguage.router, prefix="/api/sys_languages", tags=["語系管理"])
 
 # 組織與使用者管理
 app.include_router(organization.router, prefix="/api/organizations", tags=["組織管理"])

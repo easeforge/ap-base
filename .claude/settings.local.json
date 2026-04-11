@@ -390,7 +390,10 @@
       "Bash(venv/Scripts/python -c ':*)",
       "Bash(PYTHONIOENCODING=utf-8 venv/Scripts/python insert_iso3166.py)",
       "Bash(PYTHONIOENCODING=utf-8 venv/Scripts/python insert_tw_area.py)",
-      "Bash(PYTHONIOENCODING=utf-8 venv/Scripts/python insert_tw_area_moi.py)"
+      "Bash(PYTHONIOENCODING=utf-8 venv/Scripts/python insert_tw_area_moi.py)",
+      "Bash(find . -name \"__pycache__\" -type d -exec rm -rf {} +)",
+      "Bash(taskkill //F //IM python.exe)",
+      "Bash(venv/Scripts/python -c \"from app.main import app; print\\('Backend imports OK'\\)\")"
     ]
   }
 }

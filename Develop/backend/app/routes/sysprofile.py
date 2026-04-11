@@ -26,10 +26,8 @@ def sys_profile_to_dict(profile: SysProfile) -> dict:
         "id": profile.id,
         "is_service": profile.is_service,
         "sys_url": profile.sys_url,
-        "sys_ctitle": profile.sys_ctitle,
-        "sys_etitle": profile.sys_etitle,
-        "sys_ccopyright": profile.sys_ccopyright,
-        "sys_ecopyright": profile.sys_ecopyright,
+        "sys_title": profile.sys_title,
+        "sys_copyright": profile.sys_copyright,
         "sys_organization": profile.sys_organization,
         "sys_mana_email": profile.sys_mana_email,
         "sys_timezone": profile.sys_timezone,
@@ -110,5 +108,14 @@ async def update_sys_profile(
 
     db.commit()
     db.refresh(profile)
+
+    # 若語系設定有變更，觸發語系檔同步
+    if 'sys_languages' in update_data:
+        try:
+            from app.services.language_service import LanguageService
+            sync_results = LanguageService.sync_locale_files(db)
+            logger.info(f"語系檔同步完成: {sync_results}")
+        except Exception as e:
+            logger.error(f"語系檔同步失敗: {e}")
 
     return profile

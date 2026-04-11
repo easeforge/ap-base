@@ -15,6 +15,7 @@ from app.models.sysprofile import SysProfile
 from app.models.systemfunction import SystemFunction
 from app.models.roleright import RoleRight
 from app.services.userlog_service import UserLogService
+from app.services.language_service import LanguageService
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -39,12 +40,29 @@ async def get_system_profile(db: Session = Depends(get_db)):
         "id": profile.id,
         "is_service": profile.is_service,
         "sys_url": profile.sys_url,
-        "sys_ctitle": profile.sys_ctitle,
-        "sys_etitle": profile.sys_etitle,
-        "sys_ccopyright": profile.sys_ccopyright,
-        "sys_ecopyright": profile.sys_ecopyright,
+        "sys_title": profile.sys_title,
+        "sys_copyright": profile.sys_copyright,
         "sys_organization": profile.sys_organization,
-        "sys_mana_email": profile.sys_mana_email
+        "sys_mana_email": profile.sys_mana_email,
+        "sys_languages": profile.sys_languages
+    }
+
+
+@router.get("/languages", summary="取得啟用語系")
+async def get_active_languages(db: Session = Depends(get_db)):
+    """
+    取得目前啟用的語系資訊（公開端點，不需登入）
+
+    供前端初始化語系切換器使用
+    """
+    languages = LanguageService.get_active_languages(db)
+
+    profile = db.query(SysProfile).filter(SysProfile.id == 1).first()
+    default_lang = profile.sys_languages[0] if profile and profile.sys_languages else "zh-TW"
+
+    return {
+        "default_language": default_lang,
+        "languages": languages
     }
 
 
@@ -124,8 +142,7 @@ async def get_system_functions(
             func_dict[func.id] = {
                 "id": func.id,
                 "func_code": func.func_code,
-                "func_cname": func.func_cname,
-                "func_ename": func.func_ename,
+                "func_name": func.func_name,
                 "func_type": func.func_type,
                 "func_order": func.func_order,
                 "func_icon": func.func_icon,

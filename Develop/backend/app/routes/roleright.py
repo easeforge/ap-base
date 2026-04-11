@@ -85,8 +85,7 @@ async def get_functions_with_permissions(
         result.append(FunctionWithPermissions(
             id=func.id,
             func_code=func.func_code,
-            func_cname=func.func_cname,
-            func_ename=func.func_ename,
+            func_name=func.func_name,
             func_type=func.func_type,
             func_order=func.func_order,
             upper_func_id=func.upper_func_id,
@@ -151,7 +150,7 @@ async def get_role_rights(
 
     return RoleRightsDetail(
         role_id=role.id,
-        role_name=f"{role.role_cname} ({role.role_ename})",
+        role_name=role.role_name,
         rights=permission_list
     )
 

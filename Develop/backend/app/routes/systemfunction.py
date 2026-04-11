@@ -7,6 +7,7 @@ import logging
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from sqlalchemy import cast, String
 
 from app.core.database import get_db
 from app.core.deps import get_current_user
@@ -29,8 +30,7 @@ def system_function_to_dict(func: SystemFunction) -> dict:
     return {
         "id": func.id,
         "func_code": func.func_code,
-        "func_cname": func.func_cname,
-        "func_ename": func.func_ename,
+        "func_name": func.func_name,
         "func_type": func.func_type,
         "func_order": func.func_order,
         "func_icon": func.func_icon,
@@ -90,8 +90,7 @@ async def get_functions(
     if search:
         query = query.filter(
             (SystemFunction.func_code.ilike(f"%{search}%")) |
-            (SystemFunction.func_cname.ilike(f"%{search}%")) |
-            (SystemFunction.func_ename.ilike(f"%{search}%"))
+            (cast(SystemFunction.func_name, String).ilike(f"%{search}%"))
         )
 
     functions = query.order_by(SystemFunction.func_order).offset(skip).limit(limit).all()

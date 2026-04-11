@@ -3,7 +3,7 @@ Role Right Schemas
 角色權限設定相關資料驗證（新版）
 """
 
-from typing import List, Optional, Dict
+from typing import Any, List, Optional, Dict
 from pydantic import BaseModel, Field
 from datetime import datetime
 
@@ -46,8 +46,7 @@ class FunctionWithPermissions(BaseModel):
     """功能及其可用權限"""
     id: int
     func_code: str
-    func_cname: str
-    func_ename: str
+    func_name: Any
     func_type: int
     func_order: int
     upper_func_id: int
@@ -60,5 +59,5 @@ class FunctionWithPermissions(BaseModel):
 class RoleRightsDetail(BaseModel):
     """角色權限詳情"""
     role_id: int
-    role_name: str
+    role_name: Any
     rights: List[RoleRightResponse]

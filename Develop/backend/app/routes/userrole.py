@@ -8,7 +8,7 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import func
-from sqlalchemy import cast
+from sqlalchemy import cast, String
 from sqlalchemy.dialects.postgresql import JSONB
 
 from app.core.database import get_db
@@ -26,8 +26,7 @@ def user_roles_to_dict(role: UserRole) -> dict:
     """將 UserRole 物件轉換為完整資料字典"""
     return {
         "id": role.id,
-        "role_cname": role.role_cname,
-        "role_ename": role.role_ename,
+        "role_name": role.role_name,
         "description": role.description,
         "is_mana": role.is_mana,
         "is_active": role.is_active,
@@ -69,8 +68,7 @@ async def get_user_roless(
 
     if search:
         query = query.filter(
-            (UserRole.role_cname.ilike(f"%{search}%")) |
-            (UserRole.role_ename.ilike(f"%{search}%"))
+            cast(UserRole.role_name, String).ilike(f"%{search}%")
         )
 
     roles = query.order_by(UserRole.id).offset(skip).limit(limit).all()
@@ -121,8 +119,7 @@ async def create_user_roles(
 
     # 檢查角色名稱是否已存在
     existing = db.query(UserRole).filter(
-        (UserRole.role_cname == role_data.role_cname) |
-        (UserRole.role_ename == role_data.role_ename)
+        cast(UserRole.role_name, String) == cast(role_data.role_name, String)
     ).first()
     if existing:
         raise HTTPException(
@@ -173,13 +170,10 @@ async def update_user_roles(
     original_data = user_roles_to_dict(role)
 
     # 如果更新角色名稱，檢查是否重複
-    if role_data.role_cname or role_data.role_ename:
+    if role_data.role_name:
         existing = db.query(UserRole).filter(
             UserRole.id != role_id,
-            (
-                (UserRole.role_cname == (role_data.role_cname or role.role_cname)) |
-                (UserRole.role_ename == (role_data.role_ename or role.role_ename))
-            )
+            cast(UserRole.role_name, String) == cast(role_data.role_name, String)
         ).first()
         if existing:
             raise HTTPException(

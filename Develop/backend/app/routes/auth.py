@@ -106,8 +106,7 @@ async def login(
         roles = [
             {
                 "id": role.id,
-                "role_cname": role.role_cname,
-                "role_ename": role.role_ename
+                "role_name": role.role_name
             }
             for role in user_roles
         ]

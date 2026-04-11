@@ -53,7 +53,7 @@ class SessionService:
             username: 使用者名稱
             account: 帳號
             authorized_function_ids: 使用者有權限的功能 IDs
-            roles: 角色詳細資訊 [{"id": 1, "role_cname": "系統管理員", "role_ename": "Admin"}]
+            roles: 角色詳細資訊 [{"id": 1, "role_name": {"zh": "系統管理員", "en": "Admin"}}]
 
         Returns:
             是否建立成功
@@ -145,7 +145,7 @@ class SessionService:
         Args:
             session_id: Session ID
             role_ids: 新的角色 ID 陣列
-            roles: 角色詳細資訊 [{"id": 1, "role_cname": "系統管理員", "role_ename": "Admin"}]
+            roles: 角色詳細資訊 [{"id": 1, "role_name": {"zh": "系統管理員", "en": "Admin"}}]
 
         Returns:
             是否更新成功

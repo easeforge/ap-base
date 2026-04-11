@@ -96,9 +96,7 @@ async def get_user_logs(
             action_at=log.action_at,
             err_detail=log.err_detail,
             user_name=log.user.username if log.user else None,
-            function_name=func.func_cname if func else None,
-            function_cname=func.func_cname if func else None,
-            function_ename=func.func_ename if func else None
+            function_name=func.func_name if func else None
         )
         result.append(log_response)
 
@@ -139,9 +137,7 @@ async def get_user_log(
         action_at=log.action_at,
         err_detail=log.err_detail,
         user_name=log.user.username if log.user else None,
-        function_name=func.func_cname if func else None,
-        function_cname=func.func_cname if func else None,
-        function_ename=func.func_ename if func else None
+        function_name=func.func_name if func else None
     )
 
 
@@ -187,9 +183,7 @@ async def get_user_logs_by_user(
             action_at=log.action_at,
             err_detail=log.err_detail,
             user_name=log.user.username if log.user else None,
-            function_name=func.func_cname if func else None,
-            function_cname=func.func_cname if func else None,
-            function_ename=func.func_ename if func else None
+            function_name=func.func_name if func else None
         )
         result.append(log_response)
 
@@ -233,9 +227,7 @@ async def get_user_logs_by_function(
             action_at=log.action_at,
             err_detail=log.err_detail,
             user_name=log.user.username if log.user else None,
-            function_name=func.func_cname if func else None,
-            function_cname=func.func_cname if func else None,
-            function_ename=func.func_ename if func else None
+            function_name=func.func_name if func else None
         )
         result.append(log_response)
 
@@ -303,7 +295,5 @@ async def create_user_log_from_frontend(
         action_at=new_log.action_at,
         err_detail=new_log.err_detail,
         user_name=current_user.username,
-        function_name=function.func_cname if function else None,
-        function_cname=function.func_cname if function else None,
-        function_ename=function.func_ename if function else None
+        function_name=function.func_name if function else None
     )

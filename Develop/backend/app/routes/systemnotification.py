@@ -8,7 +8,7 @@ from typing import List, Optional
 from datetime import datetime, date
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
-from sqlalchemy import and_, or_, func, desc
+from sqlalchemy import and_, or_, func, desc, cast, String
 
 from app.core.database import get_db
 from app.core.deps import get_current_user
@@ -35,10 +35,8 @@ def notification_to_dict(notification: SystemNotification) -> dict:
     """將通知物件轉換為完整字典"""
     return {
         "id": notification.id,
-        "notice_csubject": notification.notice_csubject,
-        "notice_esubject": notification.notice_esubject,
-        "notice_cdescription": notification.notice_cdescription,
-        "notice_edescription": notification.notice_edescription,
+        "notice_subject": notification.notice_subject,
+        "notice_description": notification.notice_description,
         "notice_start_at": notification.notice_start_at.isoformat() if notification.notice_start_at else None,
         "notice_end_at": notification.notice_end_at.isoformat() if notification.notice_end_at else None,
         "notice_order": notification.notice_order,
@@ -153,10 +151,7 @@ async def get_notifications(
 
     if search:
         query = query.filter(
-            or_(
-                SystemNotification.notice_csubject.ilike(f"%{search}%"),
-                SystemNotification.notice_esubject.ilike(f"%{search}%")
-            )
+            cast(SystemNotification.notice_subject, String).ilike(f"%{search}%")
         )
 
     # 排序：依照 id, notice_start_at, notice_end_at, notice_order
