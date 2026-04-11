@@ -507,6 +507,8 @@
     "title": "System Profile",
     "isService": "Service Status",
     "sysUrl": "System URL",
+    "sysTitle": "System Title",
+    "sysCopyright": "Copyright",
     "sysCTitle": "Chinese Title",
     "sysETitle": "English Title",
     "sysCCopyright": "Chinese Copyright",
@@ -515,7 +517,11 @@
     "sysManaEmail": "Admin Email",
     "sysTimezone": "System Timezone",
     "serviceEnabled": "Enabled",
-    "serviceDisabled": "Disabled"
+    "serviceDisabled": "Disabled",
+    "languageSettings": "Language Settings",
+    "languageSettingsHint": "Select the languages to enable. System title and copyright will provide input fields for each enabled language.",
+    "atLeastOneLanguage": "At least one language must be enabled",
+    "noLanguagesAvailable": "No languages configured yet"
   },
   "validation": {
     "required": "This field is required",
