@@ -20,11 +20,9 @@ const loadFunctionMap = async (): Promise<Map<string, number>> => {
     const functions = await getSysFunctions({});
     functionCodeToIdMap = new Map();
     functions.forEach((func: any) => {
-      // 確保 id 是數字類型
       const functionId = typeof func.id === 'string' ? parseInt(func.id, 10) : func.id;
       functionCodeToIdMap!.set(func.func_code, functionId);
     });
-    console.log('[UserLogHelper] Function map loaded:', Array.from(functionCodeToIdMap.entries()));
     return functionCodeToIdMap;
   } catch (error) {
     console.error('[UserLogHelper] Failed to load function map:', error);
@@ -42,11 +40,6 @@ const getFunctionId = async (funcCode: string): Promise<number | null> => {
 
 /**
  * 記錄使用者日誌
- * @param funcCode 功能代碼 (例如: 'organizations', 'user_detail')
- * @param moduleItem 操作類型 (View, Read, Create, Update, Delete, Print, File, Login)
- * @param lookData 檢視資料
- * @param changeData 異動資料
- * @param errDetail 錯誤訊息
  */
 export const logUserAction = async (
   funcCode: string,
@@ -55,13 +48,10 @@ export const logUserAction = async (
   changeData?: Record<string, any>,
   errDetail?: string | null
 ): Promise<void> => {
-  console.log(`[UserLogHelper] logUserAction called: ${funcCode} - ${moduleItem}`);
   try {
     const functionId = await getFunctionId(funcCode);
-    console.log(`[UserLogHelper] getFunctionId result for "${funcCode}": ${functionId} (type: ${typeof functionId})`);
     if (!functionId) {
-      console.warn(`[UserLogHelper] Function code not found: ${funcCode}`);
-      return;
+      return; // 功能代碼不存在，靜默跳過
     }
 
     // 自動提取 data_id（優先從 changeData，再從 lookData）
@@ -72,18 +62,8 @@ export const logUserAction = async (
       dataId = lookData.id;
     }
 
-    console.log('[UserLogHelper] Data extraction:', {
-      moduleItem,
-      lookData_id: lookData?.id,
-      changeData_id: changeData?.id,
-      extracted_dataId: dataId
-    });
-
-    // 確保 functionId 是數字類型
     const numericFunctionId = typeof functionId === 'string' ? parseInt(functionId, 10) : functionId;
-
     if (isNaN(numericFunctionId)) {
-      console.error(`[UserLogHelper] Invalid functionId: ${functionId} (type: ${typeof functionId})`);
       return;
     }
 
@@ -96,9 +76,7 @@ export const logUserAction = async (
       err_detail: errDetail
     };
 
-    console.log('[UserLogHelper] Calling createUserLog API with log:', log);
     await createUserLog(log);
-    console.log('[UserLogHelper] createUserLog API completed');
   } catch (error) {
     // 日誌記錄失敗不應該影響主要功能
     console.error('[UserLogHelper] Failed to create user log:', error);
@@ -140,9 +118,6 @@ export const logCreate = async (
 
 /**
  * 記錄資料修改 (Update)
- * look_data: 完整的舊資料
- * change_data: 完整的新資料
- * 前端顯示時會比較兩邊資料，用顏色標示不同的欄位
  */
 export const logUpdate = async (
   funcCode: string,
@@ -153,8 +128,7 @@ export const logUpdate = async (
   try {
     await logUserAction(funcCode, 'Update', oldData, newData, error);
   } catch (err) {
-    console.error('[logUpdate] Error:', err);
-    // 即使日誌記錄失敗，也不要拋出異常
+    // 日誌記錄失敗不影響主要功能
   }
 };
 

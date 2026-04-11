@@ -31,7 +31,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle, width = 260 })
     const loadMenuItems = async () => {
       try {
         const functions = await systemService.getFunctions();
-        console.log('Loaded menu functions:', functions);
         // 過濾掉 func_order 1-9 的項目 (保留 10 以上的項目)
         const filteredFunctions = filterMenuItems(functions);
         setMenuItems(filteredFunctions);
