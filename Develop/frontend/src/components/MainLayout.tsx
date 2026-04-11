@@ -65,35 +65,26 @@ const MainLayout: React.FC = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
 
-  // 載入使用者選單功能的中英文名稱
-  const [menuFunctions, setMenuFunctions] = useState<{
-    my_profile?: SystemFunction;
-    change_password?: SystemFunction;
-    logout?: SystemFunction;
-  }>({});
+  // 載入使用者下拉選單功能（personal_function 節點下的子功能）
+  const [userMenuItems, setUserMenuItems] = useState<SystemFunction[]>([]);
 
-  // 載入功能名稱
   useEffect(() => {
     const loadMenuFunctions = async () => {
       try {
-        // 載入所有活動的系統功能
         const functions = await getSystemFunctions({
           is_active: true,
           limit: 1000
         });
 
-        // 篩選出需要的功能
-        const functionsMap: Record<string, SystemFunction> = {};
-        functions.forEach(func => {
-          if (func.func_code === 'my_profile' ||
-              func.func_code === 'change_password' ||
-              func.func_code === 'logout') {
-            functionsMap[func.func_code] = func;
-          }
-        });
-
-        console.log('[MainLayout] 載入的選單功能:', functionsMap);
-        setMenuFunctions(functionsMap);
+        // 找到 personal_function 節點
+        const personalNode = functions.find(f => f.func_code === 'personal_function');
+        if (personalNode) {
+          // 取得該節點下的子功能，依 func_order 排序
+          const children = functions
+            .filter(f => f.upper_func_id === personalNode.id && f.func_type === 2)
+            .sort((a, b) => a.func_order - b.func_order);
+          setUserMenuItems(children);
+        }
       } catch (error) {
         console.error('載入選單功能失敗:', error);
       }
@@ -110,23 +101,18 @@ const MainLayout: React.FC = () => {
     setAnchorEl(null);
   };
 
-  const handleMyProfile = () => {
+  // 點擊使用者選單項目
+  const handleMenuItemClick = async (funcCode: string) => {
     handleUserMenuClose();
-    navigate('/my_profile');
-  };
-
-  const handleChangePassword = () => {
-    handleUserMenuClose();
-    navigate('/change_password');
-  };
-
-  const handleLogout = async () => {
-    handleUserMenuClose();
-    try {
-      await logout();
-      navigate('/login');
-    } catch (error) {
-      console.error('登出失敗:', error);
+    if (funcCode === 'logout') {
+      try {
+        await logout();
+        navigate('/login');
+      } catch (error) {
+        console.error('登出失敗:', error);
+      }
+    } else {
+      navigate(`/${funcCode}`);
     }
   };
 
@@ -253,37 +239,27 @@ const MainLayout: React.FC = () => {
                 }
               }}
             >
-              <MenuItem onClick={handleMyProfile}>
-                <ListItemIcon>
-                  {getIconComponent(menuFunctions.my_profile?.func_icon)}
-                </ListItemIcon>
-                <ListItemText>
-                  {getI18nValue(menuFunctions.my_profile?.func_name, i18n.language, '個人資料')}
-                </ListItemText>
-              </MenuItem>
-              <MenuItem onClick={handleChangePassword}>
-                <ListItemIcon>
-                  {getIconComponent(menuFunctions.change_password?.func_icon)}
-                </ListItemIcon>
-                <ListItemText>
-                  {getI18nValue(menuFunctions.change_password?.func_name, i18n.language, '密碼變更')}
-                </ListItemText>
-              </MenuItem>
-              <Divider />
-              <MenuItem onClick={handleLogout}>
-                <ListItemIcon>
-                  {menuFunctions.logout?.func_icon ?
-                    getIconComponent(menuFunctions.logout.func_icon) :
-                    <LogoutIcon fontSize="small" />
-                  }
-                </ListItemIcon>
-                <ListItemText>
-                  {menuFunctions.logout
-                    ? getI18nValue(menuFunctions.logout.func_name, i18n.language, '登出')
-                    : t('userMenu.logout', '登出')
-                  }
-                </ListItemText>
-              </MenuItem>
+              {userMenuItems.map((item, index) => {
+                const isLogout = item.func_code === 'logout';
+                return (
+                  <React.Fragment key={item.id}>
+                    {isLogout && <Divider />}
+                    <MenuItem onClick={() => handleMenuItemClick(item.func_code)}>
+                      <ListItemIcon>
+                        {item.func_icon
+                          ? getIconComponent(item.func_icon)
+                          : isLogout
+                          ? <LogoutIcon fontSize="small" />
+                          : <AccountCircle fontSize="small" />
+                        }
+                      </ListItemIcon>
+                      <ListItemText>
+                        {getI18nValue(item.func_name, i18n.language)}
+                      </ListItemText>
+                    </MenuItem>
+                  </React.Fragment>
+                );
+              })}
             </Menu>
           </div>
         </header>
