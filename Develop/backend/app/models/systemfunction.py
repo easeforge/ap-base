@@ -1,6 +1,6 @@
 """
 System Function Model
-系統功能設定表（正名化版本）
+系統功能設定表
 """
 
 from sqlalchemy import Column, Integer, String, Boolean, TIMESTAMP, Text, ForeignKey, CheckConstraint, Index
@@ -11,7 +11,7 @@ from app.core.database import Base
 
 
 class SystemFunction(Base):
-    """系統功能設定表（正名化版本）"""
+    """系統功能設定表"""
 
     __tablename__ = "system_functions"
 
@@ -21,15 +21,14 @@ class SystemFunction(Base):
     # 功能資訊
     func_code = Column(String(200), nullable=False, index=True, comment="功能代碼，用於權限識別、前端路由、日誌記錄")
     upper_func_id = Column(Integer, nullable=False, default=0, index=True, comment="上層功能ID（0表示根節點）")
-    func_cname = Column(String(200), nullable=False, comment="功能中文名稱")
-    func_ename = Column(String(200), nullable=False, comment="功能英文名稱")
+    func_name = Column(JSONB, nullable=False, default=dict, comment="功能名稱（多語系 JSONB）")
     func_type = Column(Integer, nullable=False, index=True, comment="功能類型（1:節點/選單, 2:功能）")
     func_order = Column(Integer, nullable=False, index=True, comment="排序順序")
     func_icon = Column(String(200), comment="圖示")
 
-    # 模組資訊（正名化欄位）
-    module_code = Column(String(200), index=True, comment="模組代碼，用於 API 路由識別，可對應單一或多個資料表")
-    module_item = Column(JSONB, nullable=False, default=list, comment="可設定權限項目 (create/read/update/delete/print/file)")
+    # 模組資訊
+    module_code = Column(String(200), index=True, comment="模組代碼")
+    module_item = Column(JSONB, nullable=False, default=list, comment="可設定權限項目")
 
     # 說明與狀態
     description = Column(Text, comment="功能說明")

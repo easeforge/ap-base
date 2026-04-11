@@ -1,20 +1,19 @@
 """
-User Role Schemas
-使用者角色明細檔 API Schema（新版）
+UserRole Schemas
+使用者角色明細檔 API Schema
 """
 
-from typing import Optional
+from typing import Optional, Dict
 from datetime import datetime
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 
 class UserRoleBase(BaseModel):
     """使用者角色基本資料"""
-    role_cname: str = Field(..., max_length=200, description="角色中文名稱")
-    role_ename: str = Field(..., max_length=200, description="角色英文名稱")
+    role_name: Dict[str, str] = Field(default_factory=dict, description="角色名稱（多語系）")
     description: Optional[str] = Field(None, description="角色說明")
-    is_mana: bool = Field(False, description="是否為系統管理角色")
-    is_active: bool = Field(True, description="是否啟用")
+    is_mana: bool = Field(False, description="系統管理角色")
+    is_active: bool = Field(True, description="啟用")
 
 
 class UserRoleCreate(UserRoleBase):
@@ -23,20 +22,18 @@ class UserRoleCreate(UserRoleBase):
 
 
 class UserRoleUpdate(BaseModel):
-    """更新使用者角色（所有欄位可選）"""
-    role_cname: Optional[str] = Field(None, max_length=200, description="角色中文名稱")
-    role_ename: Optional[str] = Field(None, max_length=200, description="角色英文名稱")
-    description: Optional[str] = Field(None, description="角色說明")
-    is_mana: Optional[bool] = Field(None, description="是否為系統管理角色")
-    is_active: Optional[bool] = Field(None, description="是否啟用")
+    """更新使用者角色"""
+    role_name: Optional[Dict[str, str]] = Field(None, description="角色名稱（多語系）")
+    description: Optional[str] = Field(None)
+    is_mana: Optional[bool] = Field(None)
+    is_active: Optional[bool] = Field(None)
 
 
 class UserRoleResponse(UserRoleBase):
-    """使用者角色回應資料"""
+    """使用者角色回應"""
     id: int
     edit_by: int
     created_at: datetime
     updated_at: Optional[datetime] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

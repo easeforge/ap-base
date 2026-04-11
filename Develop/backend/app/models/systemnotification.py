@@ -4,6 +4,7 @@ System Notification Models
 """
 
 from sqlalchemy import Column, Integer, String, Boolean, TIMESTAMP, Text, Date, ForeignKey, Index
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.core.database import Base
@@ -17,13 +18,9 @@ class SystemNotification(Base):
     # 主鍵
     id = Column(Integer, primary_key=True, index=True)
 
-    # 通知主旨（中英文）
-    notice_csubject = Column(String(200), nullable=False)
-    notice_esubject = Column(String(200), nullable=False)
-
-    # 通知說明（中英文，富文本格式）
-    notice_cdescription = Column(Text, nullable=False)
-    notice_edescription = Column(Text, nullable=False)
+    # 通知主旨與說明（多語系 JSONB）
+    notice_subject = Column(JSONB, nullable=False, default=dict, comment="通知主旨（多語系）")
+    notice_description = Column(JSONB, nullable=False, default=dict, comment="通知說明（多語系）")
 
     # 時間控制
     notice_start_at = Column(TIMESTAMP, nullable=False, server_default=func.current_timestamp(), index=True)
@@ -66,7 +63,7 @@ class NotificationCloseDate(Base):
     # 建立時間
     created_at = Column(TIMESTAMP, nullable=False, server_default=func.current_timestamp())
 
-    # 索引（確保每個使用者每天只有一筆記錄）
+    # 索引
     __table_args__ = (
         Index("idx_notification_closedates_edit_by", "edit_by"),
         Index("idx_notification_closedates_closed_at", "closed_at"),

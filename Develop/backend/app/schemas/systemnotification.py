@@ -3,17 +3,15 @@ System Notification Schemas
 系統通知 API Schema
 """
 
-from typing import Optional, List
+from typing import Optional, List, Dict
 from datetime import datetime, date
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 
 class SystemNotificationBase(BaseModel):
     """系統通知基本資料"""
-    notice_csubject: str = Field(..., max_length=200, description="通知中文主旨")
-    notice_esubject: str = Field(..., max_length=200, description="通知英文主旨")
-    notice_cdescription: str = Field(..., description="通知中文說明（富文本格式）")
-    notice_edescription: str = Field(..., description="通知英文說明（富文本格式）")
+    notice_subject: Dict[str, str] = Field(default_factory=dict, description="通知主旨（多語系）")
+    notice_description: Dict[str, str] = Field(default_factory=dict, description="通知說明（多語系，富文本格式）")
     notice_start_at: datetime = Field(..., description="通知開始時間")
     notice_end_at: datetime = Field(..., description="通知結束時間")
     notice_order: int = Field(0, description="訊息次序")
@@ -26,11 +24,9 @@ class SystemNotificationCreate(SystemNotificationBase):
 
 
 class SystemNotificationUpdate(BaseModel):
-    """更新系統通知（所有欄位可選）"""
-    notice_csubject: Optional[str] = Field(None, max_length=200, description="通知中文主旨")
-    notice_esubject: Optional[str] = Field(None, max_length=200, description="通知英文主旨")
-    notice_cdescription: Optional[str] = Field(None, description="通知中文說明（富文本格式）")
-    notice_edescription: Optional[str] = Field(None, description="通知英文說明（富文本格式）")
+    """更新系統通知"""
+    notice_subject: Optional[Dict[str, str]] = Field(None, description="通知主旨（多語系）")
+    notice_description: Optional[Dict[str, str]] = Field(None, description="通知說明（多語系）")
     notice_start_at: Optional[datetime] = Field(None, description="通知開始時間")
     notice_end_at: Optional[datetime] = Field(None, description="通知結束時間")
     notice_order: Optional[int] = Field(None, description="訊息次序")
@@ -44,8 +40,7 @@ class SystemNotificationResponse(SystemNotificationBase):
     created_at: datetime
     updated_at: Optional[datetime] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class NotificationCloseDateCreate(BaseModel):
@@ -60,13 +55,12 @@ class NotificationCloseDateResponse(BaseModel):
     edit_by: int
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class TodayNotificationsResponse(BaseModel):
-    """今日通知回應（用於 Home 頁面 Modal）"""
-    notifications: List[SystemNotificationResponse] = Field(..., description="今日通知列表（依次序排序）")
+    """今日通知回應"""
+    notifications: List[SystemNotificationResponse] = Field(..., description="今日通知列表")
 
 
 class DataTablesRequest(BaseModel):
@@ -77,12 +71,10 @@ class DataTablesRequest(BaseModel):
     search_value: Optional[str] = Field(None, description="全文檢索值")
     order_column: Optional[int] = Field(None, description="排序欄位索引")
     order_dir: Optional[str] = Field("asc", description="排序方向")
-
-    # 篩選欄位
-    filter_notice_end_at_start: Optional[datetime] = Field(None, description="結束時間起始")
-    filter_notice_end_at_end: Optional[datetime] = Field(None, description="結束時間結束")
-    filter_notice_order: Optional[int] = Field(None, description="訊息次序")
-    filter_is_active: Optional[bool] = Field(None, description="啟用狀態")
+    filter_notice_end_at_start: Optional[datetime] = Field(None)
+    filter_notice_end_at_end: Optional[datetime] = Field(None)
+    filter_notice_order: Optional[int] = Field(None)
+    filter_is_active: Optional[bool] = Field(None)
 
 
 class DataTablesResponse(BaseModel):

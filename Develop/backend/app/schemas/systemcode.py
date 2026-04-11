@@ -4,17 +4,16 @@ SystemCode Schemas
 """
 
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Dict
 from pydantic import BaseModel, ConfigDict, Field
 
 
 class SystemCodeBase(BaseModel):
     """系統代碼基本資料"""
-    code_etype: str = Field(..., max_length=100, description="代碼類別英文名稱")
-    code_ctype: str = Field(..., max_length=200, description="代碼類別中文名稱")
+    code_type: str = Field(..., max_length=100, description="代碼類別識別碼（程式用）")
+    code_type_name: Dict[str, str] = Field(default_factory=dict, description="代碼類別名稱（多語系）")
     code: str = Field(..., max_length=50, description="代碼編號")
-    code_cname: str = Field(..., max_length=300, description="代碼中文名稱")
-    code_ename: Optional[str] = Field(None, max_length=300, description="代碼英文名稱")
+    code_name: Dict[str, str] = Field(default_factory=dict, description="代碼名稱（多語系）")
     order: int = Field(0, description="次序")
     is_active: bool = Field(True, description="啟用")
     note1: Optional[str] = Field(None, max_length=500, description="說明1")
@@ -41,11 +40,10 @@ class SystemCodeCreate(SystemCodeBase):
 
 class SystemCodeUpdate(BaseModel):
     """更新系統代碼請求"""
-    code_etype: Optional[str] = Field(None, max_length=100, description="代碼類別英文名稱")
-    code_ctype: Optional[str] = Field(None, max_length=200, description="代碼類別中文名稱")
+    code_type: Optional[str] = Field(None, max_length=100, description="代碼類別識別碼")
+    code_type_name: Optional[Dict[str, str]] = Field(None, description="代碼類別名稱（多語系）")
     code: Optional[str] = Field(None, max_length=50, description="代碼編號")
-    code_cname: Optional[str] = Field(None, max_length=300, description="代碼中文名稱")
-    code_ename: Optional[str] = Field(None, max_length=300, description="代碼英文名稱")
+    code_name: Optional[Dict[str, str]] = Field(None, description="代碼名稱（多語系）")
     order: Optional[int] = Field(None, description="次序")
     is_active: Optional[bool] = Field(None, description="啟用")
     note1: Optional[str] = Field(None, max_length=500, description="說明1")
@@ -57,10 +55,7 @@ class SystemCodeUpdate(BaseModel):
 
 class SystemCodeQuery(BaseModel):
     """系統代碼查詢參數"""
-    code_etype: Optional[str] = Field(None, description="代碼類別英文名稱（模糊搜尋）")
-    code_ctype: Optional[str] = Field(None, description="代碼類別中文名稱（模糊搜尋）")
+    code_type: Optional[str] = Field(None, description="代碼類別識別碼（模糊搜尋）")
     code: Optional[str] = Field(None, description="代碼編號（模糊搜尋）")
-    code_cname: Optional[str] = Field(None, description="代碼中文名稱（模糊搜尋）")
-    code_ename: Optional[str] = Field(None, description="代碼英文名稱（模糊搜尋）")
     is_active: Optional[bool] = Field(None, description="啟用狀態")
-    search: Optional[str] = Field(None, description="綜合搜尋（代碼類別、代碼編號、代碼名稱）")
+    search: Optional[str] = Field(None, description="綜合搜尋（代碼類別、代碼編號、各語系名稱、note1~5）")

@@ -4,6 +4,7 @@ System Profile Model
 """
 
 from sqlalchemy import Column, Integer, String, Boolean, TIMESTAMP, ForeignKey, CheckConstraint
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.core.database import Base
@@ -20,12 +21,10 @@ class SysProfile(Base):
     # 系統狀態
     is_service = Column(Boolean, nullable=False, default=True)
 
-    # 系統資訊
+    # 系統資訊（多語系 JSONB）
     sys_url = Column(String(200), nullable=False)
-    sys_ctitle = Column(String(200), nullable=False)
-    sys_etitle = Column(String(200), nullable=False)
-    sys_ccopyright = Column(String(200), nullable=False)
-    sys_ecopyright = Column(String(200), nullable=False)
+    sys_title = Column(JSONB, nullable=False, default=dict, comment="系統標題（多語系）")
+    sys_copyright = Column(JSONB, nullable=False, default=dict, comment="版權宣告（多語系）")
 
     # 管理資訊
     sys_organization = Column(Integer, ForeignKey("organizations.id"), nullable=False, default=1)
@@ -33,6 +32,9 @@ class SysProfile(Base):
 
     # 時區設定
     sys_timezone = Column(String(50), nullable=False, default='Asia/Taipei')
+
+    # 語系設定
+    sys_languages = Column(JSONB, nullable=False, default=lambda: ["zh-TW"], comment="啟用的語系代碼陣列")
 
     # 系統欄位
     edit_by = Column(Integer, ForeignKey("users.id"), nullable=False)
