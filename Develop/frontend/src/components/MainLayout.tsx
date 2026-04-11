@@ -21,6 +21,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useSystem } from '../contexts/SystemContext';
 import { getSystemFunctions } from '../services/systemFunctionsService';
 import type { SystemFunction } from '../types/systemFunctions';
+import { getI18nValue } from '../utils/i18nHelper';
 import Sidebar from './Sidebar';
 import LanguageSwitcher from './LanguageSwitcher';
 import Breadcrumb from './Breadcrumb';
@@ -95,7 +96,6 @@ const MainLayout: React.FC = () => {
         setMenuFunctions(functionsMap);
       } catch (error) {
         console.error('載入選單功能失敗:', error);
-        // 如果載入失敗，使用預設值（已在 JSX 中提供 fallback）
       }
     };
 
@@ -202,9 +202,7 @@ const MainLayout: React.FC = () => {
           <div className="header-left">
             <img src="/logo.png" alt="Logo" className="header-logo" />
             <span className="header-system-title">
-              {i18n.language === 'en'
-                ? (systemProfile?.sys_etitle || 'Base AP Management System')
-                : (systemProfile?.sys_ctitle || '後臺管理基底平台')}
+              {getI18nValue(systemProfile?.sys_title, i18n.language, 'Base AP Management System')}
             </span>
           </div>
           <div className="header-right">
@@ -260,9 +258,7 @@ const MainLayout: React.FC = () => {
                   {getIconComponent(menuFunctions.my_profile?.func_icon)}
                 </ListItemIcon>
                 <ListItemText>
-                  {i18n.language === 'en'
-                    ? (menuFunctions.my_profile?.func_ename || 'My Profile')
-                    : (menuFunctions.my_profile?.func_cname || '個人資料')}
+                  {getI18nValue(menuFunctions.my_profile?.func_name, i18n.language, '個人資料')}
                 </ListItemText>
               </MenuItem>
               <MenuItem onClick={handleChangePassword}>
@@ -270,9 +266,7 @@ const MainLayout: React.FC = () => {
                   {getIconComponent(menuFunctions.change_password?.func_icon)}
                 </ListItemIcon>
                 <ListItemText>
-                  {i18n.language === 'en'
-                    ? (menuFunctions.change_password?.func_ename || 'Change Password')
-                    : (menuFunctions.change_password?.func_cname || '密碼變更')}
+                  {getI18nValue(menuFunctions.change_password?.func_name, i18n.language, '密碼變更')}
                 </ListItemText>
               </MenuItem>
               <Divider />
@@ -284,13 +278,10 @@ const MainLayout: React.FC = () => {
                   }
                 </ListItemIcon>
                 <ListItemText>
-                  {menuFunctions.logout ? (
-                    i18n.language === 'en'
-                      ? (menuFunctions.logout.func_ename || 'Logout')
-                      : (menuFunctions.logout.func_cname || '登出')
-                  ) : (
-                    t('userMenu.logout', '登出')
-                  )}
+                  {menuFunctions.logout
+                    ? getI18nValue(menuFunctions.logout.func_name, i18n.language, '登出')
+                    : t('userMenu.logout', '登出')
+                  }
                 </ListItemText>
               </MenuItem>
             </Menu>

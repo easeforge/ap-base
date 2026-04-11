@@ -229,6 +229,7 @@
   },
   "userRoles": {
     "title": "使用者角色設定",
+    "roleName": "角色名稱",
     "roleCname": "角色中文名稱",
     "roleEname": "角色英文名稱",
     "description": "角色說明",

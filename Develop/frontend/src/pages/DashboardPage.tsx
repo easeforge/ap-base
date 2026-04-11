@@ -23,6 +23,7 @@ import {
   SystemNotification
 } from '../services/systemNotificationsService';
 import { logView } from '../utils/userLogHelper';
+import { getI18nValue } from '../utils/i18nHelper';
 import '../styles/DashboardPage.css';
 
 const DashboardPage: React.FC = () => {
@@ -151,7 +152,6 @@ const DashboardPage: React.FC = () => {
   }, [user?.organization_id]);
 
   const currentNotification = notifications[currentNotificationIndex];
-  const isChineseLanguage = i18n.language === 'zh-TW' || i18n.language === 'zh-CN' || i18n.language === 'zh';
 
   return (
     <div className="dashboard-page">
@@ -237,9 +237,7 @@ const DashboardPage: React.FC = () => {
             </DialogTitle>
             <DialogContent dividers>
               <Typography variant="h6" sx={{ mb: 2, fontWeight: 600, color: '#2c3e50' }}>
-                {isChineseLanguage
-                  ? currentNotification.notice_csubject
-                  : currentNotification.notice_esubject}
+                {getI18nValue(currentNotification.notice_subject, i18n.language)}
               </Typography>
               <Box
                 sx={{
@@ -247,9 +245,7 @@ const DashboardPage: React.FC = () => {
                   '& p:last-child': { marginBottom: 0 }
                 }}
                 dangerouslySetInnerHTML={{
-                  __html: isChineseLanguage
-                    ? currentNotification.notice_cdescription
-                    : currentNotification.notice_edescription
+                  __html: getI18nValue(currentNotification.notice_description, i18n.language)
                 }}
               />
             </DialogContent>

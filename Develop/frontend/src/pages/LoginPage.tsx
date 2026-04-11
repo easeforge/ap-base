@@ -9,6 +9,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useSystem } from '../contexts/SystemContext';
 import { authService } from '../api/authService';
 import LanguageSwitcher from '../components/LanguageSwitcher';
+import { getI18nValue } from '../utils/i18nHelper';
 import '../styles/LoginPage.css';
 
 const LoginPage: React.FC = () => {
@@ -94,9 +95,7 @@ const LoginPage: React.FC = () => {
 
         <div className="login-header">
           <h1 className={`system-title ${i18n.language === 'en' ? 'lang-en' : 'lang-zh'}`}>
-            {i18n.language === 'en'
-              ? (systemProfile?.sys_etitle || 'Paris Agreement Article 6.4 Management System')
-              : (systemProfile?.sys_ctitle || '巴黎協定 減碳活動申請系統')}
+            {getI18nValue(systemProfile?.sys_title, i18n.language, 'Base AP Management System')}
           </h1>
         </div>
 
@@ -188,9 +187,7 @@ const LoginPage: React.FC = () => {
         <div className="login-footer">
           <p>
             <img src="/logo.png" alt="Logo" className="login-logo" />
-            {i18n.language === 'en'
-              ? (systemProfile?.sys_ecopyright || 'Copyright © 2026 JiangYun Co., Ltd.')
-              : (systemProfile?.sys_ccopyright || t('common.copyright'))}
+            {getI18nValue(systemProfile?.sys_copyright, i18n.language, t('common.copyright'))}
           </p>
         </div>
       </div>

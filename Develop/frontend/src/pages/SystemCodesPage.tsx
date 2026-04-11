@@ -14,6 +14,8 @@ import {
   updateSystemCode,
   deleteSystemCode
 } from '../services/systemCodeService';
+import { I18nField } from '../types';
+import { getI18nValue } from '../utils/i18nHelper';
 import { usePermission } from '../hooks/usePermission';
 import { useFunctionName } from '../hooks/useFunctionName';
 import { logView, logCreate, logRead, logUpdate, logDelete } from '../utils/userLogHelper';
@@ -41,20 +43,19 @@ const SystemCodesPage: React.FC = () => {
 
   // 篩選欄位
   const [filters, setFilters] = useState({
-    codeType: '',    // 代碼類別 (2,3)
-    code: '',        // 代碼編號 (4)
-    codeName: ''     // 代碼名稱 (5,6)
+    codeType: '',    // 代碼類別 (code_type identifier)
+    code: '',        // 代碼編號
+    codeName: ''     // 代碼名稱
   });
 
   // 排序
   const [sortField, setSortField] = useState<'id' | 'codeType' | 'order'>('id');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [formData, setFormData] = useState<SystemCodeCreate>({
-    code_etype: '',
-    code_ctype: '',
+    code_type: '',
+    code_type_name: { 'zh-TW': '', 'en': '' },
     code: '',
-    code_cname: '',
-    code_ename: '',
+    code_name: { 'zh-TW': '', 'en': '' },
     order: 0,
     is_active: true,
     note1: '',
@@ -79,61 +80,46 @@ const SystemCodesPage: React.FC = () => {
     }
   };
 
-  // 取得唯一的代碼類別選項
+  // 取得唯一的代碼類別選項 (用 code_type 識別碼做 key，顯示 code_type_name)
   const getUniqueCodeTypes = () => {
+    const typeMap = new Map<string, I18nField>();
+    codes.forEach(code => {
+      if (!typeMap.has(code.code_type)) {
+        typeMap.set(code.code_type, code.code_type_name);
+      }
+    });
+    const result: { value: string; label: string }[] = [];
+    typeMap.forEach((name, type) => {
+      const displayName = getI18nValue(name, i18n.language);
+      const label = displayName && displayName !== type
+        ? `${displayName} (${type})`
+        : type;
+      result.push({ value: type, label });
+    });
+    return result.sort((a, b) => a.label.localeCompare(b.label));
+  };
+
+  // 取得唯一的 code_type 值 (供 datalist 使用)
+  const getUniqueCodeTypeValues = () => {
     const types = new Set<string>();
     codes.forEach(code => {
-      const isChinese = i18n.language === 'zh-TW';
-      const label = isChinese
-        ? `${code.code_ctype} (${code.code_etype})`
-        : `${code.code_etype} (${code.code_ctype})`;
-      types.add(label);
+      if (code.code_type) types.add(code.code_type);
     });
     return Array.from(types).sort();
   };
 
-  // 取得唯一的英文類別選項 (供 datalist 使用)
-  const getUniqueEtypes = () => {
-    const types = new Set<string>();
-    codes.forEach(code => {
-      if (code.code_etype) types.add(code.code_etype);
-    });
-    return Array.from(types).sort();
-  };
+  // 當選擇/輸入 code_type 時，自動帶入對應的 code_type_name
+  const handleCodeTypeChange = (codeType: string) => {
+    const newFormData = { ...formData, code_type: codeType };
 
-  // 取得唯一的中文類別選項 (供 datalist 使用)
-  const getUniqueCtypes = () => {
-    const types = new Set<string>();
-    codes.forEach(code => {
-      if (code.code_ctype) types.add(code.code_ctype);
-    });
-    return Array.from(types).sort();
-  };
-
-  // 當選擇英文類別時,自動帶入對應的中文類別
-  const handleEtypeChange = (etype: string) => {
-    setFormData({ ...formData, code_etype: etype });
-
-    // 查找該英文類別對應的中文類別
-    if (etype) {
-      const matchingCode = codes.find(code => code.code_etype === etype);
-      if (matchingCode && matchingCode.code_ctype) {
-        setFormData({ ...formData, code_etype: etype, code_ctype: matchingCode.code_ctype });
+    if (codeType) {
+      const matchingCode = codes.find(code => code.code_type === codeType);
+      if (matchingCode && matchingCode.code_type_name) {
+        newFormData.code_type_name = { ...matchingCode.code_type_name };
       }
     }
-  };
 
-  // 當選擇中文類別時,自動帶入對應的英文類別
-  const handleCtypeChange = (ctype: string) => {
-    setFormData({ ...formData, code_ctype: ctype });
-
-    // 查找該中文類別對應的英文類別
-    if (ctype) {
-      const matchingCode = codes.find(code => code.code_ctype === ctype);
-      if (matchingCode && matchingCode.code_etype) {
-        setFormData({ ...formData, code_ctype: ctype, code_etype: matchingCode.code_etype });
-      }
-    }
+    setFormData(newFormData);
   };
 
   // 取得唯一的代碼編號選項
@@ -149,13 +135,13 @@ const SystemCodesPage: React.FC = () => {
   const getUniqueCodeNames = () => {
     const names = new Set<string>();
     codes.forEach(code => {
-      const isChinese = i18n.language === 'zh-TW';
-      const primary = isChinese ? code.code_cname : (code.code_ename || code.code_cname);
-      const secondary = isChinese ? code.code_ename : code.code_cname;
+      const primary = getI18nValue(code.code_name, i18n.language);
+      const otherLang = i18n.language === 'zh-TW' ? 'en' : 'zh-TW';
+      const secondary = getI18nValue(code.code_name, otherLang);
       const label = secondary && primary !== secondary
         ? `${primary} (${secondary})`
         : primary;
-      names.add(label);
+      if (label) names.add(label);
     });
     return Array.from(names).sort();
   };
@@ -164,24 +150,18 @@ const SystemCodesPage: React.FC = () => {
   useEffect(() => {
     let result = [...codes];
 
-    // 篩選 - 使用下拉選單的精確值
+    // 篩選 - code_type 使用識別碼精確比對
     if (filters.codeType) {
-      result = result.filter(code => {
-        const isChinese = i18n.language === 'zh-TW';
-        const label = isChinese
-          ? `${code.code_ctype} (${code.code_etype})`
-          : `${code.code_etype} (${code.code_ctype})`;
-        return label === filters.codeType;
-      });
+      result = result.filter(code => code.code_type === filters.codeType);
     }
     if (filters.code) {
       result = result.filter(code => code.code === filters.code);
     }
     if (filters.codeName) {
       result = result.filter(code => {
-        const isChinese = i18n.language === 'zh-TW';
-        const primary = isChinese ? code.code_cname : (code.code_ename || code.code_cname);
-        const secondary = isChinese ? code.code_ename : code.code_cname;
+        const primary = getI18nValue(code.code_name, i18n.language);
+        const otherLang = i18n.language === 'zh-TW' ? 'en' : 'zh-TW';
+        const secondary = getI18nValue(code.code_name, otherLang);
         const label = secondary && primary !== secondary
           ? `${primary} (${secondary})`
           : primary;
@@ -195,11 +175,7 @@ const SystemCodesPage: React.FC = () => {
       if (sortField === 'id') {
         compareValue = a.id - b.id;
       } else if (sortField === 'codeType') {
-        // 依代碼類別排序：先比較 code_etype，再比較 code_ctype
-        compareValue = a.code_etype.localeCompare(b.code_etype);
-        if (compareValue === 0) {
-          compareValue = a.code_ctype.localeCompare(b.code_ctype);
-        }
+        compareValue = a.code_type.localeCompare(b.code_type);
       } else if (sortField === 'order') {
         compareValue = a.order - b.order;
       }
@@ -290,11 +266,10 @@ const SystemCodesPage: React.FC = () => {
     if (code) {
       setEditingCode(code);
       setFormData({
-        code_etype: code.code_etype,
-        code_ctype: code.code_ctype,
+        code_type: code.code_type,
+        code_type_name: { ...code.code_type_name },
         code: code.code,
-        code_cname: code.code_cname,
-        code_ename: code.code_ename || '',
+        code_name: { ...code.code_name },
         order: code.order,
         is_active: code.is_active,
         note1: code.note1 || '',
@@ -311,11 +286,10 @@ const SystemCodesPage: React.FC = () => {
     } else {
       setEditingCode(null);
       setFormData({
-        code_etype: '',
-        code_ctype: '',
+        code_type: '',
+        code_type_name: { 'zh-TW': '', 'en': '' },
         code: '',
-        code_cname: '',
-        code_ename: '',
+        code_name: { 'zh-TW': '', 'en': '' },
         order: 0,
         is_active: true,
         note1: '',
@@ -405,54 +379,51 @@ const SystemCodesPage: React.FC = () => {
 
   /**
    * 依照語系顯示代碼類別
-   * 中文語系：中文為主，英文換行縮小顯示於下方
-   * 英文語系：只顯示英文
+   * 主要語系名稱為主，code_type 識別碼顯示於下方
    */
   const renderCodeType = (code: SystemCode) => {
-    const isChinese = i18n.language === 'zh-TW';
+    const displayName = getI18nValue(code.code_type_name, i18n.language);
 
-    if (isChinese) {
-      // 中文語系：中文主要，英文副要（換行顯示）
-      return (
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
-          <span>{renderHTML(code.code_ctype)}</span>
-          {code.code_etype && (
-            <span style={{ fontSize: '0.85em', color: '#666' }}>
-              {renderHTML(code.code_etype)}
-            </span>
-          )}
-        </div>
-      );
-    } else {
-      // 英文語系：只顯示英文
-      return renderHTML(code.code_etype);
-    }
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
+        <span>{renderHTML(displayName)}</span>
+        <span style={{ fontSize: '0.85em', color: '#666' }}>
+          {renderHTML(code.code_type)}
+        </span>
+      </div>
+    );
   };
 
   /**
    * 依照語系顯示代碼名稱
-   * 中文語系：中文為主，英文換行縮小顯示於下方
-   * 英文語系：只顯示英文（若無英文則顯示中文）
+   * 當前語系為主，另一語系換行縮小顯示於下方
    */
   const renderCodeName = (code: SystemCode) => {
-    const isChinese = i18n.language === 'zh-TW';
+    const primary = getI18nValue(code.code_name, i18n.language);
+    const otherLang = i18n.language === 'zh-TW' ? 'en' : 'zh-TW';
+    const secondary = getI18nValue(code.code_name, otherLang);
 
-    if (isChinese) {
-      // 中文語系：中文主要，英文副要（換行顯示）
-      return (
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
-          <span>{renderHTML(code.code_cname)}</span>
-          {code.code_ename && (
-            <span style={{ fontSize: '0.85em', color: '#666' }}>
-              {renderHTML(code.code_ename)}
-            </span>
-          )}
-        </div>
-      );
-    } else {
-      // 英文語系：只顯示英文（若無英文則顯示中文）
-      return renderHTML(code.code_ename || code.code_cname);
-    }
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
+        <span>{renderHTML(primary)}</span>
+        {secondary && secondary !== primary && (
+          <span style={{ fontSize: '0.85em', color: '#666' }}>
+            {renderHTML(secondary)}
+          </span>
+        )}
+      </div>
+    );
+  };
+
+  // 更新 formData 中 I18nField 的某個語系值
+  const updateI18nField = (fieldName: 'code_type_name' | 'code_name', lang: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [fieldName]: {
+        ...prev[fieldName],
+        [lang]: value
+      }
+    }));
   };
 
   // 檢查權限
@@ -550,7 +521,7 @@ const SystemCodesPage: React.FC = () => {
           >
             <option value="">{t('common.all')}</option>
             {getUniqueCodeTypes().map((type) => (
-              <option key={type} value={type}>{type}</option>
+              <option key={type.value} value={type.value}>{type.label}</option>
             ))}
           </select>
         </div>
@@ -744,38 +715,20 @@ const SystemCodesPage: React.FC = () => {
               <div className="modal-body">
                 <div className="form-grid">
                   <div className="form-group">
-                    <label>{t('systemCodes.codeEtype')} *</label>
+                    <label>{t('systemCodes.codeType', '代碼類別識別碼')} *</label>
                     <input
                       type="text"
-                      list="etype-datalist"
-                      value={formData.code_etype}
-                      onChange={(e) => handleEtypeChange(e.target.value)}
+                      list="codetype-datalist"
+                      value={formData.code_type}
+                      onChange={(e) => handleCodeTypeChange(e.target.value)}
                       required
                       disabled={isViewMode}
                       maxLength={100}
                       placeholder={t('systemCodes.selectOrInput')}
                     />
-                    <datalist id="etype-datalist">
-                      {getUniqueEtypes().map((etype) => (
-                        <option key={etype} value={etype} />
-                      ))}
-                    </datalist>
-                  </div>
-                  <div className="form-group">
-                    <label>{t('systemCodes.codeCtype')} *</label>
-                    <input
-                      type="text"
-                      list="ctype-datalist"
-                      value={formData.code_ctype}
-                      onChange={(e) => handleCtypeChange(e.target.value)}
-                      required
-                      disabled={isViewMode}
-                      maxLength={200}
-                      placeholder={t('systemCodes.selectOrInput')}
-                    />
-                    <datalist id="ctype-datalist">
-                      {getUniqueCtypes().map((ctype) => (
-                        <option key={ctype} value={ctype} />
+                    <datalist id="codetype-datalist">
+                      {getUniqueCodeTypeValues().map((type) => (
+                        <option key={type} value={type} />
                       ))}
                     </datalist>
                   </div>
@@ -800,12 +753,44 @@ const SystemCodesPage: React.FC = () => {
                       disabled={isViewMode}
                     />
                   </div>
+                  <div className="form-group">
+                    <label>
+                      <input
+                        type="checkbox"
+                        checked={formData.is_active}
+                        onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
+                        disabled={isViewMode}
+                      />
+                      {t('common.active')}
+                    </label>
+                  </div>
                   <div className="form-group full-width">
-                    <label>{t('systemCodes.codeCname')} *</label>
+                    <label>{t('systemCodes.codeTypeName', '代碼類別名稱')} (zh-TW) *</label>
                     <input
                       type="text"
-                      value={formData.code_cname}
-                      onChange={(e) => setFormData({ ...formData, code_cname: e.target.value })}
+                      value={formData.code_type_name['zh-TW'] || ''}
+                      onChange={(e) => updateI18nField('code_type_name', 'zh-TW', e.target.value)}
+                      required
+                      disabled={isViewMode}
+                      maxLength={200}
+                    />
+                  </div>
+                  <div className="form-group full-width">
+                    <label>{t('systemCodes.codeTypeName', '代碼類別名稱')} (en)</label>
+                    <input
+                      type="text"
+                      value={formData.code_type_name['en'] || ''}
+                      onChange={(e) => updateI18nField('code_type_name', 'en', e.target.value)}
+                      disabled={isViewMode}
+                      maxLength={200}
+                    />
+                  </div>
+                  <div className="form-group full-width">
+                    <label>{t('systemCodes.codeName', '代碼名稱')} (zh-TW) *</label>
+                    <input
+                      type="text"
+                      value={formData.code_name['zh-TW'] || ''}
+                      onChange={(e) => updateI18nField('code_name', 'zh-TW', e.target.value)}
                       required
                       disabled={isViewMode}
                       maxLength={300}
@@ -813,14 +798,14 @@ const SystemCodesPage: React.FC = () => {
                     />
                   </div>
                   <div className="form-group full-width">
-                    <label>{t('systemCodes.codeEname')}</label>
+                    <label>{t('systemCodes.codeName', '代碼名稱')} (en)</label>
                     <input
                       type="text"
-                      value={formData.code_ename}
-                      onChange={(e) => setFormData({ ...formData, code_ename: e.target.value })}
+                      value={formData.code_name['en'] || ''}
+                      onChange={(e) => updateI18nField('code_name', 'en', e.target.value)}
                       disabled={isViewMode}
                       maxLength={300}
-                      placeholder="支援 HTML 上下標: <sup>上標</sup> <sub>下標</sub>"
+                      placeholder="Supports HTML: <sup>superscript</sup> <sub>subscript</sub>"
                     />
                   </div>
                   <div className="form-group full-width">
@@ -872,17 +857,6 @@ const SystemCodesPage: React.FC = () => {
                       disabled={isViewMode}
                       maxLength={500}
                     />
-                  </div>
-                  <div className="form-group full-width">
-                    <label>
-                      <input
-                        type="checkbox"
-                        checked={formData.is_active}
-                        onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-                        disabled={isViewMode}
-                      />
-                      {t('common.active')}
-                    </label>
                   </div>
                 </div>
               </div>

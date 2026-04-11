@@ -6,6 +6,7 @@
  */
 
 import axios from '../api/axios';
+import { I18nField } from '../types';
 
 const BASE_URL = '/api/sys_profiles';
 
@@ -13,13 +14,12 @@ export interface SysProfile {
   id: number;
   is_service: boolean;
   sys_url: string;
-  sys_ctitle: string;
-  sys_etitle: string;
-  sys_ccopyright: string;
-  sys_ecopyright: string;
+  sys_title: I18nField;
+  sys_copyright: I18nField;
   sys_organization: number;
   sys_mana_email: string;
   sys_timezone: string;
+  sys_languages: string[];
   edit_by: number;
   created_at: string;
   updated_at?: string;
@@ -28,13 +28,12 @@ export interface SysProfile {
 export interface SysProfileUpdate {
   is_service?: boolean;
   sys_url?: string;
-  sys_ctitle?: string;
-  sys_etitle?: string;
-  sys_ccopyright?: string;
-  sys_ecopyright?: string;
+  sys_title?: I18nField;
+  sys_copyright?: I18nField;
   sys_organization?: number;
   sys_mana_email?: string;
   sys_timezone?: string;
+  sys_languages?: string[];
 }
 
 /**

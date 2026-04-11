@@ -17,6 +17,7 @@ import { usePermission } from '../hooks/usePermission';
 import FunctionPageHeader from '../components/FunctionPageHeader';
 import { logView, logUpdate } from '../utils/userLogHelper';
 import { validateSession } from '../utils/sessionValidator';
+import { getI18nValue } from '../utils/i18nHelper';
 import '../styles/RoleRightsPage.css';
 
 const RoleRightsPage: React.FC = () => {
@@ -347,7 +348,7 @@ const RoleRightsPage: React.FC = () => {
         const indent = '　'.repeat(level);
 
         const isRequiredFunc = func.id >= 1 && func.id <= 5;
-        const funcName = i18n.language === 'zh-TW' ? func.func_cname : func.func_ename;
+        const funcName = getI18nValue(func.func_name, i18n.language);
         const nodeLabel = i18n.language === 'zh-TW' ? '(節點)' : '(Node)';
 
         return (
@@ -500,10 +501,7 @@ const RoleRightsPage: React.FC = () => {
           <option value="">{t('roleRight.pleaseSelectRole')}</option>
           {roles.map(role => (
             <option key={role.id} value={role.id}>
-              {i18n.language === 'zh-TW'
-                ? `${role.role_cname} (${role.role_ename})`
-                : role.role_ename
-              }
+              {getI18nValue(role.role_name, i18n.language)}
             </option>
           ))}
         </select>

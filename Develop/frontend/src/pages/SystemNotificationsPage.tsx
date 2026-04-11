@@ -21,10 +21,12 @@ import {
   toggleSystemNotificationActive,
 } from '../services/systemNotificationsService';
 import { logView, logCreate, logUpdate, logDelete } from '../utils/userLogHelper';
+import { getI18nValue } from '../utils/i18nHelper';
+import { I18nField } from '../types';
 import '../styles/DataTable.css';
 
 const SystemNotificationsPage: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { hasPermission, loading: permissionLoading } = usePermission();
   const pageTitle = useFunctionName('system_notifications');
 
@@ -42,10 +44,8 @@ const SystemNotificationsPage: React.FC = () => {
 
   // Form state
   const [formData, setFormData] = useState<SystemNotificationCreate>({
-    notice_csubject: '',
-    notice_esubject: '',
-    notice_cdescription: '',
-    notice_edescription: '',
+    notice_subject: {'zh-TW': '', 'en': ''} as I18nField,
+    notice_description: {'zh-TW': '', 'en': ''} as I18nField,
     notice_start_at: new Date().toISOString().slice(0, 16),
     notice_end_at: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16),
     notice_order: 0,
@@ -90,8 +90,8 @@ const SystemNotificationsPage: React.FC = () => {
     if (!search) return true;
     const searchLower = search.toLowerCase();
     return (
-      notification.notice_csubject.toLowerCase().includes(searchLower) ||
-      notification.notice_esubject.toLowerCase().includes(searchLower)
+      getI18nValue(notification.notice_subject, 'zh-TW').toLowerCase().includes(searchLower) ||
+      getI18nValue(notification.notice_subject, 'en').toLowerCase().includes(searchLower)
     );
   });
 
@@ -109,10 +109,8 @@ const SystemNotificationsPage: React.FC = () => {
     setIsViewMode(false);
     setEditingNotification(null);
     setFormData({
-      notice_csubject: '',
-      notice_esubject: '',
-      notice_cdescription: '',
-      notice_edescription: '',
+      notice_subject: {'zh-TW': '', 'en': ''} as I18nField,
+      notice_description: {'zh-TW': '', 'en': ''} as I18nField,
       notice_start_at: new Date().toISOString().slice(0, 16),
       notice_end_at: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16),
       notice_order: 0,
@@ -131,10 +129,8 @@ const SystemNotificationsPage: React.FC = () => {
       const data = await getSystemNotification(notification.id);
       setEditingNotification(data);
       setFormData({
-        notice_csubject: data.notice_csubject,
-        notice_esubject: data.notice_esubject,
-        notice_cdescription: data.notice_cdescription,
-        notice_edescription: data.notice_edescription,
+        notice_subject: data.notice_subject || {'zh-TW': '', 'en': ''} as I18nField,
+        notice_description: data.notice_description || {'zh-TW': '', 'en': ''} as I18nField,
         notice_start_at: data.notice_start_at.slice(0, 16),
         notice_end_at: data.notice_end_at.slice(0, 16),
         notice_order: data.notice_order,
@@ -158,10 +154,8 @@ const SystemNotificationsPage: React.FC = () => {
       const data = await getSystemNotification(notification.id);
       setEditingNotification(data);
       setFormData({
-        notice_csubject: data.notice_csubject,
-        notice_esubject: data.notice_esubject,
-        notice_cdescription: data.notice_cdescription,
-        notice_edescription: data.notice_edescription,
+        notice_subject: data.notice_subject || {'zh-TW': '', 'en': ''} as I18nField,
+        notice_description: data.notice_description || {'zh-TW': '', 'en': ''} as I18nField,
         notice_start_at: data.notice_start_at.slice(0, 16),
         notice_end_at: data.notice_end_at.slice(0, 16),
         notice_order: data.notice_order,
@@ -227,17 +221,17 @@ const SystemNotificationsPage: React.FC = () => {
   const validateForm = (): boolean => {
     const errors: { [key: string]: string } = {};
 
-    if (!formData.notice_csubject.trim()) {
-      errors.notice_csubject = t('system_notifications.validationNoticeCSubjectRequired');
+    if (!formData.notice_subject['zh-TW']?.trim()) {
+      errors.notice_subject_zhTW = t('system_notifications.validationNoticeCSubjectRequired');
     }
-    if (!formData.notice_esubject.trim()) {
-      errors.notice_esubject = t('system_notifications.validationNoticeESubjectRequired');
+    if (!formData.notice_subject['en']?.trim()) {
+      errors.notice_subject_en = t('system_notifications.validationNoticeESubjectRequired');
     }
-    if (!formData.notice_cdescription.trim()) {
-      errors.notice_cdescription = t('system_notifications.validationNoticeCDescriptionRequired');
+    if (!formData.notice_description['zh-TW']?.trim()) {
+      errors.notice_description_zhTW = t('system_notifications.validationNoticeCDescriptionRequired');
     }
-    if (!formData.notice_edescription.trim()) {
-      errors.notice_edescription = t('system_notifications.validationNoticeEDescriptionRequired');
+    if (!formData.notice_description['en']?.trim()) {
+      errors.notice_description_en = t('system_notifications.validationNoticeEDescriptionRequired');
     }
 
     // Validate end time is after start time
@@ -503,8 +497,8 @@ const SystemNotificationsPage: React.FC = () => {
                     <tr key={notification.id}>
                       <td>{notification.id}</td>
                       <td>
-                        <div style={{ fontWeight: 500 }}>{notification.notice_csubject}</div>
-                        <div style={{ fontSize: '12px', color: '#6c757d' }}>{notification.notice_esubject}</div>
+                        <div style={{ fontWeight: 500 }}>{getI18nValue(notification.notice_subject, i18n.language)}</div>
+                        <div style={{ fontSize: '12px', color: '#6c757d' }}>{getI18nValue(notification.notice_subject, i18n.language === 'zh-TW' ? 'en' : 'zh-TW')}</div>
                       </td>
                       <td>{new Date(notification.notice_start_at).toLocaleString('zh-TW', {
                         year: 'numeric', month: '2-digit', day: '2-digit',
@@ -635,16 +629,15 @@ const SystemNotificationsPage: React.FC = () => {
                   <label>{t('system_notifications.noticeCSubject')} *</label>
                   <input
                     type="text"
-                    name="notice_csubject"
-                    value={formData.notice_csubject}
-                    onChange={handleInputChange}
+                    value={formData.notice_subject['zh-TW'] || ''}
+                    onChange={(e) => setFormData({...formData, notice_subject: {...formData.notice_subject, 'zh-TW': e.target.value}})}
                     disabled={isViewMode}
                     maxLength={200}
-                    style={{ borderColor: formErrors.notice_csubject ? '#e74c3c' : undefined }}
+                    style={{ borderColor: formErrors.notice_subject_zhTW ? '#e74c3c' : undefined }}
                   />
-                  {formErrors.notice_csubject && (
+                  {formErrors.notice_subject_zhTW && (
                     <span style={{ color: '#e74c3c', fontSize: '12px', marginTop: '4px' }}>
-                      {formErrors.notice_csubject}
+                      {formErrors.notice_subject_zhTW}
                     </span>
                   )}
                 </div>
@@ -653,16 +646,15 @@ const SystemNotificationsPage: React.FC = () => {
                   <label>{t('system_notifications.noticeESubject')} *</label>
                   <input
                     type="text"
-                    name="notice_esubject"
-                    value={formData.notice_esubject}
-                    onChange={handleInputChange}
+                    value={formData.notice_subject['en'] || ''}
+                    onChange={(e) => setFormData({...formData, notice_subject: {...formData.notice_subject, 'en': e.target.value}})}
                     disabled={isViewMode}
                     maxLength={200}
-                    style={{ borderColor: formErrors.notice_esubject ? '#e74c3c' : undefined }}
+                    style={{ borderColor: formErrors.notice_subject_en ? '#e74c3c' : undefined }}
                   />
-                  {formErrors.notice_esubject && (
+                  {formErrors.notice_subject_en && (
                     <span style={{ color: '#e74c3c', fontSize: '12px', marginTop: '4px' }}>
-                      {formErrors.notice_esubject}
+                      {formErrors.notice_subject_en}
                     </span>
                   )}
                 </div>
@@ -672,15 +664,15 @@ const SystemNotificationsPage: React.FC = () => {
                   {showModal && (
                     <RichTextEditor
                       key={`cdesc-${editingNotification?.id || 'new'}`}
-                      value={editingNotification?.notice_cdescription || formData.notice_cdescription}
-                      onChange={(html) => setFormData({ ...formData, notice_cdescription: html })}
+                      value={editingNotification?.notice_description?.['zh-TW'] || formData.notice_description['zh-TW'] || ''}
+                      onChange={(html) => setFormData({ ...formData, notice_description: {...formData.notice_description, 'zh-TW': html} })}
                       disabled={isViewMode}
                       placeholder={t('system_notifications.noticeCDescription')}
                     />
                   )}
-                  {formErrors.notice_cdescription && (
+                  {formErrors.notice_description_zhTW && (
                     <span style={{ color: '#e74c3c', fontSize: '12px', marginTop: '4px', display: 'block' }}>
-                      {formErrors.notice_cdescription}
+                      {formErrors.notice_description_zhTW}
                     </span>
                   )}
                 </div>
@@ -690,15 +682,15 @@ const SystemNotificationsPage: React.FC = () => {
                   {showModal && (
                     <RichTextEditor
                       key={`edesc-${editingNotification?.id || 'new'}`}
-                      value={editingNotification?.notice_edescription || formData.notice_edescription}
-                      onChange={(html) => setFormData({ ...formData, notice_edescription: html })}
+                      value={editingNotification?.notice_description?.['en'] || formData.notice_description['en'] || ''}
+                      onChange={(html) => setFormData({ ...formData, notice_description: {...formData.notice_description, 'en': html} })}
                       disabled={isViewMode}
                       placeholder={t('system_notifications.noticeEDescription')}
                     />
                   )}
-                  {formErrors.notice_edescription && (
+                  {formErrors.notice_description_en && (
                     <span style={{ color: '#e74c3c', fontSize: '12px', marginTop: '4px', display: 'block' }}>
-                      {formErrors.notice_edescription}
+                      {formErrors.notice_description_en}
                     </span>
                   )}
                 </div>

@@ -1,67 +1,54 @@
 /**
  * System Notifications Types
- * 系統通知類型定義
+ * 系統通知類型定義（JSONB 多語系版本）
  */
 
-export type NotificationType = 'info' | 'warning' | 'error' | 'success';
-export type TargetType = 'all' | 'role' | 'user';
+import { I18nField } from './index';
 
 export interface SystemNotification {
   id: number;
-  title: string;
-  content: string;
-  notification_type: NotificationType;
-  start_time: string;
-  end_time?: string | null;
+  notice_subject: I18nField;
+  notice_description: I18nField;
+  notice_start_at: string;
+  notice_end_at: string;
+  notice_order: number;
   is_active: boolean;
-  is_popup: boolean;
-  priority: number;
-  target_type: TargetType;
-  target_roles: number[];
-  target_users: number[];
-  created_by: number;
+  edit_by: number;
   created_at: string;
   updated_at?: string | null;
-  is_read?: boolean;
-  read_at?: string | null;
 }
 
 export interface SystemNotificationCreate {
-  title: string;
-  content: string;
-  notification_type: NotificationType;
-  start_time: string;
-  end_time?: string | null;
+  notice_subject: I18nField;
+  notice_description: I18nField;
+  notice_start_at: string;
+  notice_end_at: string;
+  notice_order?: number;
   is_active?: boolean;
-  is_popup?: boolean;
-  priority?: number;
-  target_type?: TargetType;
-  target_roles?: number[];
-  target_users?: number[];
 }
 
 export interface SystemNotificationUpdate {
-  title?: string;
-  content?: string;
-  notification_type?: NotificationType;
-  start_time?: string;
-  end_time?: string | null;
+  notice_subject?: I18nField;
+  notice_description?: I18nField;
+  notice_start_at?: string;
+  notice_end_at?: string;
+  notice_order?: number;
   is_active?: boolean;
-  is_popup?: boolean;
-  priority?: number;
-  target_type?: TargetType;
-  target_roles?: number[];
-  target_users?: number[];
 }
 
-export interface UnreadNotificationsResponse {
-  unread_count: number;
+export interface NotificationCloseDateResponse {
+  id: number;
+  closed_at: string;
+  edit_by: number;
+  created_at: string;
+}
+
+export interface TodayNotificationsResponse {
   notifications: SystemNotification[];
 }
 
 export interface GetNotificationsParams {
   is_active?: boolean;
-  notification_type?: NotificationType;
   skip?: number;
   limit?: number;
 }

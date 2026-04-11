@@ -2,17 +2,20 @@
  * 系統類型定義
  */
 
+// 多語系 JSONB 欄位型別
+export type I18nField = Record<string, string>;
+
 // 系統設定
 export interface SystemProfile {
   id: number;
   is_service: boolean;
   sys_url: string;
-  sys_ctitle: string;
-  sys_etitle: string;
-  sys_ccopyright: string;
-  sys_ecopyright: string;
+  sys_title: I18nField;
+  sys_copyright: I18nField;
   sys_organization: number;
   sys_mana_email: string;
+  sys_timezone: string;
+  sys_languages: string[];
 }
 
 // 系統檢查回應
@@ -52,8 +55,7 @@ export interface UserProfile {
 export interface SystemFunction {
   id: number;
   func_code: string;
-  func_cname: string;
-  func_ename: string;
+  func_name: I18nField;
   func_type: number;  // 1:節點, 2:功能
   func_order: number;
   func_icon: string | null;

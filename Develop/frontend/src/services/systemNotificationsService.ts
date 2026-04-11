@@ -7,15 +7,14 @@
  */
 
 import axios from '../api/axios';
+import { I18nField } from '../types';
 
 const BASE_URL = '/api/system_notifications';
 
 export interface SystemNotification {
   id: number;
-  notice_csubject: string;
-  notice_esubject: string;
-  notice_cdescription: string;
-  notice_edescription: string;
+  notice_subject: I18nField;
+  notice_description: I18nField;
   notice_start_at: string;
   notice_end_at: string;
   notice_order: number;
@@ -26,10 +25,8 @@ export interface SystemNotification {
 }
 
 export interface SystemNotificationCreate {
-  notice_csubject: string;
-  notice_esubject: string;
-  notice_cdescription: string;
-  notice_edescription: string;
+  notice_subject: I18nField;
+  notice_description: I18nField;
   notice_start_at: string;
   notice_end_at: string;
   notice_order?: number;
@@ -37,10 +34,8 @@ export interface SystemNotificationCreate {
 }
 
 export interface SystemNotificationUpdate {
-  notice_csubject?: string;
-  notice_esubject?: string;
-  notice_cdescription?: string;
-  notice_edescription?: string;
+  notice_subject?: I18nField;
+  notice_description?: I18nField;
   notice_start_at?: string;
   notice_end_at?: string;
   notice_order?: number;

@@ -30,6 +30,7 @@ import { useFunctionName } from '../hooks/useFunctionName';
 import { logView, logCreate, logUpdate, logDelete } from '../utils/userLogHelper';
 import FunctionPageHeader from '../components/FunctionPageHeader';
 import { validateSession } from '../utils/sessionValidator';
+import { getI18nValue } from '../utils/i18nHelper';
 import '../styles/DataTable.css';
 
 const TenantUsersPage: React.FC = () => {
@@ -682,7 +683,7 @@ const TenantUsersPage: React.FC = () => {
                         onChange={(e) => handleRoleChange(role.id, e.target.checked, 'create')}
                         style={{ marginRight: '5px' }}
                       />
-                      {i18n.language === 'zh-TW' ? role.role_cname : role.role_ename}
+                      {getI18nValue(role.role_name, i18n.language)}
                     </label>
                   ))}
                 </div>
@@ -795,7 +796,7 @@ const TenantUsersPage: React.FC = () => {
                         onChange={(e) => handleRoleChange(role.id, e.target.checked, 'edit')}
                         style={{ marginRight: '5px' }}
                       />
-                      {i18n.language === 'zh-TW' ? role.role_cname : role.role_ename}
+                      {getI18nValue(role.role_name, i18n.language)}
                     </label>
                   ))}
                 </div>

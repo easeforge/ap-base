@@ -229,6 +229,7 @@
   },
   "userRoles": {
     "title": "User Roles",
+    "roleName": "Role Name",
     "roleCname": "Role Name (Chinese)",
     "roleEname": "Role Name (English)",
     "description": "Description",

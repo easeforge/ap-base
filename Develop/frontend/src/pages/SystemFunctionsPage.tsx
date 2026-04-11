@@ -6,6 +6,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SystemFunction } from '../types/systemFunctions';
+import { I18nField } from '../types';
 import {
   SystemFunctionCreate,
   getSystemFunctions,
@@ -16,6 +17,7 @@ import {
 import { usePermission } from '../hooks/usePermission';
 import { useFunctionName } from '../hooks/useFunctionName';
 import { logView, logCreate, logRead, logUpdate, logDelete } from '../utils/userLogHelper';
+import { getI18nValue } from '../utils/i18nHelper';
 import FunctionPageHeader from '../components/FunctionPageHeader';
 import { validateSession } from '../utils/sessionValidator';
 import '../styles/DataTable.css';
@@ -43,8 +45,7 @@ const SystemFunctionsPage: React.FC = () => {
   const [formData, setFormData] = useState<SystemFunctionCreate>({
     func_code: '',
     upper_func_id: 0,
-    func_cname: '',
-    func_ename: '',
+    func_name: { 'zh-TW': '', 'en': '' } as I18nField,
     func_type: 2,
     func_order: 0,
     func_icon: '',
@@ -136,8 +137,7 @@ const SystemFunctionsPage: React.FC = () => {
     setFormData({
       func_code: '',
       upper_func_id: 0,
-      func_cname: '',
-      func_ename: '',
+      func_name: { 'zh-TW': '', 'en': '' } as I18nField,
       func_type: 2,
       func_order: 0,
       func_icon: '',
@@ -161,8 +161,7 @@ const SystemFunctionsPage: React.FC = () => {
     setFormData({
       func_code: func.func_code,
       upper_func_id: func.upper_func_id,
-      func_cname: func.func_cname,
-      func_ename: func.func_ename,
+      func_name: func.func_name || { 'zh-TW': '', 'en': '' } as I18nField,
       func_type: func.func_type,
       func_order: func.func_order,
       func_icon: func.func_icon,
@@ -187,8 +186,7 @@ const SystemFunctionsPage: React.FC = () => {
     setFormData({
       func_code: func.func_code,
       upper_func_id: func.upper_func_id,
-      func_cname: func.func_cname,
-      func_ename: func.func_ename,
+      func_name: func.func_name || { 'zh-TW': '', 'en': '' } as I18nField,
       func_type: func.func_type,
       func_order: func.func_order,
       func_icon: func.func_icon,
@@ -330,9 +328,9 @@ const SystemFunctionsPage: React.FC = () => {
    * 英文語系→英文名稱在上，中文名稱在下
    */
   const renderFunctionName = (func: SystemFunction) => {
-    const isChinese = i18n.language === 'zh-TW';
-    const primary = isChinese ? func.func_cname : (func.func_ename || func.func_cname);
-    const secondary = isChinese ? func.func_ename : func.func_cname;
+    const primary = getI18nValue(func.func_name, i18n.language);
+    const secondaryLang = i18n.language === 'zh-TW' ? 'en' : 'zh-TW';
+    const secondary = func.func_name?.[secondaryLang] || '';
 
     if (!secondary || primary === secondary) {
       return primary;
@@ -405,7 +403,7 @@ const SystemFunctionsPage: React.FC = () => {
             .sort((a, b) => a.func_order - b.func_order)
             .map(func => (
               <option key={func.id} value={func.id}>
-                {func.func_cname} ({func.func_code})
+                {getI18nValue(func.func_name, i18n.language)} ({func.func_code})
               </option>
             ))}
         </select>
@@ -622,19 +620,11 @@ const SystemFunctionsPage: React.FC = () => {
                     {functions
                       .filter(f => f.func_type === 1) // 只顯示節點類型
                       .sort((a, b) => a.func_order - b.func_order)
-                      .map(func => {
-                        // 依照語系顯示功能名稱
-                        const isChinese = i18n.language === 'zh-TW';
-                        const displayName = isChinese
-                          ? `${func.func_cname} (${func.func_code})`
-                          : `${func.func_ename || func.func_cname} (${func.func_code})`;
-
-                        return (
+                      .map(func => (
                           <option key={func.id} value={func.id}>
-                            {displayName}
+                            {getI18nValue(func.func_name, i18n.language)} ({func.func_code})
                           </option>
-                        );
-                      })}
+                        ))}
                   </select>
                 </div>
 
@@ -642,8 +632,8 @@ const SystemFunctionsPage: React.FC = () => {
                   <label>{t('sysFunctions.funcCname')} *</label>
                   <input
                     type="text"
-                    value={formData.func_cname}
-                    onChange={(e) => setFormData({ ...formData, func_cname: e.target.value })}
+                    value={formData.func_name?.['zh-TW'] || ''}
+                    onChange={(e) => setFormData({ ...formData, func_name: { ...formData.func_name, 'zh-TW': e.target.value } as I18nField })}
                     disabled={isViewMode}
                     required
                   />
@@ -652,8 +642,8 @@ const SystemFunctionsPage: React.FC = () => {
                   <label>{t('sysFunctions.funcEname')} *</label>
                   <input
                     type="text"
-                    value={formData.func_ename}
-                    onChange={(e) => setFormData({ ...formData, func_ename: e.target.value })}
+                    value={formData.func_name?.['en'] || ''}
+                    onChange={(e) => setFormData({ ...formData, func_name: { ...formData.func_name, 'en': e.target.value } as I18nField })}
                     disabled={isViewMode}
                     required
                   />

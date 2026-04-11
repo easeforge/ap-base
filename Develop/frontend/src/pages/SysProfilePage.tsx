@@ -16,6 +16,7 @@ import { usePermission } from '../hooks/usePermission';
 import { useSystem } from '../contexts/SystemContext';
 import FunctionPageHeader from '../components/FunctionPageHeader';
 import { logView, logUpdate } from '../utils/userLogHelper';
+import { I18nField } from '../types';
 import '../styles/DataTable.css';
 
 const SysProfilePage: React.FC = () => {
@@ -39,10 +40,8 @@ const SysProfilePage: React.FC = () => {
       setFormData({
         is_service: data.is_service,
         sys_url: data.sys_url,
-        sys_ctitle: data.sys_ctitle,
-        sys_etitle: data.sys_etitle,
-        sys_ccopyright: data.sys_ccopyright,
-        sys_ecopyright: data.sys_ecopyright,
+        sys_title: data.sys_title || {'zh-TW': '', 'en': ''} as I18nField,
+        sys_copyright: data.sys_copyright || {'zh-TW': '', 'en': ''} as I18nField,
         sys_organization: data.sys_organization,
         sys_mana_email: data.sys_mana_email,
         sys_timezone: data.sys_timezone
@@ -187,8 +186,8 @@ const SysProfilePage: React.FC = () => {
               <label>{t('sysProfile.sysCTitle')} *</label>
               <input
                 type="text"
-                value={formData.sys_ctitle || ''}
-                onChange={(e) => setFormData({ ...formData, sys_ctitle: e.target.value })}
+                value={(formData.sys_title as I18nField)?.['zh-TW'] || ''}
+                onChange={(e) => setFormData({ ...formData, sys_title: {...(formData.sys_title as I18nField), 'zh-TW': e.target.value} })}
                 required
                 disabled={!canUpdate}
               />
@@ -198,8 +197,8 @@ const SysProfilePage: React.FC = () => {
               <label>{t('sysProfile.sysETitle')} *</label>
               <input
                 type="text"
-                value={formData.sys_etitle || ''}
-                onChange={(e) => setFormData({ ...formData, sys_etitle: e.target.value })}
+                value={(formData.sys_title as I18nField)?.['en'] || ''}
+                onChange={(e) => setFormData({ ...formData, sys_title: {...(formData.sys_title as I18nField), 'en': e.target.value} })}
                 required
                 disabled={!canUpdate}
               />
@@ -209,8 +208,8 @@ const SysProfilePage: React.FC = () => {
               <label>{t('sysProfile.sysCCopyright')} *</label>
               <input
                 type="text"
-                value={formData.sys_ccopyright || ''}
-                onChange={(e) => setFormData({ ...formData, sys_ccopyright: e.target.value })}
+                value={(formData.sys_copyright as I18nField)?.['zh-TW'] || ''}
+                onChange={(e) => setFormData({ ...formData, sys_copyright: {...(formData.sys_copyright as I18nField), 'zh-TW': e.target.value} })}
                 required
                 disabled={!canUpdate}
               />
@@ -220,8 +219,8 @@ const SysProfilePage: React.FC = () => {
               <label>{t('sysProfile.sysECopyright')} *</label>
               <input
                 type="text"
-                value={formData.sys_ecopyright || ''}
-                onChange={(e) => setFormData({ ...formData, sys_ecopyright: e.target.value })}
+                value={(formData.sys_copyright as I18nField)?.['en'] || ''}
+                onChange={(e) => setFormData({ ...formData, sys_copyright: {...(formData.sys_copyright as I18nField), 'en': e.target.value} })}
                 required
                 disabled={!canUpdate}
               />

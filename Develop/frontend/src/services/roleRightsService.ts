@@ -4,6 +4,7 @@
  */
 
 import axios from '../api/axios';
+import { I18nField } from '../types';
 
 // 類型定義
 export interface RoleRight {
@@ -21,8 +22,7 @@ export interface RoleRight {
 export interface FunctionWithPermissions {
   id: number;
   func_code: string;
-  func_cname: string;
-  func_ename: string;
+  func_name: I18nField;
   func_type: number;
   func_order: number;
   upper_func_id: number;

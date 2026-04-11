@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { systemService } from '../api/systemService';
 import { useSystem } from '../contexts/SystemContext';
 import { SystemFunction } from '../types';
+import { getI18nValue } from '../utils/i18nHelper';
 import '../styles/Breadcrumb.css';
 
 interface BreadcrumbItem {
@@ -20,9 +21,6 @@ const Breadcrumb: React.FC = () => {
   const location = useLocation();
   const { i18n } = useTranslation();
   const { systemProfile } = useSystem();
-  const systemTitle = i18n.language === 'en'
-    ? (systemProfile?.sys_etitle || 'Paris Agreement Article 6.4 Management System')
-    : (systemProfile?.sys_ctitle || '碳排專案活動申請系統(Article 6.4)');
   const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbItem[]>([]);
   const [menuItems, setMenuItems] = useState<SystemFunction[]>([]);
 
@@ -99,18 +97,18 @@ const Breadcrumb: React.FC = () => {
           parent = findParent(menuItems, parent.id);
         }
 
-        // 添加父項目到麵包屑（使用 func_code 作為前端路徑）
+        // 添加父項目到麵包屑
         pathItems.forEach(item => {
           const itemPath = item.func_code ? `/${item.func_code}` : '#';
           crumbs.push({
-            label: i18n.language === 'en' ? item.func_ename : item.func_cname,
+            label: getI18nValue(item.func_name, i18n.language),
             path: itemPath
           });
         });
 
         // 添加當前項目
         crumbs.push({
-          label: i18n.language === 'en' ? currentItem.func_ename : currentItem.func_cname,
+          label: getI18nValue(currentItem.func_name, i18n.language),
           path: path
         });
       }

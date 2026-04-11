@@ -3,13 +3,13 @@
  */
 
 import axios from '../api/axios';
+import { I18nField } from '../types';
 
 export interface SysFunction {
   id: number;
   func_code: string;
   upper_func_id: number;
-  func_cname: string;
-  func_ename: string;
+  func_name: I18nField;
   func_type: number; // 1:節點, 2:功能
   func_order: number;
   func_icon?: string;
@@ -26,8 +26,7 @@ export interface SysFunction {
 export interface SysFunctionCreate {
   func_code: string;
   upper_func_id: number;
-  func_cname: string;
-  func_ename: string;
+  func_name: I18nField;
   func_type: number;
   func_order: number;
   func_icon?: string;
@@ -41,8 +40,7 @@ export interface SysFunctionCreate {
 export interface SysFunctionUpdate {
   func_code?: string;
   upper_func_id?: number;
-  func_cname?: string;
-  func_ename?: string;
+  func_name?: I18nField;
   func_type?: number;
   func_order?: number;
   func_icon?: string;

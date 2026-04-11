@@ -1,11 +1,12 @@
 /**
  * 使用功能名稱 Hook
- * 根據 func_code 和當前語系取得功能的中/英文名稱
+ * 根據 func_code 和當前語系取得功能名稱（從 JSONB func_name 欄位）
  */
 
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getSysFunctions, SysFunction } from '../services/sysFunctionService';
+import { getI18nValue } from '../utils/i18nHelper';
 
 // 快取功能列表，避免重複請求
 let cachedFunctions: SysFunction[] | null = null;
@@ -41,7 +42,7 @@ const loadFunctions = async (): Promise<SysFunction[]> => {
 /**
  * 根據 func_code 取得功能名稱
  * @param funcCode 功能代碼
- * @returns 功能名稱（根據當前語系返回中文或英文名稱）
+ * @returns 功能名稱（根據當前語系從 JSONB func_name 取值）
  */
 export const useFunctionName = (funcCode: string): string => {
   const { i18n } = useTranslation();
@@ -79,12 +80,12 @@ export const useFunctionName = (funcCode: string): string => {
     };
   }, [funcCode]);
 
-  // 根據語系返回對應的名稱（當語系或功能資料變更時重新計算）
+  // 根據語系從 JSONB 取值
   if (!functionData) {
     return funcCode; // 資料未載入或找不到時，顯示 func_code
   }
 
-  return i18n.language === 'zh-TW' ? functionData.func_cname : functionData.func_ename;
+  return getI18nValue(functionData.func_name, i18n.language, funcCode);
 };
 
 /**
@@ -92,7 +93,7 @@ export const useFunctionName = (funcCode: string): string => {
  * @param funcCode 功能代碼
  * @returns 功能名稱和描述
  */
-export const useFunctionInfo = (funcCode: string): { name: string; cname: string; ename: string; description: string } => {
+export const useFunctionInfo = (funcCode: string): { name: string; description: string } => {
   const { i18n } = useTranslation();
   const [functionData, setFunctionData] = useState<SysFunction | null>(null);
 
@@ -128,13 +129,11 @@ export const useFunctionInfo = (funcCode: string): { name: string; cname: string
   }, [funcCode]);
 
   if (!functionData) {
-    return { name: funcCode, cname: '', ename: '', description: '' };
+    return { name: funcCode, description: '' };
   }
 
   return {
-    name: i18n.language === 'zh-TW' ? functionData.func_cname : functionData.func_ename,
-    cname: functionData.func_cname,
-    ename: functionData.func_ename,
+    name: getI18nValue(functionData.func_name, i18n.language, funcCode),
     description: functionData.description || ''
   };
 };

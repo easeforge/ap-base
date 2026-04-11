@@ -10,6 +10,7 @@ import { usePermission } from '../hooks/usePermission';
 import { useTranslation } from 'react-i18next';
 import FunctionPageHeader from '../components/FunctionPageHeader';
 import { logView, logRead } from '../utils/userLogHelper';
+import { getI18nValue } from '../utils/i18nHelper';
 import '../styles/DataTable.css';
 
 const UserLogsPage: React.FC = () => {
@@ -212,7 +213,7 @@ const UserLogsPage: React.FC = () => {
               <option value="">{t('userLogs.filters.allFunctions')}</option>
               {functions.map((func) => (
                 <option key={func.id} value={func.id}>
-                  {i18n.language === 'zh-TW' ? func.func_cname : func.func_ename}
+                  {getI18nValue(func.func_name, i18n.language)}
                 </option>
               ))}
             </select>

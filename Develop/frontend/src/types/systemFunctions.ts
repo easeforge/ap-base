@@ -1,14 +1,15 @@
 /**
  * System Functions Types
- * 系統功能設定相關類型定義（正名化版本）
+ * 系統功能設定相關類型定義（JSONB 多語系版本）
  */
+
+import { I18nField } from './index';
 
 export interface SystemFunction {
   id: number;
   func_code: string;
   upper_func_id: number;
-  func_cname: string;
-  func_ename: string;
+  func_name: I18nField;
   func_type: number; // 1:節點/選單, 2:功能
   func_order: number;
   func_icon?: string;
@@ -26,12 +27,11 @@ export interface SystemFunction {
 export interface SystemFunctionCreate {
   func_code: string;
   upper_func_id: number;
-  func_cname: string;
-  func_ename: string;
+  func_name: I18nField;
   func_type: number;
   func_order: number;
   func_icon?: string;
-  module_code?: string; // 正名化欄位
+  module_code?: string;
   module_item?: string[];
   description?: string;
   is_mana?: boolean;
@@ -41,12 +41,11 @@ export interface SystemFunctionCreate {
 export interface SystemFunctionUpdate {
   func_code?: string;
   upper_func_id?: number;
-  func_cname?: string;
-  func_ename?: string;
+  func_name?: I18nField;
   func_type?: number;
   func_order?: number;
   func_icon?: string;
-  module_code?: string; // 正名化欄位
+  module_code?: string;
   module_item?: string[];
   description?: string;
   is_mana?: boolean;

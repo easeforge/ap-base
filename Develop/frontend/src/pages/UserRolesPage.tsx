@@ -13,6 +13,8 @@ import {
   updateUserRole,
   deleteUserRole
 } from '../services/userRoleService';
+import { I18nField } from '../types';
+import { getI18nValue } from '../utils/i18nHelper';
 import { usePermission } from '../hooks/usePermission';
 import { useFunctionName } from '../hooks/useFunctionName';
 import { logView, logCreate, logUpdate, logDelete } from '../utils/userLogHelper';
@@ -21,7 +23,7 @@ import FunctionPageHeader from '../components/FunctionPageHeader';
 import '../styles/DataTable.css';
 
 const UserRolesPage: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { hasPermission, loading: permissionLoading } = usePermission();
   const pageTitle = useFunctionName('user_roles');
   const [roles, setRoles] = useState<UserRole[]>([]);
@@ -35,8 +37,7 @@ const UserRolesPage: React.FC = () => {
   const [isViewMode, setIsViewMode] = useState(false);
   const hasInitialized = useRef(false);
   const [formData, setFormData] = useState<UserRoleCreate>({
-    role_cname: '',
-    role_ename: '',
+    role_name: { 'zh-TW': '', 'en': '' } as I18nField,
     description: '',
     is_mana: false,
     is_active: true
@@ -108,8 +109,7 @@ const UserRolesPage: React.FC = () => {
     if (role) {
       setEditingRole(role);
       setFormData({
-        role_cname: role.role_cname,
-        role_ename: role.role_ename,
+        role_name: role.role_name || { 'zh-TW': '', 'en': '' },
         description: role.description || '',
         is_mana: role.is_mana,
         is_active: role.is_active
@@ -117,8 +117,7 @@ const UserRolesPage: React.FC = () => {
     } else {
       setEditingRole(null);
       setFormData({
-        role_cname: '',
-        role_ename: '',
+        role_name: { 'zh-TW': '', 'en': '' } as I18nField,
         description: '',
         is_mana: false,
         is_active: true
@@ -175,13 +174,18 @@ const UserRolesPage: React.FC = () => {
   const handleStatusToggle = async (role: UserRole) => {
     try {
       await updateUserRole(role.id, {
-        ...role,
+        role_name: role.role_name,
         is_active: !role.is_active
       });
       loadRoles();
     } catch (err: any) {
       alert(err.response?.data?.detail || t('common.error'));
     }
+  };
+
+  // 取得另一個語系的值（用於表格副文字顯示）
+  const getSecondaryLang = (): string => {
+    return i18n.language === 'zh-TW' ? 'en' : 'zh-TW';
   };
 
   // 檢查權限
@@ -240,8 +244,7 @@ const UserRolesPage: React.FC = () => {
               <thead className="table-header-dark-green">
                 <tr>
                   <th>ID</th>
-                  <th>{t('userRoles.roleCname')}</th>
-                  <th>{t('userRoles.roleEname')}</th>
+                  <th>{t('userRoles.roleName')}</th>
                   <th>{t('userRoles.description')}</th>
                   <th>{t('userRoles.isMana')}</th>
                   <th>{t('common.status')}</th>
@@ -252,8 +255,12 @@ const UserRolesPage: React.FC = () => {
                 {currentRoles.map((role) => (
                   <tr key={role.id}>
                     <td>{role.id}</td>
-                    <td>{role.role_cname}</td>
-                    <td>{role.role_ename}</td>
+                    <td>
+                      <div>{getI18nValue(role.role_name, i18n.language)}</div>
+                      <div style={{ fontSize: '0.85em', color: '#888' }}>
+                        {getI18nValue(role.role_name, getSecondaryLang())}
+                      </div>
+                    </td>
                     <td>{role.description}</td>
                     <td>
                       <span className={`status-badge ${role.is_mana ? 'active' : 'inactive'}`}>
@@ -394,8 +401,11 @@ const UserRolesPage: React.FC = () => {
                   <label>{t('userRoles.roleCname')} *</label>
                   <input
                     type="text"
-                    value={formData.role_cname}
-                    onChange={(e) => setFormData({ ...formData, role_cname: e.target.value })}
+                    value={formData.role_name['zh-TW'] || ''}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      role_name: { ...formData.role_name, 'zh-TW': e.target.value }
+                    })}
                     required
                     disabled={isViewMode}
                   />
@@ -404,8 +414,11 @@ const UserRolesPage: React.FC = () => {
                   <label>{t('userRoles.roleEname')} *</label>
                   <input
                     type="text"
-                    value={formData.role_ename}
-                    onChange={(e) => setFormData({ ...formData, role_ename: e.target.value })}
+                    value={formData.role_name['en'] || ''}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      role_name: { ...formData.role_name, 'en': e.target.value }
+                    })}
                     required
                     disabled={isViewMode}
                   />

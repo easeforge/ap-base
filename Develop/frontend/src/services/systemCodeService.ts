@@ -6,16 +6,16 @@
  */
 
 import axios from '../api/axios';
+import { I18nField } from '../types';
 
 const BASE_URL = '/api/system_codes';
 
 export interface SystemCode {
   id: number;
-  code_etype: string;
-  code_ctype: string;
+  code_type: string;
+  code_type_name: I18nField;
   code: string;
-  code_cname: string;
-  code_ename?: string;
+  code_name: I18nField;
   order: number;
   is_active: boolean;
   note1?: string;
@@ -29,11 +29,10 @@ export interface SystemCode {
 }
 
 export interface SystemCodeCreate {
-  code_etype: string;
-  code_ctype: string;
+  code_type: string;
+  code_type_name: I18nField;
   code: string;
-  code_cname: string;
-  code_ename?: string;
+  code_name: I18nField;
   order?: number;
   is_active?: boolean;
   note1?: string;
@@ -44,11 +43,10 @@ export interface SystemCodeCreate {
 }
 
 export interface SystemCodeUpdate {
-  code_etype?: string;
-  code_ctype?: string;
+  code_type?: string;
+  code_type_name?: I18nField;
   code?: string;
-  code_cname?: string;
-  code_ename?: string;
+  code_name?: I18nField;
   order?: number;
   is_active?: boolean;
   note1?: string;
@@ -63,11 +61,8 @@ export interface SystemCodeUpdate {
  * axios 攔截器會自動添加 X-Txn-Token header
  */
 export const getSystemCodes = async (params?: {
-  code_etype?: string;
-  code_ctype?: string;
+  code_type?: string;
   code?: string;
-  code_cname?: string;
-  code_ename?: string;
   is_active?: boolean;
   search?: string;
 }): Promise<SystemCode[]> => {
@@ -118,14 +113,10 @@ export const deleteSystemCode = async (codeId: number): Promise<void> => {
  * axios 攔截器會自動添加 X-Txn-Token header
  */
 export const getSystemCodesByType = async (
-  codeEtype: string,
-  codeCtype?: string,
+  codeType: string,
   activeOnly: boolean = true
 ): Promise<SystemCode[]> => {
   const params = new URLSearchParams({ active_only: String(activeOnly) });
-  if (codeCtype) {
-    params.append('code_ctype', codeCtype);
-  }
-  const response = await axios.get<SystemCode[]>(`${BASE_URL}/type/${codeEtype}?${params.toString()}`);
+  const response = await axios.get<SystemCode[]>(`${BASE_URL}/type/${codeType}?${params.toString()}`);
   return response.data;
 };

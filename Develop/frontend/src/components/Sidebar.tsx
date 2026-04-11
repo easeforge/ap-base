@@ -8,6 +8,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { SystemFunction } from '../types';
 import { systemService } from '../api/systemService';
+import { getI18nValue } from '../utils/i18nHelper';
 import '../styles/Sidebar.css';
 
 interface SidebarProps {
@@ -120,7 +121,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle, width = 260 })
   const renderPopupSubmenu = (items: SystemFunction[], level: number): React.ReactNode => {
     return items.map((child) => {
       const childPath = child.func_code ? `/${child.func_code}` : '#';
-      const childName = i18n.language === 'en' ? child.func_ename : child.func_cname;
+      const childName = getI18nValue(child.func_name, i18n.language);
       const hasGrandChildren = child.children && child.children.length > 0;
       const isPopupExpanded = popupExpandedItems.has(child.id);
 
@@ -164,8 +165,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle, width = 260 })
     const isHovered = hoveredItem === item.id;
     const mainPath = item.func_code ? `/${item.func_code}` : '#';
 
-    // 根據當前語言選擇顯示文字
-    const displayName = i18n.language === 'en' ? item.func_ename : item.func_cname;
+    // 根據當前語言從 JSONB 取值
+    const displayName = getI18nValue(item.func_name, i18n.language);
 
     return (
       <div

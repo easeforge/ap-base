@@ -6,6 +6,7 @@
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSystem } from '../contexts/SystemContext';
+import { getI18nValue } from '../utils/i18nHelper';
 
 export const useDocumentTitle = () => {
   const { i18n } = useTranslation();
@@ -15,16 +16,12 @@ export const useDocumentTitle = () => {
     // 根據當前語言選擇對應的標題
     const updateTitle = () => {
       if (systemProfile) {
-        const title = i18n.language === 'en'
-          ? systemProfile.sys_etitle
-          : systemProfile.sys_ctitle;
-
-        document.title = title || 'PA6.4 Management System';
+        const title = getI18nValue(systemProfile.sys_title, i18n.language);
+        document.title = title || 'Base AP Management System';
       } else {
-        // 如果還沒載入系統設定，使用預設值
         document.title = i18n.language === 'en'
-          ? 'Paris Agreement Article 6.4 Management System'
-          : 'Paris Agreement Article 6.4 管理系統';
+          ? 'Base AP Management System'
+          : '後臺管理基底平台';
       }
     };
 

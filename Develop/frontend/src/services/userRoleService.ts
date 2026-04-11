@@ -3,11 +3,11 @@
  */
 
 import axios from '../api/axios';
+import { I18nField } from '../types';
 
 export interface UserRole {
   id: number;
-  role_cname: string;
-  role_ename: string;
+  role_name: I18nField;
   description?: string;
   is_mana: boolean;
   is_active: boolean;
@@ -17,16 +17,14 @@ export interface UserRole {
 }
 
 export interface UserRoleCreate {
-  role_cname: string;
-  role_ename: string;
+  role_name: I18nField;
   description?: string;
   is_mana: boolean;
   is_active: boolean;
 }
 
 export interface UserRoleUpdate {
-  role_cname?: string;
-  role_ename?: string;
+  role_name?: I18nField;
   description?: string;
   is_mana?: boolean;
   is_active?: boolean;

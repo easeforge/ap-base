@@ -21,6 +21,7 @@ import { useFunctionName } from '../hooks/useFunctionName';
 import { useTransactionToken } from '../hooks/useTransactionToken';
 import { logView, logCreate, logUpdate, logDelete } from '../utils/userLogHelper';
 import FunctionPageHeader from '../components/FunctionPageHeader';
+import { getI18nValue } from '../utils/i18nHelper';
 import '../styles/DataTable.css';
 
 const UsersPage: React.FC = () => {
@@ -282,7 +283,7 @@ const UsersPage: React.FC = () => {
     if (!roleIds || roleIds.length === 0) return null;
     return roleIds.map(id => {
       const role = roles.find(r => r.id === id);
-      return role ? (i18n.language === 'zh-TW' ? role.role_cname : role.role_ename) : id.toString();
+      return role ? getI18nValue(role.role_name, i18n.language) : id.toString();
     });
   };
 
@@ -619,7 +620,7 @@ const UsersPage: React.FC = () => {
                             style={{ marginRight: '5px' }}
                             disabled={isViewMode}
                           />
-                          {i18n.language === 'zh-TW' ? role.role_cname : role.role_ename}
+                          {getI18nValue(role.role_name, i18n.language)}
                         </label>
                       );
                     })}

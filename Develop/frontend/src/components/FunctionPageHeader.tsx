@@ -1,12 +1,11 @@
 /**
  * FunctionPageHeader
  * 統一的功能頁面標題元件
- * 中文語系顯示 func_cname，英文語系顯示 func_ename
+ * 從 JSONB func_name 依語系取值
  * 下方顯示：description
  */
 
 import React from 'react';
-import { useTranslation } from 'react-i18next';
 import { useFunctionInfo } from '../hooks/useFunctionName';
 
 interface Props {
@@ -16,11 +15,9 @@ interface Props {
 }
 
 const FunctionPageHeader: React.FC<Props> = ({ funcCode, fallback = '', subtitle }) => {
-  const { i18n } = useTranslation();
-  const { cname, ename, description } = useFunctionInfo(funcCode);
+  const { name, description } = useFunctionInfo(funcCode);
 
-  const isZh = i18n.language === 'zh-TW';
-  const title = isZh ? (cname || fallback || funcCode) : (ename || fallback || funcCode);
+  const title = name || fallback || funcCode;
 
   return (
     <div className="page-header-left">
