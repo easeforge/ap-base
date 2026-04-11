@@ -28,7 +28,7 @@ i18n
   .use(initReactI18next)
   // 初始化 i18next
   .init({
-    fallbackLng: 'zh-TW',
+    fallbackLng: 'en',
     lng: localStorage.getItem('i18nextLng') || 'zh-TW',
     debug: false,
 
