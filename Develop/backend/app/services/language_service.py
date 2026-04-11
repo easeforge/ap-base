@@ -186,3 +186,155 @@ class LanguageService:
                 })
 
         return result
+
+    @staticmethod
+    def sync_translation_keys(db: Session, base_lang: str = "en") -> Dict:
+        """
+        語系翻譯 key 同步補足
+
+        1. 讀取所有啟用語系的翻譯檔（locale files）
+        2. 取得所有 key 的聯集
+        3. 補足各語系缺少的 key：
+           - zh-CN: 從 zh-TW 透過 opencc 繁簡轉換
+           - 其他語系: 從 base_lang(en) 複製
+        4. 寫回翻譯檔 + 同步到資料庫 sys_languages.lang_data
+
+        Returns:
+            同步結果 {lang_code: {added: n, total: n}}
+        """
+        locales_dir = _get_locales_dir()
+        results = {}
+
+        # 取得啟用的語系列表
+        profile = db.query(SysProfile).filter(SysProfile.id == 1).first()
+        if not profile or not profile.sys_languages:
+            return {"error": "No sys_languages configured"}
+
+        active_langs = profile.sys_languages
+
+        # 讀取所有語系翻譯檔
+        all_translations: Dict[str, dict] = {}
+        for lang_code in active_langs:
+            lang_file = locales_dir / lang_code / "translation.json"
+            if lang_file.exists():
+                with open(lang_file, 'r', encoding='utf-8') as f:
+                    all_translations[lang_code] = json.load(f)
+            else:
+                all_translations[lang_code] = {}
+
+        if not all_translations:
+            return {"error": "No translation files found"}
+
+        # 遞迴取得所有 key（扁平化）
+        def flatten_keys(obj, prefix=''):
+            keys = set()
+            if isinstance(obj, dict):
+                for k, v in obj.items():
+                    full_key = f"{prefix}.{k}" if prefix else k
+                    if isinstance(v, dict):
+                        keys.update(flatten_keys(v, full_key))
+                    else:
+                        keys.add(full_key)
+            return keys
+
+        # 遞迴取值
+        def get_nested(obj, key_path):
+            keys = key_path.split('.')
+            current = obj
+            for k in keys:
+                if isinstance(current, dict) and k in current:
+                    current = current[k]
+                else:
+                    return None
+            return current
+
+        # 遞迴設值
+        def set_nested(obj, key_path, value):
+            keys = key_path.split('.')
+            current = obj
+            for k in keys[:-1]:
+                if k not in current:
+                    current[k] = {}
+                current = current[k]
+            current[keys[-1]] = value
+
+        # 取得所有語系的 key 聯集
+        all_keys = set()
+        for lang_data in all_translations.values():
+            all_keys.update(flatten_keys(lang_data))
+
+        # 嘗試載入 opencc（用於繁簡轉換）
+        opencc_converter = None
+        try:
+            import opencc
+            opencc_converter = opencc.OpenCC('t2s')
+        except ImportError:
+            logger.warning("opencc not installed, zh-CN will copy from base language")
+
+        # 補足各語系缺少的 key
+        for lang_code in active_langs:
+            added = 0
+            lang_data = all_translations.get(lang_code, {})
+            lang_keys = flatten_keys(lang_data)
+            missing_keys = all_keys - lang_keys
+
+            for key in sorted(missing_keys):
+                source_value = None
+
+                if lang_code == 'zh-CN' and 'zh-TW' in all_translations:
+                    # zh-CN: 從 zh-TW 繁簡轉換
+                    source_value = get_nested(all_translations['zh-TW'], key)
+                    if isinstance(source_value, str) and opencc_converter:
+                        source_value = opencc_converter.convert(source_value)
+                elif lang_code == 'zh-TW' and 'zh-CN' in all_translations:
+                    # zh-TW: 從 zh-CN 簡繁轉換
+                    source_value = get_nested(all_translations['zh-CN'], key)
+                    if isinstance(source_value, str):
+                        try:
+                            import opencc as oc
+                            source_value = oc.OpenCC('s2t').convert(source_value)
+                        except ImportError:
+                            pass
+                else:
+                    # 其他語系: 從 base_lang 複製
+                    source_value = get_nested(all_translations.get(base_lang, {}), key)
+
+                # 如果來源也沒有，從任何有值的語系複製
+                if source_value is None:
+                    for other_lang, other_data in all_translations.items():
+                        if other_lang != lang_code:
+                            source_value = get_nested(other_data, key)
+                            if source_value is not None:
+                                break
+
+                if source_value is not None:
+                    set_nested(lang_data, key, source_value)
+                    added += 1
+
+            all_translations[lang_code] = lang_data
+            results[lang_code] = {
+                "added": added,
+                "total": len(flatten_keys(lang_data))
+            }
+
+        # 寫回翻譯檔 + 同步到資料庫
+        for lang_code in active_langs:
+            lang_data = all_translations.get(lang_code, {})
+
+            # 寫回檔案
+            lang_dir = locales_dir / lang_code
+            lang_dir.mkdir(parents=True, exist_ok=True)
+            lang_file = lang_dir / "translation.json"
+            with open(lang_file, 'w', encoding='utf-8') as f:
+                json.dump(lang_data, f, ensure_ascii=False, indent=2)
+
+            # 同步到資料庫
+            lang_record = db.query(SysLanguage).filter(
+                SysLanguage.lang_code == lang_code
+            ).first()
+            if lang_record:
+                lang_record.lang_data = lang_data
+
+        db.commit()
+        logger.info(f"Translation keys synced: {results}")
+        return results

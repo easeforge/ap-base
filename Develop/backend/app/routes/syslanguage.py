@@ -138,3 +138,35 @@ async def backfill_language(
         "results": results,
         "total_updated": total
     }
+
+
+@router.post("/sync-translations", summary="語系翻譯 key 同步補足")
+async def sync_translation_keys(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    語系翻譯 key 同步補足
+
+    掃描所有啟用語系的翻譯檔，找出缺少的 key 並自動補足：
+    - zh-CN 缺少的 key 從 zh-TW 繁簡轉換
+    - zh-TW 缺少的 key 從 zh-CN 簡繁轉換
+    - 其他語系從基礎語系(en)複製
+
+    補足後同時更新翻譯檔和資料庫 lang_data
+    """
+    results = LanguageService.sync_translation_keys(db, base_lang="en")
+
+    if "error" in results:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=results["error"]
+        )
+
+    total_added = sum(r.get("added", 0) for r in results.values() if isinstance(r, dict))
+    logger.info(f"Translation sync completed by user {current_user.id}: {total_added} keys added")
+
+    return {
+        "message": f"語系翻譯同步完成，共補足 {total_added} 個 key",
+        "details": results
+    }

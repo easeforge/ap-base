@@ -286,7 +286,11 @@
     "languageSettings": "語系設定",
     "languageSettingsHint": "勾選要啟用的語系，系統標題和版權宣告將依啟用語系提供多語系輸入欄位",
     "atLeastOneLanguage": "至少需要啟用一個語系",
-    "noLanguagesAvailable": "尚未建立語系資料"
+    "noLanguagesAvailable": "尚未建立語系資料",
+    "syncTranslations": "語系翻譯同步補足",
+    "syncTranslationsHint": "自動掃描並補足各語系缺少的翻譯 key",
+    "syncing": "同步中...",
+    "syncTotal": "共"
   },
   "validation": {
     "required": "此欄位為必填",

@@ -286,7 +286,11 @@
     "languageSettings": "Language Settings",
     "languageSettingsHint": "Select the languages to enable. System title and copyright will provide input fields for each enabled language.",
     "atLeastOneLanguage": "At least one language must be enabled",
-    "noLanguagesAvailable": "No languages configured yet"
+    "noLanguagesAvailable": "No languages configured yet",
+    "syncTranslations": "Sync Translation Keys",
+    "syncTranslationsHint": "Auto-scan and fill missing translation keys across all languages",
+    "syncing": "Syncing...",
+    "syncTotal": "total"
   },
   "validation": {
     "required": "This field is required",

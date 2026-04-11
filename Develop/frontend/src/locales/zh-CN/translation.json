@@ -286,7 +286,11 @@
     "languageSettings": "语系设定",
     "languageSettingsHint": "勾选要启用的语系，系统标题和版权宣告将依启用语系提供多语系输入栏位",
     "atLeastOneLanguage": "至少需要启用一个语系",
-    "noLanguagesAvailable": "尚未建立语系资料"
+    "noLanguagesAvailable": "尚未建立语系资料",
+    "syncTranslations": "语系翻译同步补足",
+    "syncTranslationsHint": "自动扫描并补足各语系缺少的翻译 key",
+    "syncing": "同步中...",
+    "syncTotal": "共"
   },
   "validation": {
     "required": "此栏位为必填",

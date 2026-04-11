@@ -41,6 +41,7 @@ const SysProfilePage: React.FC = () => {
   const [allLanguages, setAllLanguages] = useState<SysLanguageItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [syncing, setSyncing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState<SysProfileUpdate>({});
   const [enabledLangs, setEnabledLangs] = useState<string[]>([]);
@@ -152,6 +153,23 @@ const SysProfilePage: React.FC = () => {
       ...formData,
       [fieldName]: { ...currentField, [langCode]: value }
     });
+  };
+
+  // 語系翻譯同步補足
+  const handleSyncTranslations = async () => {
+    try {
+      setSyncing(true);
+      const response = await axios.post('/api/sys_languages/sync-translations');
+      const data = response.data;
+      const details = Object.entries(data.details || {})
+        .map(([lang, info]: [string, any]) => `${lang}: +${info.added} (${t('sysProfile.syncTotal', '共')} ${info.total})`)
+        .join('\n');
+      alert(`${data.message}\n\n${details}`);
+    } catch (err: any) {
+      alert(err.response?.data?.detail || t('message.saveFailed'));
+    } finally {
+      setSyncing(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -299,6 +317,24 @@ const SysProfilePage: React.FC = () => {
                 <p style={{ color: '#999', fontStyle: 'italic' }}>
                   {t('sysProfile.noLanguagesAvailable', '尚未建立語系資料')}
                 </p>
+              )}
+              {canUpdate && enabledLangs.length > 1 && (
+                <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #dee2e6' }}>
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    disabled={syncing}
+                    onClick={handleSyncTranslations}
+                    style={{ padding: '6px 16px', fontSize: '13px' }}
+                  >
+                    {syncing
+                      ? t('sysProfile.syncing', '同步中...')
+                      : t('sysProfile.syncTranslations', '語系翻譯同步補足')}
+                  </button>
+                  <span style={{ marginLeft: '10px', fontSize: '12px', color: '#6c757d' }}>
+                    {t('sysProfile.syncTranslationsHint', '自動掃描並補足各語系缺少的翻譯 key')}
+                  </span>
+                </div>
               )}
             </div>
 
