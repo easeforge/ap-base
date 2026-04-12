@@ -326,9 +326,11 @@ const UserLogsPage: React.FC = () => {
                         {log.session_id ? log.session_id.substring(0, 8) + '...' : '-'}
                       </td>
                       <td>
-                        {i18n.language === 'zh-TW'
-                          ? (log.function_cname || log.function_name || `ID:${log.system_function_id}`)
-                          : (log.function_ename || log.function_name || `ID:${log.system_function_id}`)
+                        {log.function_name
+                          ? (typeof log.function_name === 'object'
+                            ? getI18nValue(log.function_name, i18n.language, `ID:${log.system_function_id}`)
+                            : log.function_name)
+                          : `ID:${log.system_function_id}`
                         }
                       </td>
                       <td style={{ textAlign: 'center' }}>
@@ -489,9 +491,11 @@ const UserLogsPage: React.FC = () => {
                   <div>
                     <div style={{ fontSize: '12px', color: '#6c757d', marginBottom: '4px' }}>{t('userLogs.table.function')}</div>
                     <div style={{ fontSize: '14px', fontWeight: '500', color: '#212529' }}>
-                      {i18n.language === 'zh-TW'
-                        ? (selectedLog.function_cname || selectedLog.function_name || `ID:${selectedLog.system_function_id}`)
-                        : (selectedLog.function_ename || selectedLog.function_name || `ID:${selectedLog.system_function_id}`)
+                      {selectedLog.function_name
+                        ? (typeof selectedLog.function_name === 'object'
+                          ? getI18nValue(selectedLog.function_name, i18n.language, `ID:${selectedLog.system_function_id}`)
+                          : selectedLog.function_name)
+                        : `ID:${selectedLog.system_function_id}`
                       }
                     </div>
                   </div>
