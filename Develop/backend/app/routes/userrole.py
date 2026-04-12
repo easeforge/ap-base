@@ -117,10 +117,14 @@ async def create_user_roles(
     """
     # Token 已驗證權限，不需要再次檢查
 
-    # 檢查角色名稱是否已存在
-    existing = db.query(UserRole).filter(
-        cast(UserRole.role_name, String) == cast(role_data.role_name, String)
-    ).first()
+    # 檢查角色名稱是否已存在（以基礎語系 en 檢查）
+    en_name = role_data.role_name.get('en', '')
+    if en_name:
+        existing = db.query(UserRole).filter(
+            UserRole.role_name['en'].astext == en_name
+        ).first()
+    else:
+        existing = None
     if existing:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
