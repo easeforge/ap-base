@@ -8,6 +8,7 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from sqlalchemy import cast, String
+from sqlalchemy.dialects.postgresql import JSONB
 
 from app.core.database import get_db
 from app.core.deps import get_current_user
@@ -90,7 +91,7 @@ async def get_functions(
     if search:
         query = query.filter(
             (SystemFunction.func_code.ilike(f"%{search}%")) |
-            (cast(SystemFunction.func_name, String).ilike(f"%{search}%"))
+            (cast(SystemFunction.func_name, JSONB).cast(String).ilike(f"%{search}%"))
         )
 
     functions = query.order_by(SystemFunction.func_order).offset(skip).limit(limit).all()

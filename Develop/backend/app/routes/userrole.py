@@ -68,7 +68,7 @@ async def get_user_roless(
 
     if search:
         query = query.filter(
-            cast(UserRole.role_name, String).ilike(f"%{search}%")
+            cast(UserRole.role_name, JSONB).cast(String).ilike(f"%{search}%")
         )
 
     roles = query.order_by(UserRole.id).offset(skip).limit(limit).all()
@@ -173,17 +173,19 @@ async def update_user_roles(
     # 保存原始資料用於日誌
     original_data = user_roles_to_dict(role)
 
-    # 如果更新角色名稱，檢查是否重複
+    # 如果更新角色名稱，檢查是否重複（以基礎語系 en 檢查）
     if role_data.role_name:
-        existing = db.query(UserRole).filter(
-            UserRole.id != role_id,
-            cast(UserRole.role_name, String) == cast(role_data.role_name, String)
-        ).first()
-        if existing:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="角色名稱已存在"
-            )
+        en_name = role_data.role_name.get('en', '')
+        if en_name:
+            existing = db.query(UserRole).filter(
+                UserRole.id != role_id,
+                UserRole.role_name['en'].astext == en_name
+            ).first()
+            if existing:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="角色名稱已存在"
+                )
 
     # 更新欄位
     update_data = role_data.model_dump(exclude_unset=True)

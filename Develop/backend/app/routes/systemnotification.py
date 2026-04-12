@@ -9,6 +9,7 @@ from datetime import datetime, date
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import and_, or_, func, desc, cast, String
+from sqlalchemy.dialects.postgresql import JSONB
 
 from app.core.database import get_db
 from app.core.deps import get_current_user
@@ -151,7 +152,7 @@ async def get_notifications(
 
     if search:
         query = query.filter(
-            cast(SystemNotification.notice_subject, String).ilike(f"%{search}%")
+            cast(SystemNotification.notice_subject, JSONB).cast(String).ilike(f"%{search}%")
         )
 
     # 排序：依照 id, notice_start_at, notice_end_at, notice_order
