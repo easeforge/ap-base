@@ -1,6 +1,6 @@
 # Base AP 應用系統建置指引
 
-**版本：** v2.1.0
+**版本：** v2.2.0
 **更新日期：** 2026-04-13
 
 本文件提供開發者在 Base AP 基底平台上建置應用系統服務的完整指引，涵蓋後端 API、前端頁面、資料庫、權限與日誌整合的標準開發流程。
@@ -10,6 +10,7 @@
 ## 目錄
 
 1. [架構總覽](#1-架構總覽)
+   - [1.4 基底平台與應用專案分區原則](#14-基底平台與應用專案分區原則)
 2. [開發環境準備](#2-開發環境準備)
 3. [建置流程概覽](#3-建置流程概覽)
 4. [Step 1：資料庫設計](#4-step-1資料庫設計)
@@ -87,6 +88,118 @@ Develop/
 | 權限       | `core/permissions.py`  | 二階段驗證（Redis 快取 + DB 查詢）    |
 | 設定       | `core/config.py`       | 環境變數管理                          |
 | Redis      | `core/redis_client.py` | Session 快取、權限快取                |
+
+### 1.4 基底平台與應用專案分區原則
+
+Base AP 採用**同目錄共存 + 命名規則分區**的策略，基底平台與應用專案的程式碼放在同一個目錄結構中，透過以下機制區分歸屬。
+
+#### 分區總覽
+
+| 區分機制 | 基底平台 (Base AP) | 應用專案 |
+|---------|-------------------|---------|
+| **func_code** | 無前綴（如 `users`、`system_codes`） | `ap_` 前綴（如 `ap_inv_items`） |
+| **system_functions ID** | 1 ~ 99 | 100+ |
+| **func_order 節點** | 10, 20（系統管理、租戶管理） | 30, 40, 50...（應用功能群組） |
+| **func_order 功能** | 10xx, 20xx | 30xx, 40xx, 50xx... |
+| **路由註冊** | `main.py` / `App.tsx` 的「基底平台路由」區塊 | 「應用專案路由」區塊 |
+
+#### func_code 命名規則
+
+```
+基底平台：{功能名稱}
+  例：users, system_codes, role_rights, organizations
+
+應用專案：ap_{模組縮寫}_{功能名稱}
+  例：ap_inv_items, ap_inv_stock, ap_inv_warehouse
+```
+
+- `ap_` 前綴代表 Application Project，一眼區分歸屬
+- `{模組縮寫}` 建議 2~4 個字母，同模組統一（如庫存模組用 `inv`）
+- `module_code` 與 `func_code` 保持一致
+
+#### 檔案命名對照
+
+| func_code | 後端 Model | 後端 Route | 前端 Page | 前端 Service |
+|-----------|-----------|-----------|----------|-------------|
+| `ap_inv_items` | `apinvitem.py` | `apinvitem.py` | `ApInvItemsPage.tsx` | `apInvItemsService.ts` |
+| `ap_inv_stock` | `apinvstock.py` | `apinvstock.py` | `ApInvStockPage.tsx` | `apInvStockService.ts` |
+
+> 後端檔案依 14.3 規則：去除底線 + 全小寫。前端檔案依 14.4 規則：camelCase / PascalCase。
+
+#### 資料庫分區
+
+```sql
+-- 基底平台資料表（init_db.sql 提供，不修改）
+-- organizations, users, user_roles, system_functions, ...
+
+-- 應用專案資料表（獨立 migration 或 init 腳本）
+CREATE TABLE ap_inv_items ( ... );
+CREATE TABLE ap_inv_stock ( ... );
+```
+
+- 基底資料表：無前綴，由 upstream init_db.sql 管理
+- 應用資料表：建議加 `ap_` 或模組前綴，避免與基底未來新增表衝突
+
+#### system_functions 註冊範例
+
+```sql
+INSERT INTO system_functions
+  (id, func_code, upper_func_id, func_name, func_type, func_order, func_icon, module_code, module_item, description, is_mana, is_active, edit_by)
+VALUES
+  -- 應用專案節點（id 100+, func_order 30）
+  (100, 'ap_inventory_mana', 0,
+   '{"zh-TW":"庫存管理","en":"Inventory Management"}',
+   1, 30, '📦', NULL, '[]', '庫存管理節點', FALSE, TRUE, 1),
+  -- 應用專案功能（id 101+, func_order 30xx）
+  (101, 'ap_inv_items', 100,
+   '{"zh-TW":"品項管理","en":"Inventory Items"}',
+   2, 3010, '🏷️', 'ap_inv_items',
+   '["Create","Read","Update","Delete","Print","File"]',
+   '品項管理功能', FALSE, TRUE, 1),
+  (102, 'ap_inv_stock', 100,
+   '{"zh-TW":"庫存異動","en":"Stock Movement"}',
+   2, 3020, '🏷️', 'ap_inv_stock',
+   '["Create","Read","Update","Delete","Print","File"]',
+   '庫存異動功能', FALSE, TRUE, 1);
+```
+
+#### 路由註冊分區
+
+**後端 `main.py`**：
+```python
+# ============================================
+# 基底平台路由（Base AP — 請勿修改此區塊）
+# ============================================
+app.include_router(user.router, prefix="/api/users", tags=["使用者管理"])
+# ...（基底路由）
+
+# ============================================
+# 應用專案路由（在此區塊新增應用功能路由）
+# ============================================
+from app.routes import apinvitem, apinvstock
+app.include_router(apinvitem.router, prefix="/api/ap_inv_items", tags=["品項管理"])
+app.include_router(apinvstock.router, prefix="/api/ap_inv_stock", tags=["庫存異動"])
+```
+
+**前端 `App.tsx`**：
+```tsx
+{/* ===== 基底平台路由（Base AP — 請勿修改此區塊）===== */}
+<Route path="users" element={<UsersPage />} />
+{/* ...（基底路由） */}
+
+{/* ===== 應用專案路由（在此區塊新增應用功能路由）===== */}
+<Route path="ap_inv_items" element={<ApInvItemsPage />} />
+<Route path="ap_inv_stock" element={<ApInvStockPage />} />
+```
+
+#### upstream 同步安全原則
+
+| 操作 | 說明 |
+|------|------|
+| `git merge upstream/main` | 基底平台更新。只要不動基底區塊的程式碼，合併不會衝突 |
+| 修改基底檔案 | 應提交到 upstream，再 merge 回應用專案 |
+| 衝突檔案 | 通常只有 `main.py`、`App.tsx`、`init_db.sql` 三個註冊入口 |
+| 應用專案檔案 | `ap_` 開頭的檔案永遠不會與 upstream 衝突 |
 
 ---
 
