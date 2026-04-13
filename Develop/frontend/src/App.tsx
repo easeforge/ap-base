@@ -73,9 +73,8 @@ const AppRoutes: React.FC = () => {
         }
       >
         <Route index element={<Navigate to="/home" replace />} />
-        {/* 首頁 */}
+        {/* ===== 基底平台路由（Base AP — 請勿修改此區塊）===== */}
         <Route path="home" element={<HomePage />} />
-        {/* 儀表板 */}
         <Route path="dashboard" element={<DashboardPage />} />
         {/* 系統管理 */}
         <Route path="organizations" element={<OrganizationsPage />} />
@@ -91,9 +90,12 @@ const AppRoutes: React.FC = () => {
         <Route path="org_profile" element={<div>組織資料檔案</div>} />
         <Route path="tenant_profile" element={<TenantProfilePage />} />
         <Route path="tenant_users" element={<TenantUsersPage />} />
-        {/* 個人設定 */}
+        {/* 個人化功能 */}
         <Route path="my_profile" element={<MyProfilePage />} />
         <Route path="change_password" element={<ChangePasswordPage />} />
+
+        {/* ===== 應用專案路由（在此區塊新增應用功能路由）===== */}
+        {/* <Route path="bulletins" element={<BulletinsPage />} /> */}
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

@@ -157,9 +157,11 @@ app.mount("/images", StaticFiles(directory=str(settings.images_path)), name="ima
 app.mount("/uploads", StaticFiles(directory=str(settings.uploads_path)), name="uploads")
 app.mount("/locales", StaticFiles(directory=str(settings.locales_path)), name="locales")
 
-# 註冊路由 - 認證
+# ============================================
+# 基底平台路由（Base AP — 請勿修改此區塊）
+# ============================================
+# 認證
 app.include_router(auth.router, prefix="/api/auth", tags=["認證"])
-
 # 系統管理
 app.include_router(system.router, prefix="/api/system", tags=["系統管理"])
 app.include_router(sysprofile.router, prefix="/api/sys_profiles", tags=["系統設定"])
@@ -167,7 +169,6 @@ app.include_router(systemcode.router, prefix="/api/system_codes", tags=["系統�
 app.include_router(systemfunction.router, prefix="/api/system_functions", tags=["系統功能管理"])
 app.include_router(systemnotification.router, prefix="/api/system_notifications", tags=["系統通知管理"])
 app.include_router(syslanguage.router, prefix="/api/sys_languages", tags=["語系管理"])
-
 # 組織與使用者管理
 app.include_router(organization.router, prefix="/api/organizations", tags=["組織管理"])
 app.include_router(user.router, prefix="/api/users", tags=["使用者管理"])
@@ -175,6 +176,12 @@ app.include_router(userrole.router, prefix="/api/user_roles", tags=["使用者�
 app.include_router(roleright.router, prefix="/api/role_rights", tags=["角色權限管理"])
 app.include_router(permissions.router, prefix="/api/permissions", tags=["權限查詢"])
 app.include_router(userlog.router, prefix="/api/user_logs", tags=["使用者日誌"])
+
+# ============================================
+# 應用專案路由（在此區塊新增應用功能路由）
+# ============================================
+# from app.routes import bulletin
+# app.include_router(bulletin.router, prefix="/api/bulletins", tags=["公告管理"])
 
 
 @app.get("/", tags=["根路徑"])
