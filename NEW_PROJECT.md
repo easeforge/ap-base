@@ -57,19 +57,27 @@ git remote -v
 
 ### 3b. CLAUDE.md
 
-把開頭改成專案說明：
+把開頭改成專案說明，並加入 upstream 自動同步檢查指示：
 
-```markdown
-# P-Inventory - 庫存管理系統
+````markdown
+# {專案名稱} - {系統說明}
 
 ## 專案概述
-基於 Base AP 基底平台開發的庫存管理應用系統。
+基於 Base AP 基底平台開發的{系統說明}應用系統。
 
 ## 基底平台
 - 來源: https://git.lab.taipei/porsche/ap-base.git (upstream)
 - 基底版本: v1.0.0
 - 同步方式: git fetch upstream && git merge upstream/main
+
+## ⚠️ 對話啟動時自動執行
+每次開啟新對話時，必須主動執行以下檢查：
+```bash
+git fetch upstream && git log --oneline HEAD..upstream/main
 ```
+- 若有新 commit，告知使用者有幾筆 upstream 更新，並詢問是否要 merge
+- 若無新 commit，簡短告知「upstream 已同步」即可
+````
 
 ### 3c. 提交並推送
 
@@ -83,13 +91,15 @@ git push -u origin main
 
 ## Step 4：開始開發
 
-在程式碼的「應用專案路由」區塊新增你的功能：
+基底平台內建自動掃描機制，新增應用功能**不需要修改基底檔案**：
 
-- **後端**：`Develop/backend/app/main.py` → 搜尋「應用專案路由」
-- **前端**：`Develop/frontend/src/App.tsx` → 搜尋「應用專案路由」
+- **後端**：新增 `app/routes/ap{模組}.py`（檔名以 `ap` 開頭）→ 自動掛載路由
+- **後端**：新增 `app/models/ap{模組}.py`（檔名以 `ap` 開頭）→ 自動註冊 Model
+- **前端**：編輯 `src/routes/appRoutes.tsx` → 新增路由定義（唯一需要改的檔案）
 - **功能 ID**：從 100 開始（基底保留 1~99）
+- **func_code**：以 `ap_` 前綴命名（如 `ap_inv_items`）
 
-詳細開發流程見 `系統設計/Base_AP_應用系統建置指引.md`。
+詳細開發流程與命名規則見 `系統設計/Base_AP_應用系統建置指引.md`。
 
 ---
 
