@@ -178,10 +178,25 @@ app.include_router(permissions.router, prefix="/api/permissions", tags=["權限�
 app.include_router(userlog.router, prefix="/api/user_logs", tags=["使用者日誌"])
 
 # ============================================
-# 應用專案路由（在此區塊新增應用功能路由）
+# 應用專案路由（自動掃描 ap_ 開頭的路由模組）
 # ============================================
-# from app.routes import bulletin
-# app.include_router(bulletin.router, prefix="/api/bulletins", tags=["公告管理"])
+import importlib
+import pkgutil
+import app.routes as _routes_pkg
+
+for _, _module_name, _ in pkgutil.iter_modules(_routes_pkg.__path__):
+    if _module_name.startswith("ap"):
+        try:
+            _mod = importlib.import_module(f"app.routes.{_module_name}")
+            if hasattr(_mod, "router"):
+                # 從 router.tags 取第一個 tag 作為顯示名稱，否則用模組名
+                _tags = list(_mod.router.tags) if _mod.router.tags else [_module_name]
+                # prefix 從模組名轉換：apinvitem → /api/ap_inv_items（由各 route 自行定義 PREFIX）
+                _prefix = getattr(_mod, "PREFIX", f"/api/{_module_name}")
+                app.include_router(_mod.router, prefix=_prefix, tags=_tags)
+                logger.info(f"應用專案路由已載入: {_prefix} ({_module_name})")
+        except Exception as e:
+            logger.error(f"載入應用專案路由失敗 [{_module_name}]: {e}")
 
 
 @app.get("/", tags=["根路徑"])

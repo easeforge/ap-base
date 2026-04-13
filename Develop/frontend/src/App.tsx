@@ -27,6 +27,7 @@ import MyProfilePage from './pages/MyProfilePage';
 import ChangePasswordPage from './pages/ChangePasswordPage';
 import MainLayout from './components/MainLayout';
 import PrivateRoute from './components/PrivateRoute';
+import ProjectRoutes from './routes/appRoutes';
 
 /**
  * 應用程式路由
@@ -94,8 +95,8 @@ const AppRoutes: React.FC = () => {
         <Route path="my_profile" element={<MyProfilePage />} />
         <Route path="change_password" element={<ChangePasswordPage />} />
 
-        {/* ===== 應用專案路由（在此區塊新增應用功能路由）===== */}
-        {/* <Route path="bulletins" element={<BulletinsPage />} /> */}
+        {/* ===== 應用專案路由（自動載入 routes/appRoutes.tsx）===== */}
+        <ProjectRoutes />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />
