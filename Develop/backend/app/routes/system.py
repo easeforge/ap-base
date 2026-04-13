@@ -44,7 +44,9 @@ async def get_system_profile(db: Session = Depends(get_db)):
         "sys_copyright": profile.sys_copyright,
         "sys_organization": profile.sys_organization,
         "sys_mana_email": profile.sys_mana_email,
-        "sys_languages": profile.sys_languages
+        "sys_languages": profile.sys_languages,
+        "login_bg": profile.login_bg or "default",
+        "color_theme": profile.color_theme or "classic-blue"
     }
 
 

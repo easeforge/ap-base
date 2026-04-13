@@ -30,10 +30,13 @@ class UserCreate(UserBase):
 class UserUpdate(BaseModel):
     """更新使用者"""
 
+    account: Optional[str] = Field(None, description="登入帳號")
     username: Optional[str] = Field(None, description="使用者名稱")
+    organization_id: Optional[int] = Field(None, description="組織 ID")
     department: Optional[str] = Field(None, description="部門")
     job_title: Optional[str] = Field(None, description="職稱")
     phone: Optional[str] = Field(None, description="電話")
+    password: Optional[str] = Field(None, description="密碼（留空不更新）")
     user_role: Optional[List[int]] = Field(None, description="角色 ID 列表")
     is_active: Optional[bool] = Field(None, description="啟用狀態")
 

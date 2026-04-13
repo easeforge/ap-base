@@ -20,6 +20,9 @@ import FunctionPageHeader from '../components/FunctionPageHeader';
 import { logView, logUpdate } from '../utils/userLogHelper';
 import { I18nField } from '../types';
 import axios from '../api/axios';
+import loginBgDefault from '../assets/images/login-bg.jpg';
+import loginBg1 from '../assets/images/login-bg-1.jpg';
+import loginBg2 from '../assets/images/login-bg-2.jpg';
 import '../styles/DataTable.css';
 
 // 語系列表項目（來自 sys_languages 資料表）
@@ -30,6 +33,41 @@ interface SysLanguageItem {
   lang_ename: string;
   is_active: boolean;
 }
+
+// 登入頁底圖選項
+const LOGIN_BG_OPTIONS = [
+  { key: 'default', label: '預設', labelEn: 'Default', image: loginBgDefault },
+  { key: 'nature', label: '自然', labelEn: 'Nature', image: loginBg1 },
+  { key: 'landscape', label: '風景', labelEn: 'Landscape', image: loginBg2 },
+];
+
+// 內頁配色主題選項
+const COLOR_THEME_OPTIONS = [
+  {
+    key: 'classic-blue',
+    label: '經典藍',
+    labelEn: 'Classic Blue',
+    sidebarColor: '#13386B',
+    accentColor: '#667eea',
+    accentEndColor: '#764ba2',
+  },
+  {
+    key: 'forest-green',
+    label: '森林綠',
+    labelEn: 'Forest Green',
+    sidebarColor: '#1a3c2a',
+    accentColor: '#2e7d5b',
+    accentEndColor: '#1a9c6c',
+  },
+  {
+    key: 'warm-brown',
+    label: '暖棕橘',
+    labelEn: 'Warm Brown',
+    sidebarColor: '#3e2723',
+    accentColor: '#c17437',
+    accentEndColor: '#e6943a',
+  },
+];
 
 const SysProfilePage: React.FC = () => {
   const { t, i18n } = useTranslation();
@@ -63,6 +101,8 @@ const SysProfilePage: React.FC = () => {
         sys_mana_email: data.sys_mana_email,
         sys_timezone: data.sys_timezone,
         sys_languages: langs,
+        login_bg: data.login_bg || 'default',
+        color_theme: data.color_theme || 'classic-blue',
       });
     } catch (err: any) {
       setError(err.response?.data?.detail || t('common.error'));
@@ -336,6 +376,165 @@ const SysProfilePage: React.FC = () => {
                   </span>
                 </div>
               )}
+            </div>
+
+            {/* 登入頁底圖設定 */}
+            <div className="form-group full-width" style={{
+              background: '#f8f9fa',
+              border: '1px solid #dee2e6',
+              borderRadius: '8px',
+              padding: '16px'
+            }}>
+              <label style={{ fontWeight: 600, fontSize: '15px', marginBottom: '12px', display: 'block' }}>
+                {t('sysProfile.loginBg', '登入頁底圖')}
+              </label>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
+                {LOGIN_BG_OPTIONS.map((opt) => {
+                  const isSelected = (formData.login_bg || 'default') === opt.key;
+                  return (
+                    <label
+                      key={opt.key}
+                      style={{
+                        cursor: canUpdate ? 'pointer' : 'default',
+                        border: isSelected ? '3px solid #5b6abf' : '3px solid transparent',
+                        borderRadius: '10px',
+                        overflow: 'hidden',
+                        transition: 'all 0.2s ease',
+                        opacity: canUpdate ? 1 : 0.7,
+                        boxShadow: isSelected ? '0 4px 12px rgba(91,106,191,0.3)' : '0 2px 6px rgba(0,0,0,0.1)',
+                      }}
+                    >
+                      <input
+                        type="radio"
+                        name="login_bg"
+                        value={opt.key}
+                        checked={isSelected}
+                        onChange={() => setFormData({ ...formData, login_bg: opt.key })}
+                        disabled={!canUpdate}
+                        style={{ display: 'none' }}
+                      />
+                      <div style={{ width: '180px' }}>
+                        <img
+                          src={opt.image}
+                          alt={opt.label}
+                          style={{ width: '100%', height: '100px', objectFit: 'cover', display: 'block' }}
+                        />
+                        <div style={{
+                          textAlign: 'center',
+                          padding: '6px 0',
+                          fontSize: '13px',
+                          fontWeight: isSelected ? 600 : 400,
+                          color: isSelected ? '#5b6abf' : '#495057',
+                          background: '#fff',
+                        }}>
+                          {i18n.language === 'zh-TW' ? opt.label : opt.labelEn}
+                        </div>
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* 內頁配色主題設定 */}
+            <div className="form-group full-width" style={{
+              background: '#f8f9fa',
+              border: '1px solid #dee2e6',
+              borderRadius: '8px',
+              padding: '16px'
+            }}>
+              <label style={{ fontWeight: 600, fontSize: '15px', marginBottom: '12px', display: 'block' }}>
+                {t('sysProfile.colorTheme', '內頁配色主題')}
+              </label>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
+                {COLOR_THEME_OPTIONS.map((opt) => {
+                  const isSelected = (formData.color_theme || 'classic-blue') === opt.key;
+                  return (
+                    <label
+                      key={opt.key}
+                      style={{
+                        cursor: canUpdate ? 'pointer' : 'default',
+                        border: isSelected ? '3px solid #333' : '3px solid transparent',
+                        borderRadius: '10px',
+                        overflow: 'hidden',
+                        transition: 'all 0.2s ease',
+                        opacity: canUpdate ? 1 : 0.7,
+                        boxShadow: isSelected ? '0 4px 12px rgba(0,0,0,0.2)' : '0 2px 6px rgba(0,0,0,0.1)',
+                      }}
+                    >
+                      <input
+                        type="radio"
+                        name="color_theme"
+                        value={opt.key}
+                        checked={isSelected}
+                        onChange={() => setFormData({ ...formData, color_theme: opt.key })}
+                        disabled={!canUpdate}
+                        style={{ display: 'none' }}
+                      />
+                      <div style={{ width: '180px' }}>
+                        {/* 配色預覽 */}
+                        <div style={{ display: 'flex', height: '70px' }}>
+                          {/* 側邊欄色塊 */}
+                          <div style={{
+                            width: '40px',
+                            background: opt.sidebarColor,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '6px',
+                            padding: '8px 0',
+                          }}>
+                            <div style={{ width: '16px', height: '2px', background: 'rgba(255,255,255,0.5)', borderRadius: '1px' }} />
+                            <div style={{ width: '16px', height: '2px', background: 'rgba(255,255,255,0.5)', borderRadius: '1px' }} />
+                            <div style={{ width: '16px', height: '2px', background: 'rgba(255,255,255,0.3)', borderRadius: '1px' }} />
+                          </div>
+                          {/* 右側區域 */}
+                          <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                            {/* Header 色塊 */}
+                            <div style={{
+                              height: '18px',
+                              background: `linear-gradient(135deg, ${opt.sidebarColor}, ${opt.accentColor})`,
+                            }} />
+                            {/* 內容區域 */}
+                            <div style={{ flex: 1, background: '#f5f7fa', padding: '6px 8px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                              <div style={{ display: 'flex', gap: '4px' }}>
+                                <div style={{
+                                  padding: '2px 10px',
+                                  background: `linear-gradient(135deg, ${opt.accentColor}, ${opt.accentEndColor})`,
+                                  borderRadius: '3px',
+                                  fontSize: '8px',
+                                  color: 'white',
+                                }}>btn</div>
+                                <div style={{
+                                  padding: '2px 10px',
+                                  border: `1px solid ${opt.accentColor}`,
+                                  borderRadius: '3px',
+                                  fontSize: '8px',
+                                  color: opt.accentColor,
+                                  background: 'white',
+                                }}>btn</div>
+                              </div>
+                              <div style={{ height: '6px', background: '#e0e0e0', borderRadius: '2px', width: '80%' }} />
+                              <div style={{ height: '6px', background: '#e0e0e0', borderRadius: '2px', width: '60%' }} />
+                            </div>
+                          </div>
+                        </div>
+                        <div style={{
+                          textAlign: 'center',
+                          padding: '6px 0',
+                          fontSize: '13px',
+                          fontWeight: isSelected ? 600 : 400,
+                          color: isSelected ? '#333' : '#495057',
+                          background: '#fff',
+                        }}>
+                          {i18n.language === 'zh-TW' ? opt.label : opt.labelEn}
+                        </div>
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
             </div>
 
             {/* 系統標題 - 依啟用語系動態顯示 */}

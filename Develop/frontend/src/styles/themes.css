@@ -1,0 +1,53 @@
+/* ========================================
+   配色主題系統
+   使用 CSS Variables 控制內頁主色調
+   ======================================== */
+
+/* 預設主題：經典藍 */
+:root,
+[data-theme="classic-blue"] {
+  --sidebar-bg: #13386B;
+  --header-bg-start: #13386B;
+  --header-bg-end: #1a4a8a;
+  --primary: #667eea;
+  --primary-end: #764ba2;
+  --primary-rgb: 102, 126, 234;
+  --primary-hover-bg: #f0f3ff;
+  --sidebar-active-color: #667eea;
+  --popup-active-bg: #e3f2fd;
+  --popup-active-color: #13386B;
+  --popup-hover-color: #13386B;
+  --logout-color: #667eea;
+}
+
+/* 森林綠 */
+[data-theme="forest-green"] {
+  --sidebar-bg: #1a3c2a;
+  --header-bg-start: #1a3c2a;
+  --header-bg-end: #2d5a3f;
+  --primary: #2e7d5b;
+  --primary-end: #1a9c6c;
+  --primary-rgb: 46, 125, 91;
+  --primary-hover-bg: #edf7f2;
+  --sidebar-active-color: #4caf80;
+  --popup-active-bg: #e8f5e9;
+  --popup-active-color: #1a3c2a;
+  --popup-hover-color: #1a3c2a;
+  --logout-color: #2e7d5b;
+}
+
+/* 暖棕橘 */
+[data-theme="warm-brown"] {
+  --sidebar-bg: #3e2723;
+  --header-bg-start: #3e2723;
+  --header-bg-end: #5d4037;
+  --primary: #c17437;
+  --primary-end: #e6943a;
+  --primary-rgb: 193, 116, 55;
+  --primary-hover-bg: #fdf5ed;
+  --sidebar-active-color: #e6943a;
+  --popup-active-bg: #fff3e0;
+  --popup-active-color: #3e2723;
+  --popup-hover-color: #3e2723;
+  --logout-color: #c17437;
+}

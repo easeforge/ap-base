@@ -19,6 +19,8 @@ class SysProfileResponse(BaseModel):
     sys_mana_email: str
     sys_timezone: str = 'Asia/Taipei'
     sys_languages: List[str] = Field(default_factory=lambda: ["zh-TW"], description="啟用的語系代碼陣列")
+    login_bg: str = Field(default='default', description="登入頁背景圖代碼")
+    color_theme: str = Field(default='classic-blue', description="內頁配色主題代碼")
     edit_by: int
     created_at: datetime
     updated_at: Optional[datetime] = None
@@ -36,3 +38,5 @@ class SysProfileUpdate(BaseModel):
     sys_mana_email: Optional[str] = None
     sys_timezone: Optional[str] = None
     sys_languages: Optional[List[str]] = Field(None, description="啟用的語系代碼陣列")
+    login_bg: Optional[str] = Field(None, description="登入頁背景圖代碼")
+    color_theme: Optional[str] = Field(None, description="內頁配色主題代碼")

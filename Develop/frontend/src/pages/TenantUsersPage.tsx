@@ -199,13 +199,6 @@ const TenantUsersPage: React.FC = () => {
       return;
     }
 
-    // 驗證 Email 格式
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(createForm.account)) {
-      alert(t('tenantUsers.invalidEmail'));
-      return;
-    }
-
     // 驗證密碼確認
     if (createForm.password !== createForm.confirmPassword) {
       alert(t('tenantUsers.passwordMismatch'));
@@ -286,13 +279,6 @@ const TenantUsersPage: React.FC = () => {
     // 驗證必填欄位
     if (!editForm.account || !editForm.username) {
       alert(t('message.pleaseComplete'));
-      return;
-    }
-
-    // 驗證 Email 格式
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(editForm.account)) {
-      alert(t('tenantUsers.invalidEmail'));
       return;
     }
 
@@ -614,10 +600,10 @@ const TenantUsersPage: React.FC = () => {
               <div className="form-group">
                 <label>{t('tenantUsers.account')} *</label>
                 <input
-                  type="email"
+                  type="text"
                   value={createForm.account}
                   onChange={(e) => setCreateForm({ ...createForm, account: e.target.value })}
-                  placeholder="user@example.com"
+                  placeholder={t('tenantUsers.accountPlaceholder', '請輸入帳號')}
                   required
                 />
               </div>
@@ -729,10 +715,10 @@ const TenantUsersPage: React.FC = () => {
               <div className="form-group">
                 <label>{t('tenantUsers.account')} *</label>
                 <input
-                  type="email"
+                  type="text"
                   value={editForm.account}
                   onChange={(e) => setEditForm({ ...editForm, account: e.target.value })}
-                  placeholder="user@example.com"
+                  placeholder={t('tenantUsers.accountPlaceholder', '請輸入帳號')}
                   required
                 />
               </div>

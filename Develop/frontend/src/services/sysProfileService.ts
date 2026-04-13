@@ -20,6 +20,8 @@ export interface SysProfile {
   sys_mana_email: string;
   sys_timezone: string;
   sys_languages: string[];
+  login_bg: string;
+  color_theme: string;
   edit_by: number;
   created_at: string;
   updated_at?: string;
@@ -34,6 +36,8 @@ export interface SysProfileUpdate {
   sys_mana_email?: string;
   sys_timezone?: string;
   sys_languages?: string[];
+  login_bg?: string;
+  color_theme?: string;
 }
 
 /**

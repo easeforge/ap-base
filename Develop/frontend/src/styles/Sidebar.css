@@ -1,7 +1,7 @@
 /* 側邊欄樣式 */
 
 .sidebar {
-  background: #13386B;
+  background: var(--sidebar-bg);
   color: white;
   position: fixed;
   left: 0;
@@ -83,7 +83,7 @@
 .menu-link.active {
   background: rgba(255, 255, 255, 0.15);
   color: white;
-  border-left: 4px solid #667eea;
+  border-left: 4px solid var(--sidebar-active-color);
 }
 
 .menu-link.active::before {
@@ -93,7 +93,7 @@
   top: 0;
   bottom: 0;
   width: 4px;
-  background: #667eea;
+  background: var(--sidebar-active-color);
 }
 
 .menu-icon {
@@ -230,14 +230,14 @@
 
 .popup-menu-link:hover {
   background: #f8f9fa;
-  color: #13386B;
+  color: var(--popup-hover-color);
 }
 
 .popup-menu-link.active {
-  background: #e3f2fd;
-  color: #13386B;
+  background: var(--popup-active-bg);
+  color: var(--popup-active-color);
   font-weight: 600;
-  border-left: 3px solid #13386B;
+  border-left: 3px solid var(--popup-active-color);
 }
 
 .popup-menu-link .menu-icon {
@@ -257,12 +257,12 @@
 
 .popup-menu-link:hover .menu-icon,
 .popup-menu-link:hover .menu-text {
-  color: #13386B;
+  color: var(--popup-hover-color);
 }
 
 .popup-menu-link.active .menu-icon,
 .popup-menu-link.active .menu-text {
-  color: #13386B;
+  color: var(--popup-hover-color);
 }
 
 /* 滾動條樣式 */
@@ -312,7 +312,7 @@
 
 .popup-submenu-parent:hover {
   background: #f8f9fa;
-  color: #13386B;
+  color: var(--popup-hover-color);
 }
 
 .popup-submenu-parent .expand-icon {

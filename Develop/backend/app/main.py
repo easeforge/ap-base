@@ -130,6 +130,19 @@ async def pydantic_validation_exception_handler(request: Request, exc: Validatio
         content={"detail": exc.errors()}
     )
 
+@app.exception_handler(Exception)
+async def general_exception_handler(request: Request, exc: Exception):
+    """處理未預期的例外，記錄完整 traceback"""
+    import traceback
+    logger.error(f"Unhandled Exception at {request.method} {request.url}")
+    logger.error(f"   Type: {type(exc).__name__}")
+    logger.error(f"   Message: {str(exc)}")
+    logger.error(f"   Traceback:\n{''.join(traceback.format_exception(exc))}")
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={"detail": f"{type(exc).__name__}: {str(exc)}"}
+    )
+
 # CORS 設定
 app.add_middleware(
     CORSMiddleware,

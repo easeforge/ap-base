@@ -1,19 +1,32 @@
 /* 登入頁面樣式 */
 
 .login-page {
+  position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background: url('../assets/images/login-bg.jpg') center center / cover no-repeat;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
   padding: 20px;
 }
 
+.login-page::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: var(--login-bg-image, url('../assets/images/login-bg.jpg'));
+  background-position: center center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  filter: blur(6px);
+  z-index: 0;
+}
+
 .login-container {
   position: relative;
+  z-index: 1;
   background-color: #fff;
   background-image: url('../assets/images/login-card-bg.png');
   background-position: -6px -4px;
@@ -69,6 +82,22 @@
 
 .header-lang-switcher .lang-divider {
   color: #ccc;
+}
+
+.header-lang-switcher .lang-select {
+  background: rgba(102, 126, 234, 0.12);
+  border: 1px solid rgba(102, 126, 234, 0.3);
+  color: #5b6abf;
+  font-weight: 600;
+}
+
+.header-lang-switcher .lang-select:hover {
+  background: rgba(102, 126, 234, 0.2);
+}
+
+.header-lang-switcher .lang-select option {
+  background: #ffffff;
+  color: #333;
 }
 
 .login-header {

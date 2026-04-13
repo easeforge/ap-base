@@ -16,6 +16,8 @@ export interface SystemProfile {
   sys_mana_email: string;
   sys_timezone: string;
   sys_languages: string[];
+  login_bg?: string;
+  color_theme?: string;
 }
 
 // 系統檢查回應

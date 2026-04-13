@@ -36,6 +36,12 @@ class SysProfile(Base):
     # 語系設定
     sys_languages = Column(JSONB, nullable=False, default=lambda: ["zh-TW"], comment="啟用的語系代碼陣列")
 
+    # 登入頁底圖
+    login_bg = Column(String(50), nullable=False, default='default', comment="登入頁背景圖代碼")
+
+    # 內頁配色主題
+    color_theme = Column(String(50), nullable=False, default='classic-blue', comment="內頁配色主題代碼")
+
     # 系統欄位
     edit_by = Column(Integer, ForeignKey("users.id"), nullable=False)
     created_at = Column(TIMESTAMP, nullable=False, server_default=func.current_timestamp())

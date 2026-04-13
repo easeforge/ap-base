@@ -27,6 +27,8 @@ interface SystemContextType {
   refreshSystemProfile: () => Promise<void>;
   getSystemTitle: () => string;
   getCopyright: () => string;
+  getLoginBg: () => string;
+  getColorTheme: () => string;
   // 語系相關
   availableLanguages: LanguageOption[];
   defaultLanguage: string;
@@ -119,11 +121,27 @@ export const SystemProvider: React.FC<SystemProviderProps> = ({ children }) => {
     return getI18nValue(sysProfile.sys_copyright, i18n.language);
   };
 
+  // 取得登入頁底圖代碼
+  const getLoginBg = (): string => {
+    return systemProfile?.login_bg || 'default';
+  };
+
+  // 取得內頁配色主題
+  const getColorTheme = (): string => {
+    return systemProfile?.color_theme || 'classic-blue';
+  };
+
   // 初始化：載入系統設定 + 語系資訊
   useEffect(() => {
     loadSystemProfile();
     loadActiveLanguages();
   }, []);
+
+  // 套用配色主題到 document
+  useEffect(() => {
+    const theme = systemProfile?.color_theme || 'classic-blue';
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [systemProfile]);
 
   // 監聽語系變更，更新網頁 Title
   useEffect(() => {
@@ -143,6 +161,8 @@ export const SystemProvider: React.FC<SystemProviderProps> = ({ children }) => {
         refreshSystemProfile,
         getSystemTitle,
         getCopyright,
+        getLoginBg,
+        getColorTheme,
         availableLanguages,
         defaultLanguage,
       }}

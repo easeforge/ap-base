@@ -10,13 +10,23 @@ import { useSystem } from '../contexts/SystemContext';
 import { authService } from '../api/authService';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 import { getI18nValue } from '../utils/i18nHelper';
+import loginBgDefault from '../assets/images/login-bg.jpg';
+import loginBg1 from '../assets/images/login-bg-1.jpg';
+import loginBg2 from '../assets/images/login-bg-2.jpg';
 import '../styles/LoginPage.css';
+
+const LOGIN_BG_MAP: Record<string, string> = {
+  default: loginBgDefault,
+  nature: loginBg1,
+  landscape: loginBg2,
+};
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const { login } = useAuth();
-  const { systemProfile } = useSystem();
+  const { systemProfile, getLoginBg } = useSystem();
+  const bgImage = LOGIN_BG_MAP[getLoginBg()] || LOGIN_BG_MAP['default'];
 
   const [formData, setFormData] = useState({
     account: '',
@@ -87,7 +97,7 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="login-page">
+    <div className="login-page" style={{ '--login-bg-image': `url(${bgImage})` } as React.CSSProperties}>
       <div className="login-container">
         <div className="header-lang-switcher">
           <LanguageSwitcher />

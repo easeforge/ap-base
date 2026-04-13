@@ -176,6 +176,8 @@ CREATE TABLE IF NOT EXISTS sys_profiles (
     sys_mana_email VARCHAR(200) NOT NULL,
     sys_timezone VARCHAR(50) NOT NULL DEFAULT 'Asia/Taipei',
     sys_languages JSONB NOT NULL DEFAULT '["zh-TW"]',
+    login_bg VARCHAR(50) NOT NULL DEFAULT 'default',
+    color_theme VARCHAR(50) NOT NULL DEFAULT 'classic-blue',
     edit_by INTEGER NOT NULL REFERENCES users(id),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP,
@@ -191,6 +193,8 @@ COMMENT ON COLUMN sys_profiles.sys_organization IS '系統管理公司';
 COMMENT ON COLUMN sys_profiles.sys_mana_email IS '系統管理員電子郵件';
 COMMENT ON COLUMN sys_profiles.sys_timezone IS '系統時區';
 COMMENT ON COLUMN sys_profiles.sys_languages IS '啟用的語系代碼陣列（JSONB）';
+COMMENT ON COLUMN sys_profiles.login_bg IS '登入頁背景圖代碼';
+COMMENT ON COLUMN sys_profiles.color_theme IS '內頁配色主題代碼';
 
 -- ============================================
 -- 6. 角色權限設定表 (role_rights)
@@ -405,12 +409,12 @@ VALUES
 ON CONFLICT (id) DO NOTHING;
 
 -- 5. 預設系統設定
-INSERT INTO sys_profiles (id, is_service, sys_url, sys_title, sys_copyright, sys_organization, sys_mana_email, sys_timezone, sys_languages, edit_by)
+INSERT INTO sys_profiles (id, is_service, sys_url, sys_title, sys_copyright, sys_organization, sys_mana_email, sys_timezone, sys_languages, login_bg, color_theme, edit_by)
 VALUES (1, TRUE, 'http://localhost:10180',
     '{"zh-TW":"後臺管理基底平台","en":"Base AP Management System"}',
     '{"zh-TW":"版權所有","en":"All Rights Reserved"}',
     1, 'admin@system.com', 'Asia/Taipei',
-    '["zh-TW","en"]', 1)
+    '["zh-TW","en"]', 'default', 'classic-blue', 1)
 ON CONFLICT (id) DO NOTHING;
 
 -- 6. 預設角色權限 (系統管理員擁有所有功能的完整權限)

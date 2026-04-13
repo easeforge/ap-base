@@ -31,6 +31,8 @@ def sys_profile_to_dict(profile: SysProfile) -> dict:
         "sys_organization": profile.sys_organization,
         "sys_mana_email": profile.sys_mana_email,
         "sys_timezone": profile.sys_timezone,
+        "login_bg": profile.login_bg,
+        "color_theme": profile.color_theme,
         "edit_by": profile.edit_by,
         "created_at": profile.created_at.isoformat() if profile.created_at else None,
         "updated_at": profile.updated_at.isoformat() if profile.updated_at else None
