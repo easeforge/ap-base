@@ -11,19 +11,20 @@
  * 範例：
  * import ApInvItemsPage from '../pages/ApInvItemsPage';
  *
- * <Route path="ap_inv_items" element={<ApInvItemsPage />} />
+ * 然後在 appRoutes 陣列中新增：
+ * { path: 'ap_inv_items', element: <ApInvItemsPage /> },
  */
 
 import React from 'react';
-import { Route } from 'react-router-dom';
 
-const AppRoutes: React.FC = () => {
-  return (
-    <>
-      {/* ===== 應用專案路由（在此新增）===== */}
+interface AppRoute {
+  path: string;
+  element: React.ReactElement;
+}
 
-    </>
-  );
-};
+const appRoutes: AppRoute[] = [
+  // ===== 應用專案路由（在此新增）=====
 
-export default AppRoutes;
+];
+
+export default appRoutes;
