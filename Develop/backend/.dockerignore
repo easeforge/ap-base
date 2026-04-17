@@ -1,0 +1,15 @@
+venv/
+__pycache__/
+*.pyc
+*.pyo
+.env
+.env.*
+*.log
+.pytest_cache/
+tests/
+backups/
+
+# License keys 絕對不能進 image
+license.key
+license_keys/
+*.pem
