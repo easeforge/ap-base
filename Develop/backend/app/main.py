@@ -88,12 +88,36 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warning(f"語系檔同步失敗: {e}")
 
+    # 載入 License（若 license.key 存在且簽章有效，啟用 EE 功能）
+    from app.core.license import LicenseManager
+    LicenseManager.load_from_file('./license.key')
+    license_info = LicenseManager.info()
+    logger.info(
+        f"License: edition={license_info['edition']}, "
+        f"features={license_info['features']}"
+    )
+
+    # 載入 Enterprise Edition 模組（若存在）
+    # EE 模組會在匯入時透過 plugin 註冊自己的 routes / startup hooks
+    from app.core.plugin import load_ee_if_present, run_startup_hooks, get_registered_routers
+    load_ee_if_present()
+
+    # 執行所有 EE 註冊的 startup hooks（scheduler 啟動等）
+    await run_startup_hooks()
+
+    # 掛載 EE 註冊的 routes
+    for reg in get_registered_routers():
+        app.include_router(reg['router'], prefix=reg['prefix'], tags=reg['tags'])
+        logger.info(f"EE router mounted: {reg['prefix']}")
+
     logger.info("應用程式啟動完成")
 
     yield  # 應用程式運行期間
 
     # 關閉時執行
     logger.info("應用程式關閉中...")
+    from app.core.plugin import run_shutdown_hooks
+    await run_shutdown_hooks()
     close_redis()
     logger.info("應用程式已關閉")
 

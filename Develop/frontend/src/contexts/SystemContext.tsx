@@ -6,7 +6,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SystemProfile } from '../types';
-import { systemService } from '../api/systemService';
+import { systemService, LicenseInfo } from '../api/systemService';
 import { getSysProfile, SysProfile } from '../services/sysProfileService';
 import { getI18nValue } from '../utils/i18nHelper';
 import axios from '../api/axios';
@@ -35,6 +35,9 @@ interface SystemContextType {
   defaultLanguage: string;
   // 系統訊息代碼對應（支援參數替換）
   getMessageByCode: (code: string, params?: Record<string, string>) => string;
+  // 授權資訊與功能檢查
+  license: LicenseInfo | null;
+  hasFeature: (feature: string) => boolean;
 }
 
 const SystemContext = createContext<SystemContextType | undefined>(undefined);
@@ -56,6 +59,9 @@ export const SystemProvider: React.FC<SystemProviderProps> = ({ children }) => {
 
   // 系統訊息代碼對應表（從 system_codes 的 sys_message_code 載入）
   const [messageCodes, setMessageCodes] = useState<Record<string, string>>({});
+
+  // 授權資訊
+  const [license, setLicense] = useState<LicenseInfo | null>(null);
 
   // 載入系統訊息代碼對應表（公開端點，不需認證）
   const loadMessageCodes = async (lang?: string) => {
@@ -173,11 +179,27 @@ export const SystemProvider: React.FC<SystemProviderProps> = ({ children }) => {
     return `${label}：(${code})${description}`;
   };
 
-  // 初始化：載入系統設定 + 語系資訊 + 錯誤代碼
+  // 載入授權資訊（公開端點）
+  const loadLicense = async () => {
+    try {
+      const info = await systemService.getLicense();
+      setLicense(info);
+    } catch (error) {
+      console.error('載入授權資訊失敗:', error);
+    }
+  };
+
+  // 檢查某個 EE 功能是否啟用
+  const hasFeature = (feature: string): boolean => {
+    return license?.features?.includes(feature) ?? false;
+  };
+
+  // 初始化：載入系統設定 + 語系資訊 + 錯誤代碼 + 授權
   useEffect(() => {
     loadSystemProfile();
     loadActiveLanguages();
     loadMessageCodes();
+    loadLicense();
   }, []);
 
   // 套用配色主題到 document
@@ -211,6 +233,8 @@ export const SystemProvider: React.FC<SystemProviderProps> = ({ children }) => {
         availableLanguages,
         defaultLanguage,
         getMessageByCode,
+        license,
+        hasFeature,
       }}
     >
       {children}

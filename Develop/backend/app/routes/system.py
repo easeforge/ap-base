@@ -67,6 +67,26 @@ async def get_active_languages(db: Session = Depends(get_db)):
     }
 
 
+@router.get("/license", summary="取得授權資訊")
+async def get_license_info():
+    """
+    回傳當前系統授權資訊（公開端點，不需登入）
+
+    用途：
+    - 前端判斷當前 edition（community / enterprise）
+    - 判斷哪些 EE 功能已啟用，決定選單/路由是否顯示
+
+    回傳範例（Community）：
+        {"edition": "community", "features": [], "customer_name": null, ...}
+
+    回傳範例（Enterprise）：
+        {"edition": "enterprise", "features": ["scheduler", "ai"],
+         "customer_name": "Example Corp", "expires_at": "2027-04-18T00:00:00+00:00", ...}
+    """
+    from app.core.license import LicenseManager
+    return LicenseManager.info()
+
+
 @router.get("/stats", summary="取得首頁統計資料")
 async def get_stats(
     db: Session = Depends(get_db),
