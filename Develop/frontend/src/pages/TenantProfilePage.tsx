@@ -12,6 +12,7 @@ import { useTranslation } from 'react-i18next';
 import { TenantProfile, TenantProfileUpdate } from '../types/tenantProfile';
 import { getMyTenantProfile, updateTenantProfile } from '../services/tenantProfileService';
 import { usePermission } from '../hooks/usePermission';
+import { useMessage } from '../contexts/MessageContext';
 import { logView, logUpdate } from '../utils/userLogHelper';
 import FunctionPageHeader from '../components/FunctionPageHeader';
 import '../styles/DataTable.css';
@@ -19,6 +20,7 @@ import '../styles/DataTable.css';
 const TenantProfilePage: React.FC = () => {
   const { t } = useTranslation();
   const { hasPermission, loading: permissionLoading } = usePermission();
+  const { showSuccess, showError, showApiError } = useMessage();
   const hasInitialized = useRef(false);
 
   const [tenantProfile, setTenantProfile] = useState<TenantProfile | null>(null);
@@ -90,7 +92,7 @@ const TenantProfilePage: React.FC = () => {
   // 進入編輯模式
   const handleEdit = () => {
     if (!canUpdate) {
-      alert(t('message.noPermission'));
+      showError('ERR020003', { action: 'edit tenant profile' });
       return;
     }
     setIsEditing(true);
@@ -118,7 +120,7 @@ const TenantProfilePage: React.FC = () => {
   // 儲存變更
   const handleSave = async () => {
     if (!tenantProfile || !canUpdate) {
-      alert(t('message.noPermission'));
+      showError('ERR020003', { action: 'save tenant profile' });
       return;
     }
 
@@ -129,7 +131,7 @@ const TenantProfilePage: React.FC = () => {
 
       setTenantProfile(updatedData);
       setIsEditing(false);
-      alert(t('message.updateSuccess'));
+      showSuccess('SYS020002', { name: t('tenantProfile.title', '組織資料') });
 
       // 記錄日誌
       try {
@@ -139,7 +141,7 @@ const TenantProfilePage: React.FC = () => {
       }
     } catch (err: any) {
       const errorMsg = err.response?.data?.detail || t('message.updateFailed');
-      alert(errorMsg);
+      showApiError(err);
 
       // 記錄錯誤日誌
       try {

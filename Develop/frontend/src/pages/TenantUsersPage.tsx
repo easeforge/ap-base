@@ -25,6 +25,7 @@ import {
 import { getUserRoles, UserRole } from '../services/userRoleService';
 import { getMyTenantProfile } from '../services/tenantProfileService';
 import { useAuth } from '../contexts/AuthContext';
+import { useMessage } from '../contexts/MessageContext';
 import { usePermission } from '../hooks/usePermission';
 import { useFunctionName } from '../hooks/useFunctionName';
 import { logView, logCreate, logUpdate, logDelete } from '../utils/userLogHelper';
@@ -37,6 +38,7 @@ const TenantUsersPage: React.FC = () => {
   const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const { hasPermission, loading: permissionLoading } = usePermission();
+  const { showSuccess, showError, showApiError } = useMessage();
   const pageTitle = useFunctionName('tenant_users');
   const hasInitialized = useRef(false);
 
@@ -169,11 +171,11 @@ const TenantUsersPage: React.FC = () => {
   // 開啟新增視窗
   const handleOpenCreate = () => {
     if (!canCreate) {
-      alert(t('message.noPermission'));
+      showError('ERR020003', { action: 'tenant users' });
       return;
     }
     if (!user?.organization_id) {
-      alert(t('common.error'));
+      showError('ERR020001', { entity: '組織' });
       return;
     }
     setCreateForm({
@@ -195,20 +197,20 @@ const TenantUsersPage: React.FC = () => {
   const handleCreate = async () => {
     // 驗證必填欄位
     if (!createForm.account || !createForm.username || !createForm.password) {
-      alert(t('message.pleaseComplete'));
+      showError('ERR020006', { field: 'required', detail: t('message.pleaseComplete', '請完整填寫') });
       return;
     }
 
     // 驗證密碼確認
     if (createForm.password !== createForm.confirmPassword) {
-      alert(t('tenantUsers.passwordMismatch'));
+      showError('ERR100005');
       return;
     }
 
     // 檢查帳號唯一性
     const isUnique = await checkAccountUniqueness(createForm.account);
     if (!isUnique) {
-      alert(t('tenantUsers.accountExists'));
+      showError('ERR020002', { field: '帳號' });
       return;
     }
 
@@ -218,7 +220,7 @@ const TenantUsersPage: React.FC = () => {
       const newUser = await createTenantUser(dataToSend);
       setUsers([...users, newUser]);
       setShowCreateModal(false);
-      alert(t('message.createSuccess'));
+      showSuccess('SYS020001', { name: pageTitle });
 
       // 記錄日誌
       try {
@@ -240,7 +242,7 @@ const TenantUsersPage: React.FC = () => {
         }
       }
 
-      alert(errorMsg);
+      showApiError(err);
 
       // 記錄錯誤日誌
       try {
@@ -256,7 +258,7 @@ const TenantUsersPage: React.FC = () => {
   // 開啟編輯視窗
   const handleOpenEdit = (user: TenantUser) => {
     if (!canUpdate) {
-      alert(t('message.noPermission'));
+      showError('ERR020003', { action: 'tenant users' });
       return;
     }
     setCurrentUser(user);
@@ -278,7 +280,7 @@ const TenantUsersPage: React.FC = () => {
 
     // 驗證必填欄位
     if (!editForm.account || !editForm.username) {
-      alert(t('message.pleaseComplete'));
+      showError('ERR020006', { field: 'required', detail: t('message.pleaseComplete', '請完整填寫') });
       return;
     }
 
@@ -286,7 +288,7 @@ const TenantUsersPage: React.FC = () => {
     if (editForm.account !== currentUser.account) {
       const isUnique = await checkAccountUniqueness(editForm.account, currentUser.id);
       if (!isUnique) {
-        alert(t('tenantUsers.accountExists'));
+        showError('ERR020002', { field: '帳號' });
         return;
       }
     }
@@ -297,7 +299,7 @@ const TenantUsersPage: React.FC = () => {
       const updatedUser = await updateTenantUser(currentUser.id, editForm);
       setUsers(users.map(u => (u.id === currentUser.id ? updatedUser : u)));
       setShowEditModal(false);
-      alert(t('message.updateSuccess'));
+      showSuccess('SYS020002', { name: pageTitle });
 
       // 記錄日誌
       try {
@@ -319,7 +321,7 @@ const TenantUsersPage: React.FC = () => {
         }
       }
 
-      alert(errorMsg);
+      showApiError(err);
 
       // 記錄錯誤日誌
       try {
@@ -335,7 +337,7 @@ const TenantUsersPage: React.FC = () => {
   // 刪除成員
   const handleDelete = async (user: TenantUser) => {
     if (!canDelete) {
-      alert(t('message.noPermission'));
+      showError('ERR020003', { action: 'tenant users' });
       return;
     }
 
@@ -347,7 +349,7 @@ const TenantUsersPage: React.FC = () => {
       setLoading(true);
       await deleteTenantUser(user.id);
       setUsers(users.filter(u => u.id !== user.id));
-      alert(t('message.deleteSuccess'));
+      showSuccess('SYS020003', { name: pageTitle });
 
       // 記錄日誌
       try {
@@ -357,7 +359,7 @@ const TenantUsersPage: React.FC = () => {
       }
     } catch (err: any) {
       const errorMsg = err.response?.data?.detail || t('message.deleteFailed');
-      alert(errorMsg);
+      showApiError(err);
 
       // 記錄錯誤日誌
       try {
@@ -373,7 +375,7 @@ const TenantUsersPage: React.FC = () => {
   // 重設密碼
   const handleResetPassword = async (user: TenantUser) => {
     if (!canUpdate) {
-      alert(t('message.noPermission'));
+      showError('ERR020003', { action: 'tenant users' });
       return;
     }
 
@@ -384,9 +386,9 @@ const TenantUsersPage: React.FC = () => {
     try {
       setLoading(true);
       await resetUserPassword(user.id);
-      alert(t('tenantUsers.resetPasswordSuccess'));
+      showSuccess('SYS010003');
     } catch (err: any) {
-      alert(err.response?.data?.detail || t('tenantUsers.resetPasswordFailed'));
+      showApiError(err);
     } finally {
       setLoading(false);
     }
@@ -395,7 +397,7 @@ const TenantUsersPage: React.FC = () => {
   // 切換啟用狀態
   const handleToggleStatus = async (user: TenantUser) => {
     if (!canUpdate) {
-      alert(t('message.noPermission'));
+      showError('ERR020003', { action: 'tenant users' });
       return;
     }
 
@@ -403,9 +405,9 @@ const TenantUsersPage: React.FC = () => {
       setLoading(true);
       const updatedUser = await toggleUserStatus(user.id, !user.is_active);
       setUsers(users.map(u => (u.id === user.id ? updatedUser : u)));
-      alert(t('message.updateSuccess'));
+      showSuccess('SYS020002', { name: pageTitle });
     } catch (err: any) {
-      alert(err.response?.data?.detail || t('message.updateFailed'));
+      showApiError(err);
     } finally {
       setLoading(false);
     }

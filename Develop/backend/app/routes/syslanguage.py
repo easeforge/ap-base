@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.deps import get_current_user
+from app.core.message_codes import raise_msg
 from app.models.syslanguage import SysLanguage
 from app.models.user import User
 from app.schemas.syslanguage import (
@@ -38,15 +39,11 @@ async def get_languages(
 async def get_language(
     lang_code: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
 ):
-    """取得單一語系的完整翻譯資料（含 lang_data）"""
+    """取得單一語系的完整翻譯資料（含 lang_data）。公開端點，供前端 i18n 動態載入翻譯。"""
     lang = db.query(SysLanguage).filter(SysLanguage.lang_code == lang_code).first()
     if not lang:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"找不到語系: {lang_code}"
-        )
+        raise_msg(status.HTTP_404_NOT_FOUND, "ERR020001", entity="語系", id=lang_code)
     return lang
 
 
@@ -60,10 +57,7 @@ async def create_language(
     # 檢查是否已存在
     existing = db.query(SysLanguage).filter(SysLanguage.lang_code == lang_data.lang_code).first()
     if existing:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"語系 {lang_data.lang_code} 已存在"
-        )
+        raise_msg(status.HTTP_400_BAD_REQUEST, "ERR020002", field="語系代碼", value=lang_data.lang_code)
 
     new_lang = SysLanguage(
         **lang_data.model_dump(),
@@ -87,10 +81,7 @@ async def update_language(
     """更新語系翻譯內容"""
     lang = db.query(SysLanguage).filter(SysLanguage.lang_code == lang_code).first()
     if not lang:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"找不到語系: {lang_code}"
-        )
+        raise_msg(status.HTTP_404_NOT_FOUND, "ERR020001", entity="語系", id=lang_code)
 
     update_data = lang_data.model_dump(exclude_unset=True)
     for field, value in update_data.items():
@@ -122,10 +113,7 @@ async def backfill_language(
     # 檢查語系是否存在
     lang = db.query(SysLanguage).filter(SysLanguage.lang_code == lang_code).first()
     if not lang:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"找不到語系: {lang_code}"
-        )
+        raise_msg(status.HTTP_404_NOT_FOUND, "ERR020001", entity="語系", id=lang_code)
 
     results = LanguageService.backfill_language(db, lang_code, template_lang)
 
@@ -158,10 +146,7 @@ async def sync_translation_keys(
     results = LanguageService.sync_translation_keys(db, base_lang="en")
 
     if "error" in results:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=results["error"]
-        )
+        raise_msg(status.HTTP_400_BAD_REQUEST, "ERR020004", operation="語系翻譯同步", detail=results["error"])
 
     total_added = sum(r.get("added", 0) for r in results.values() if isinstance(r, dict))
     logger.info(f"Translation sync completed by user {current_user.id}: {total_added} keys added")

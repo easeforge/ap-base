@@ -17,6 +17,7 @@ import {
 import { usePermission } from '../hooks/usePermission';
 import { useFunctionName } from '../hooks/useFunctionName';
 import { useSystem } from '../contexts/SystemContext';
+import { useMessage } from '../contexts/MessageContext';
 import { logView, logCreate, logRead, logUpdate, logDelete } from '../utils/userLogHelper';
 import { getI18nValue } from '../utils/i18nHelper';
 import FunctionPageHeader from '../components/FunctionPageHeader';
@@ -27,6 +28,7 @@ const SystemFunctionsPage: React.FC = () => {
   const { t, i18n } = useTranslation();
   const { hasPermission, loading: permissionLoading } = usePermission();
   const { availableLanguages } = useSystem();
+  const { showSuccess, showError, showApiError } = useMessage();
   const enabledLangs = availableLanguages.map(l => l.code);
   const pageTitle = useFunctionName('system_functions');
   const hasInitialized = useRef(false);
@@ -132,7 +134,7 @@ const SystemFunctionsPage: React.FC = () => {
 
   const handleCreate = () => {
     if (!hasPermission('system_functions', 'create')) {
-      alert(t('message.noPermission'));
+      showError('ERR020003', { action: 'system function' });
       return;
     }
     setEditingFunction(null);
@@ -156,7 +158,7 @@ const SystemFunctionsPage: React.FC = () => {
 
   const handleView = (func: SystemFunction) => {
     if (!hasPermission('system_functions', 'read')) {
-      alert(t('message.noPermission'));
+      showError('ERR020003', { action: 'system function' });
       return;
     }
     setEditingFunction(func);
@@ -181,7 +183,7 @@ const SystemFunctionsPage: React.FC = () => {
 
   const handleEdit = (func: SystemFunction) => {
     if (!hasPermission('system_functions', 'update')) {
-      alert(t('message.noPermission'));
+      showError('ERR020003', { action: 'system function' });
       return;
     }
     setEditingFunction(func);
@@ -205,7 +207,7 @@ const SystemFunctionsPage: React.FC = () => {
 
   const handleDelete = async (func: SystemFunction) => {
     if (!hasPermission('system_functions', 'delete')) {
-      alert(t('message.noPermission'));
+      showError('ERR020003', { action: 'system function' });
       return;
     }
 
@@ -220,7 +222,7 @@ const SystemFunctionsPage: React.FC = () => {
 
       await deleteSystemFunction(func.id);
       await loadFunctions();
-      alert(t('message.deleteSuccess'));
+      showSuccess('SYS020003', { name: pageTitle });
 
       // 日誌記錄（失敗不影響主要功能）
       try {
@@ -230,7 +232,7 @@ const SystemFunctionsPage: React.FC = () => {
       }
     } catch (err: any) {
       const errorMsg = err.response?.data?.detail || t('message.deleteFailed');
-      alert(errorMsg);
+      showApiError(err);
 
       // 記錄失敗日誌（失敗也不影響）
       try {
@@ -247,11 +249,11 @@ const SystemFunctionsPage: React.FC = () => {
     // 驗證：當功能類型為「功能」時，必須輸入模組代碼且至少選擇一個權限項目
     if (formData.func_type === 2) {
       if (!formData.module_code || formData.module_code.trim() === '') {
-        alert(t('sysFunctions.validation.moduleCodeRequired'));
+        showError('ERR020006', { field: 'module_code', detail: t('sysFunctions.validation.moduleCodeRequired') });
         return;
       }
       if (moduleItemActions.length === 0) {
-        alert(t('sysFunctions.validation.moduleItemRequired'));
+        showError('ERR020006', { field: 'module_item', detail: t('sysFunctions.validation.moduleItemRequired') });
         return;
       }
     }
@@ -268,7 +270,7 @@ const SystemFunctionsPage: React.FC = () => {
       if (editingFunction) {
         // 更新
         const updated = await updateSystemFunction(editingFunction.id, submitData);
-        alert(t('message.updateSuccess'));
+        showSuccess('SYS020002', { name: pageTitle });
 
         // 日誌記錄（失敗不影響主要功能）
         try {
@@ -279,7 +281,7 @@ const SystemFunctionsPage: React.FC = () => {
       } else {
         // 新增
         const created = await createSystemFunction(submitData);
-        alert(t('message.createSuccess'));
+        showSuccess('SYS020001', { name: pageTitle });
 
         // 日誌記錄（失敗不影響主要功能）
         try {
@@ -292,7 +294,7 @@ const SystemFunctionsPage: React.FC = () => {
       await loadFunctions();
     } catch (err: any) {
       const errorMsg = err.response?.data?.detail || (editingFunction ? t('message.updateFailed') : t('message.createFailed'));
-      alert(errorMsg);
+      showApiError(err);
 
       // 記錄失敗日誌（失敗也不影響）
       try {

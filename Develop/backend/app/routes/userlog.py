@@ -11,6 +11,7 @@ from datetime import datetime
 
 from app.core.database import get_db
 from app.core.deps import get_current_user
+from app.core.message_codes import raise_msg
 from app.models.userlog import UserLog
 from app.models.user import User
 from app.models.systemfunction import SystemFunction
@@ -120,7 +121,7 @@ async def get_user_log(
     log = db.query(UserLog).options(joinedload(UserLog.user)).filter(UserLog.id == log_id).first()
 
     if not log:
-        raise HTTPException(status_code=404, detail="日誌不存在")
+        raise_msg(404, "ERR020001", entity="日誌", id=log_id)
 
     # 查詢功能資料
     func = db.query(SystemFunction).filter(SystemFunction.id == log.system_function_id).first()

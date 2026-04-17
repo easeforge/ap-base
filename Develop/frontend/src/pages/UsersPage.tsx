@@ -19,6 +19,7 @@ import { getSysProfile } from '../services/sysProfileService';
 import { usePermission } from '../hooks/usePermission';
 import { useFunctionName } from '../hooks/useFunctionName';
 import { useTransactionToken } from '../hooks/useTransactionToken';
+import { useMessage } from '../contexts/MessageContext';
 import { logView, logCreate, logUpdate, logDelete } from '../utils/userLogHelper';
 import FunctionPageHeader from '../components/FunctionPageHeader';
 import { getI18nValue } from '../utils/i18nHelper';
@@ -29,6 +30,7 @@ const UsersPage: React.FC = () => {
   const { hasPermission, loading: permissionLoading } = usePermission();
   const pageTitle = useFunctionName('users');
   const { txnToken } = useTransactionToken('users', true, true);
+  const { showSuccess, showApiError } = useMessage();
   const [users, setUsers] = useState<UserDetail[]>([]);
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [roles, setRoles] = useState<UserRole[]>([]);
@@ -212,27 +214,24 @@ const UsersPage: React.FC = () => {
         }
         // 修改使用者
         const updatedUser = await updateUser(editingUser.id, updateData);
-        // 記錄成功的更新操作 - 使用舊資料和新回傳的完整資料
         await logUpdate('users', editingUser as any, updatedUser as any);
-        alert(t('message.saveSuccess'));
+        showSuccess('SYS020002', { name: pageTitle });
       } else {
         // 新增使用者
         const newUser = await createUser(formData);
-        // 記錄成功的新增操作 - 使用後端回傳的完整資料
         await logCreate('users', newUser as any);
-        alert(t('message.createSuccess'));
+        showSuccess('SYS020001', { name: pageTitle });
       }
       closeModal();
       loadUsers();
     } catch (err: any) {
-      // 記錄失敗的操作
       const errorMsg = err.response?.data?.detail || t('common.error');
       if (editingUser) {
         await logUpdate('users', editingUser as any, formData, errorMsg);
       } else {
         await logCreate('users', formData, errorMsg);
       }
-      alert(errorMsg);
+      showApiError(err);
     }
   };
 
@@ -241,15 +240,13 @@ const UsersPage: React.FC = () => {
 
     try {
       await deleteUser(user.id);
-      // 記錄成功的刪除操作
       await logDelete('users', user as any);
-      alert(t('message.deleteSuccess'));
+      showSuccess('SYS020003', { name: pageTitle });
       loadUsers();
     } catch (err: any) {
-      // 記錄失敗的刪除操作
       const errorMsg = err.response?.data?.detail || t('common.error');
       await logDelete('users', user as any, errorMsg);
-      alert(errorMsg);
+      showApiError(err);
     }
   };
 
@@ -258,14 +255,12 @@ const UsersPage: React.FC = () => {
       const updatedUser = await updateUser(user.id, {
         is_active: !user.is_active
       });
-      // 記錄成功的狀態切換操作
       await logUpdate('users', user as any, updatedUser as any);
       loadUsers();
     } catch (err: any) {
-      // 記錄失敗的狀態切換操作
       const errorMsg = err.response?.data?.detail || t('common.error');
       await logUpdate('users', user as any, { ...user, is_active: !user.is_active }, errorMsg);
-      alert(errorMsg);
+      showApiError(err);
     }
   };
 

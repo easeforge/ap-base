@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { usePermission } from '../hooks/usePermission';
 import { useTransactionToken } from '../hooks/useTransactionToken';
+import { useMessage } from '../contexts/MessageContext';
 import TransactionExtendDialog from '../components/TransactionExtendDialog';
 import FunctionPageHeader from '../components/FunctionPageHeader';
 import { logRead, logUpdate } from '../utils/userLogHelper';
@@ -19,6 +20,7 @@ import '../styles/MyProfilePage.css';
 const MyProfilePage: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { showSuccess, showError, showApiError } = useMessage();
   const hasInitialized = useRef(false);
 
   const { hasPermission, loading: permissionLoading } = usePermission();
@@ -78,7 +80,7 @@ const MyProfilePage: React.FC = () => {
       await logRead('my_profile', data);
     } catch (error: any) {
       console.error('載入個人資料失敗:', error);
-      alert(t('myProfile.loadError', '載入個人資料失敗'));
+      showApiError(error, 'ERR020004', { operation: '載入個人資料', detail: error?.message || '' });
     } finally {
       setLoading(false);
     }
@@ -97,7 +99,7 @@ const MyProfilePage: React.FC = () => {
       setIsEditMode(true);
     } catch (error) {
       console.error('取得交易令牌失敗:', error);
-      alert(t('myProfile.tokenError', '無法取得交易令牌,請重新登入'));
+      showError('ERR020001', { entity: '交易令牌' });
     } finally {
       setIsRequestingToken(false);
     }
@@ -121,7 +123,7 @@ const MyProfilePage: React.FC = () => {
     e.preventDefault();
 
     if (!txnToken) {
-      alert(t('myProfile.noToken', '請先取得交易令牌'));
+      showError('ERR020001', { entity: '交易令牌' });
       return;
     }
 
@@ -134,7 +136,7 @@ const MyProfilePage: React.FC = () => {
       // Log update
       await logUpdate('my_profile', originalData as any, updatedProfile as any);
 
-      alert(t('myProfile.updateSuccess', '個人資料更新成功'));
+      showSuccess('SYS100001');
     } catch (error: any) {
       console.error('更新個人資料失敗:', error);
       const errorMsg = error.response?.data?.detail || error.message || t('myProfile.updateError', '更新個人資料失敗');
@@ -142,7 +144,7 @@ const MyProfilePage: React.FC = () => {
       // Log error
       await logUpdate('my_profile', profile as any, formData, errorMsg);
 
-      alert(errorMsg);
+      showApiError(error);
     }
   };
 

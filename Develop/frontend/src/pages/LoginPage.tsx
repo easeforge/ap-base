@@ -3,7 +3,6 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { useSystem } from '../contexts/SystemContext';
@@ -22,10 +21,9 @@ const LOGIN_BG_MAP: Record<string, string> = {
 };
 
 const LoginPage: React.FC = () => {
-  const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const { login } = useAuth();
-  const { systemProfile, getLoginBg } = useSystem();
+  const { systemProfile, getLoginBg, getMessageByCode } = useSystem();
   const bgImage = LOGIN_BG_MAP[getLoginBg()] || LOGIN_BG_MAP['default'];
 
   const [formData, setFormData] = useState({
@@ -38,6 +36,9 @@ const LoginPage: React.FC = () => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  // 從 URL 帶入的訊息代碼（等 messageCodes 載入後再翻譯）
+  const [pendingMsgCode, setPendingMsgCode] = useState<string | null>(null);
+  const [pendingMsgParams, setPendingMsgParams] = useState<Record<string, string> | undefined>(undefined);
 
   const loadCaptcha = useCallback(async () => {
     try {
@@ -54,6 +55,32 @@ const LoginPage: React.FC = () => {
     loadCaptcha();
   }, [loadCaptcha]);
 
+  // 從 URL ?msg=代碼&p=參數JSON 取出待顯示的訊息代碼（只執行一次）
+  useEffect(() => {
+    const search = new URLSearchParams(window.location.search);
+    const msgCode = search.get('msg');
+    const msgParamsStr = search.get('p');
+    if (msgCode) {
+      setPendingMsgCode(msgCode);
+      if (msgParamsStr) {
+        try {
+          setPendingMsgParams(JSON.parse(msgParamsStr));
+        } catch {
+          // 解析失敗忽略
+        }
+      }
+      // 清除 URL 上的參數，避免重整時重覆顯示
+      window.history.replaceState({}, '', '/login');
+    }
+  }, []);
+
+  // 當 messageCodes 載入完成（getMessageByCode 更新）後，翻譯待顯示的代碼
+  useEffect(() => {
+    if (pendingMsgCode) {
+      setError(getMessageByCode(pendingMsgCode, pendingMsgParams));
+    }
+  }, [pendingMsgCode, pendingMsgParams, getMessageByCode]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -69,29 +96,27 @@ const LoginPage: React.FC = () => {
     setIsLoading(true);
 
     try {
-      // 呼叫登入 API（含 CAPTCHA）
       const response = await authService.login({
         ...formData,
         captcha_key: captchaKey,
       });
-      // 儲存 Access Token
+
+      // 儲存 token 後全頁重載
       authService.saveToken(response.access_token);
-
-      // 載入使用者資料
-      await login(response.access_token);
-
-      // 導向主頁面
-      navigate('/dashboard');
+      window.location.href = '/home';
     } catch (err: any) {
-      console.error('登入失敗:', err);
-      if (err.response?.data?.detail) {
-        setError(err.response.data.detail);
+      const detail = err.response?.data?.detail;
+      // detail 可能是字串（純代碼）或物件（{code, params}）
+      if (typeof detail === 'string') {
+        setError(getMessageByCode(detail));
+      } else if (detail && typeof detail === 'object' && detail.code) {
+        setError(getMessageByCode(detail.code, detail.params));
+      } else if (err.message) {
+        setError(err.message);
       } else {
         setError(t('auth.loginFailed'));
       }
-      // 登入失敗時刷新驗證碼
       loadCaptcha();
-    } finally {
       setIsLoading(false);
     }
   };

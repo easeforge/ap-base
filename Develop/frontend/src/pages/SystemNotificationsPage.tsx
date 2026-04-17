@@ -23,6 +23,7 @@ import {
 import { logView, logCreate, logUpdate, logDelete } from '../utils/userLogHelper';
 import { getI18nValue } from '../utils/i18nHelper';
 import { useSystem } from '../contexts/SystemContext';
+import { useMessage } from '../contexts/MessageContext';
 import { I18nField } from '../types';
 import '../styles/DataTable.css';
 
@@ -30,6 +31,7 @@ const SystemNotificationsPage: React.FC = () => {
   const { t, i18n } = useTranslation();
   const { hasPermission, loading: permissionLoading } = usePermission();
   const { availableLanguages } = useSystem();
+  const { showSuccess, showError, showApiError } = useMessage();
   const enabledLangs = availableLanguages.map(l => l.code);
   const pageTitle = useFunctionName('system_notifications');
 
@@ -106,7 +108,7 @@ const SystemNotificationsPage: React.FC = () => {
   // Modal handlers
   const handleCreate = () => {
     if (!hasPermission('system_notifications', 'create')) {
-      alert(t('common.noPermission'));
+      showError('ERR020003', { action: 'notifications' });
       return;
     }
     setIsViewMode(false);
@@ -125,7 +127,7 @@ const SystemNotificationsPage: React.FC = () => {
 
   const handleView = async (notification: SystemNotification) => {
     if (!hasPermission('system_notifications', 'read')) {
-      alert(t('common.noPermission'));
+      showError('ERR020003', { action: 'notifications' });
       return;
     }
     try {
@@ -144,13 +146,13 @@ const SystemNotificationsPage: React.FC = () => {
       setShowModal(true);
     } catch (error) {
       console.error('Failed to load notification:', error);
-      alert(t('system_notifications.failedToLoadNotification'));
+      showError('ERR020001', { entity: t('system_notifications.title', '系統通知') });
     }
   };
 
   const handleEdit = async (notification: SystemNotification) => {
     if (!hasPermission('system_notifications', 'update')) {
-      alert(t('common.noPermission'));
+      showError('ERR020003', { action: 'notifications' });
       return;
     }
     try {
@@ -169,13 +171,13 @@ const SystemNotificationsPage: React.FC = () => {
       setShowModal(true);
     } catch (error) {
       console.error('Failed to load notification:', error);
-      alert(t('system_notifications.failedToLoadNotification'));
+      showError('ERR020001', { entity: t('system_notifications.title', '系統通知') });
     }
   };
 
   const handleDelete = async (notification: SystemNotification) => {
     if (!hasPermission('system_notifications', 'delete')) {
-      alert(t('common.noPermission'));
+      showError('ERR020003', { action: 'notifications' });
       return;
     }
     if (!window.confirm(t('system_notifications.confirmDeleteNotification'))) {
@@ -183,7 +185,7 @@ const SystemNotificationsPage: React.FC = () => {
     }
     try {
       await deleteSystemNotification(notification.id);
-      alert(t('system_notifications.notificationDeleted'));
+      showSuccess('SYS020003', { name: pageTitle });
       loadNotifications();
 
       // 記錄刪除日誌
@@ -195,7 +197,7 @@ const SystemNotificationsPage: React.FC = () => {
     } catch (error: any) {
       console.error('Failed to delete notification:', error);
       const errorMsg = t('system_notifications.failedToDeleteNotification');
-      alert(errorMsg);
+      showApiError(error);
 
       // 記錄失敗日誌
       try {
@@ -208,7 +210,7 @@ const SystemNotificationsPage: React.FC = () => {
 
   const handleToggleActive = async (notification: SystemNotification) => {
     if (!hasPermission('system_notifications', 'update')) {
-      alert(t('common.noPermission'));
+      showError('ERR020003', { action: 'notifications' });
       return;
     }
     try {
@@ -216,7 +218,7 @@ const SystemNotificationsPage: React.FC = () => {
       loadNotifications();
     } catch (error) {
       console.error('Failed to toggle notification status:', error);
-      alert(t('system_notifications.failedToToggleStatus'));
+      showApiError(error);
     }
   };
 
@@ -259,7 +261,7 @@ const SystemNotificationsPage: React.FC = () => {
       if (editingNotification) {
         // 更新操作
         const updated = await updateSystemNotification(editingNotification.id, formData as SystemNotificationUpdate);
-        alert(t('system_notifications.notificationUpdated'));
+        showSuccess('SYS020002', { name: pageTitle });
 
         // 記錄更新日誌
         try {
@@ -270,7 +272,7 @@ const SystemNotificationsPage: React.FC = () => {
       } else {
         // 新增操作
         const created = await createSystemNotification(formData);
-        alert(t('system_notifications.notificationCreated'));
+        showSuccess('SYS020001', { name: pageTitle });
 
         // 記錄新增日誌
         try {
@@ -284,7 +286,7 @@ const SystemNotificationsPage: React.FC = () => {
     } catch (error: any) {
       console.error('Failed to save notification:', error);
       const errorMsg = t('system_notifications.failedToSaveNotification');
-      alert(errorMsg);
+      showApiError(error);
 
       // 記錄失敗日誌
       try {

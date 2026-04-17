@@ -18,6 +18,7 @@ import { I18nField } from '../types';
 import { getI18nValue } from '../utils/i18nHelper';
 import { usePermission } from '../hooks/usePermission';
 import { useSystem } from '../contexts/SystemContext';
+import { useMessage } from '../contexts/MessageContext';
 import { useFunctionName } from '../hooks/useFunctionName';
 import { logView, logCreate, logRead, logUpdate, logDelete } from '../utils/userLogHelper';
 import { validateSession } from '../utils/sessionValidator';
@@ -28,6 +29,7 @@ const SystemCodesPage: React.FC = () => {
   const { t, i18n } = useTranslation();
   const { hasPermission, loading: permissionLoading } = usePermission();
   const { availableLanguages } = useSystem();
+  const { showSuccess, showError, showApiError } = useMessage();
   const enabledLangs = availableLanguages.map(l => l.code);
   const pageTitle = useFunctionName('system_codes');
   const [codes, setCodes] = useState<SystemCode[]>([]);
@@ -236,7 +238,7 @@ const SystemCodesPage: React.FC = () => {
   // 切換啟用狀態
   const handleToggleActive = async (code: SystemCode) => {
     if (!hasPermission('system_codes', 'update')) {
-      alert(t('common.noUpdatePermission'));
+      showError('ERR020003', { action: 'toggle system code active' });
       return;
     }
 
@@ -251,7 +253,7 @@ const SystemCodesPage: React.FC = () => {
       } catch (logErr) {
         console.error('[SystemCodesPage] Failed to log error:', logErr);
       }
-      alert(errorMsg);
+      showApiError(err);
     }
   };
 
@@ -319,11 +321,11 @@ const SystemCodesPage: React.FC = () => {
       if (editingCode) {
         const updated = await updateSystemCode(editingCode.id, formData);
         await logUpdate('system_codes', editingCode, updated);
-        alert(t('message.saveSuccess'));
+        showSuccess('SYS020002', { name: pageTitle });
       } else {
         const created = await createSystemCode(formData);
         await logCreate('system_codes', created);
-        alert(t('message.createSuccess'));
+        showSuccess('SYS020001', { name: pageTitle });
       }
       closeModal();
       loadCodes();
@@ -340,7 +342,7 @@ const SystemCodesPage: React.FC = () => {
         console.error('[SystemCodesPage] Failed to log error:', logErr);
       }
 
-      alert(errorMsg);
+      showApiError(err);
     }
   };
 
@@ -352,7 +354,7 @@ const SystemCodesPage: React.FC = () => {
     try {
       await deleteSystemCode(code.id);
       await logDelete('system_codes', code);
-      alert(t('message.deleteSuccess'));
+      showSuccess('SYS020003', { name: pageTitle });
       loadCodes();
     } catch (err: any) {
       const errorMsg = err.response?.data?.detail || t('message.deleteFailed');
@@ -363,7 +365,7 @@ const SystemCodesPage: React.FC = () => {
         console.error('[SystemCodesPage] Failed to log error:', logErr);
       }
 
-      alert(errorMsg);
+      showApiError(err);
     }
   };
 

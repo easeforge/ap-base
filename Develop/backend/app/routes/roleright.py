@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.deps import get_current_user
+from app.core.message_codes import raise_msg
 from app.models.roleright import RoleRight
 from app.models.userrole import UserRole
 from app.models.systemfunction import SystemFunction
@@ -119,10 +120,7 @@ async def get_role_rights(
     # 檢查角色是否存在
     role = db.query(UserRole).filter(UserRole.id == role_id).first()
     if not role:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="找不到指定的角色"
-        )
+        raise_msg(status.HTTP_404_NOT_FOUND, "ERR020001", entity="角色", id=role_id)
 
     # 查詢權限設定
     rights = db.query(RoleRight).filter(
@@ -183,10 +181,7 @@ async def save_role_rights(
     # 檢查角色是否存在
     role = db.query(UserRole).filter(UserRole.id == role_id).first()
     if not role:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="找不到指定的角色"
-        )
+        raise_msg(status.HTTP_404_NOT_FOUND, "ERR020001", entity="角色", id=role_id)
 
     try:
         # 1. 刪除現有權限
@@ -290,10 +285,7 @@ async def save_role_rights(
     except Exception as e:
         db.rollback()
         logger.error(f"儲存角色權限失敗: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"儲存失敗: {str(e)}"
-        )
+        raise_msg(status.HTTP_500_INTERNAL_SERVER_ERROR, "ERR020004", operation="儲存角色權限", detail=str(e))
 
 
 @router.delete("/{role_id}", status_code=status.HTTP_200_OK, summary="刪除角色權限設定")

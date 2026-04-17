@@ -44,14 +44,29 @@ axiosInstance.interceptors.response.use(
   async (error) => {
     if (error.response) {
       // 401 未授權 - token 或 session 過期，導向登入頁
+      // 但登入端點本身的 401（帳號密碼錯誤）不在此處理，由 LoginPage 自行處理
       if (error.response.status === 401) {
-        localStorage.removeItem('session_id');
-        localStorage.removeItem('access_token');
-        window.location.href = '/login';
+        const requestUrl = error.config?.url || '';
+        const isLoginRequest = requestUrl.includes('/api/auth/login');
+        if (!isLoginRequest) {
+          localStorage.removeItem('session_id');
+          localStorage.removeItem('access_token');
+          // 把後端回傳的訊息代碼（含參數）帶到登入頁，由 LoginPage 顯示
+          // detail 可能是字串（純代碼）或物件（{code, params}）
+          const detail = error.response.data?.detail;
+          let msgParam = '';
+          if (typeof detail === 'string') {
+            msgParam = `?msg=${encodeURIComponent(detail)}`;
+          } else if (detail && typeof detail === 'object' && detail.code) {
+            const params = detail.params ? encodeURIComponent(JSON.stringify(detail.params)) : '';
+            msgParam = `?msg=${encodeURIComponent(detail.code)}${params ? `&p=${params}` : ''}`;
+          }
+          window.location.href = `/login${msgParam}`;
+        }
       }
       // 403 禁止存取
       else if (error.response.status === 403) {
-        console.error('禁止存取:', error.response.data.detail);
+        console.error('禁止存取:', error.response.data?.detail);
       }
     }
     return Promise.reject(error);

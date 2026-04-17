@@ -14,6 +14,7 @@ from app.core.database import get_db
 from app.core.deps import get_current_user
 from app.core.permissions import check_permission  # 保留用於資料層級安全控制
 from app.core.security import get_password_hash, verify_password
+from app.core.message_codes import raise_msg
 from datetime import datetime, timezone, timedelta
 from app.models.user import User
 from app.models.organization import Organization
@@ -159,31 +160,19 @@ async def update_my_profile(
     if profile_data.account and profile_data.account != current_user.account:
         existing_user = db.query(User).filter(User.account == profile_data.account).first()
         if existing_user:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="此帳號已被使用，請使用其他帳號"
-            )
+            raise_msg(status.HTTP_400_BAD_REQUEST, "ERR020002", field="帳號", value=profile_data.account)
 
     # 安全性:無法變更組織
     if profile_data.organization_id and profile_data.organization_id != current_user.organization_id:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="無法變更組織"
-        )
+        raise_msg(status.HTTP_400_BAD_REQUEST, "ERR100001", field="組織", user_id=current_user.id)
 
     # 安全性:無法變更角色權限
     if profile_data.user_role and profile_data.user_role != current_user.user_role:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="無法變更角色權限"
-        )
+        raise_msg(status.HTTP_400_BAD_REQUEST, "ERR100001", field="角色權限", user_id=current_user.id)
 
     # 安全性:無法變更啟用狀態
     if profile_data.is_active is not None and profile_data.is_active != current_user.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="無法變更啟用狀態"
-        )
+        raise_msg(status.HTTP_400_BAD_REQUEST, "ERR100001", field="啟用狀態", user_id=current_user.id)
 
     # 僅取得允許的欄位
     update_data = profile_data.model_dump(exclude_unset=True)
@@ -237,18 +226,12 @@ async def get_user(
     user = db.query(User).filter(User.id == user_id).first()
 
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="找不到使用者"
-        )
+        raise_msg(status.HTTP_404_NOT_FOUND, "ERR020001", entity="使用者", id=user_id)
 
     # 資料權限檢查:如果沒有完整的 users 權限,只能查看自己組織的使用者
     has_full_permission = check_permission(db, current_user, "users", "read")
     if not has_full_permission and user.organization_id != current_user.organization_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="無權限讀取此使用者資訊"
-        )
+        raise_msg(status.HTTP_403_FORBIDDEN, "ERR020003", action="read user", user_id=current_user.id)
 
     return user
 
@@ -273,18 +256,12 @@ async def create_user(
     # 資料權限檢查:如果沒有完整的 users 權限,只能為自己組織建立使用者
     has_full_permission = check_permission(db, current_user, "users", "create")
     if not has_full_permission and user_data.organization_id != current_user.organization_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="無權限為其他組織建立使用者"
-        )
+        raise_msg(status.HTTP_403_FORBIDDEN, "ERR020003", action="create user for other org", user_id=current_user.id)
 
     # 檢查帳號是否已存在
     existing = db.query(User).filter(User.account == user_data.account).first()
     if existing:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="帳號已存在"
-        )
+        raise_msg(status.HTTP_400_BAD_REQUEST, "ERR020002", field="帳號", value=user_data.account)
 
     # 檢查組織單位是否存在
     organization = db.query(Organization).filter(
@@ -292,10 +269,7 @@ async def create_user(
         Organization.is_active == True
     ).first()
     if not organization:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="組織單位不存在或未啟用"
-        )
+        raise_msg(status.HTTP_400_BAD_REQUEST, "ERR020001", entity="組織單位", id=user_data.organization_id)
 
     # 建立使用者（密碼需加密）
     user_dict = user_data.model_dump()
@@ -338,18 +312,12 @@ async def update_user(
     # 查詢使用者
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="找不到使用者"
-        )
+        raise_msg(status.HTTP_404_NOT_FOUND, "ERR020001", entity="使用者", id=user_id)
 
     # 資料權限檢查:如果沒有完整的 users 權限,只能更新自己組織的使用者
     has_full_permission = check_permission(db, current_user, "users", "update")
     if not has_full_permission and user.organization_id != current_user.organization_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="無權限修改此使用者資料"
-        )
+        raise_msg(status.HTTP_403_FORBIDDEN, "ERR020003", action="update user", user_id=current_user.id)
 
     # 保存原始資料用於日誌
     original_data = user_detail_to_dict(user)
@@ -361,10 +329,7 @@ async def update_user(
             User.id != user_id
         ).first()
         if existing:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="帳號已存在"
-            )
+            raise_msg(status.HTTP_400_BAD_REQUEST, "ERR020002", field="帳號", value=user_data.account)
 
     # 如果更新組織單位，檢查是否存在
     if user_data.organization_id and user_data.organization_id != user.organization_id:
@@ -373,10 +338,7 @@ async def update_user(
             Organization.is_active == True
         ).first()
         if not organization:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="組織單位不存在或未啟用"
-            )
+            raise_msg(status.HTTP_400_BAD_REQUEST, "ERR020001", entity="組織單位", id=user_data.organization_id)
 
     # 更新欄位
     update_data = user_data.model_dump(exclude_unset=True)
@@ -452,28 +414,19 @@ async def delete_user(
     # 查詢使用者
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="找不到使用者"
-        )
+        raise_msg(status.HTTP_404_NOT_FOUND, "ERR020001", entity="使用者", id=user_id)
 
     # 資料權限檢查:如果沒有完整的 users 權限,只能刪除自己組織的使用者
     has_full_permission = check_permission(db, current_user, "users", "delete")
     if not has_full_permission and user.organization_id != current_user.organization_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="無權限刪除此使用者"
-        )
+        raise_msg(status.HTTP_403_FORBIDDEN, "ERR020003", action="delete user", user_id=current_user.id)
 
     # 保存刪除前資料用於日誌
     deleted_data = user_detail_to_dict(user)
 
     # 不能刪除自己
     if user.id == current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="不能刪除自己的帳號"
-        )
+        raise_msg(status.HTTP_400_BAD_REQUEST, "ERR100002", user_id=current_user.id)
 
     # 軟刪除
     user.is_active = False
@@ -511,10 +464,7 @@ async def change_password(
     """
     # 安全性:只能修改自己的密碼
     if user_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="只能修改自己的密碼"
-        )
+        raise_msg(status.HTTP_403_FORBIDDEN, "ERR100003", user_id=current_user.id, target_id=user_id)
 
     # 驗證舊密碼
     if not verify_password(password_data.old_password, current_user.password):
@@ -526,10 +476,7 @@ async def change_password(
             module_item="Update",
             error_message="舊密碼錯誤"
         )
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="舊密碼錯誤"
-        )
+        raise_msg(status.HTTP_400_BAD_REQUEST, "ERR100004", user_id=current_user.id)
 
     # 更新密碼
     current_user.password = get_password_hash(password_data.new_password)
@@ -623,10 +570,7 @@ async def create_my_organization_member(
     # 檢查帳號是否已存在
     existing = db.query(User).filter(User.account == user_data.account).first()
     if existing:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="帳號已存在"
-        )
+        raise_msg(status.HTTP_400_BAD_REQUEST, "ERR020002", field="帳號", value=user_data.account)
 
     # 檢查組織單位是否存在
     organization = db.query(Organization).filter(
@@ -634,10 +578,7 @@ async def create_my_organization_member(
         Organization.is_active == True
     ).first()
     if not organization:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="組織單位不存在或未啟用"
-        )
+        raise_msg(status.HTTP_400_BAD_REQUEST, "ERR020001", entity="組織單位", id=current_user.organization_id)
 
     # 建立使用者（密碼需加密）
     user_dict = user_data.model_dump()
@@ -681,10 +622,7 @@ async def get_my_organization_member(
     ).first()
 
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="找不到組織成員"
-        )
+        raise_msg(status.HTTP_404_NOT_FOUND, "ERR020001", entity="組織成員", id=user_id)
 
     return user
 
@@ -716,10 +654,7 @@ async def update_my_organization_member(
     ).first()
 
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="找不到組織成員"
-        )
+        raise_msg(status.HTTP_404_NOT_FOUND, "ERR020001", entity="組織成員", id=user_id)
 
     # 保存原始資料用於日誌
     original_data = user_detail_to_dict(user)
@@ -731,17 +666,11 @@ async def update_my_organization_member(
             User.id != user_id
         ).first()
         if existing:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="帳號已存在"
-            )
+            raise_msg(status.HTTP_400_BAD_REQUEST, "ERR020002", field="帳號", value=user_data.account)
 
     # 防止變更組織
     if user_data.organization_id and user_data.organization_id != current_user.organization_id:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="無法變更使用者的組織"
-        )
+        raise_msg(status.HTTP_400_BAD_REQUEST, "ERR100001", field="使用者組織", user_id=current_user.id)
 
     # 更新欄位
     update_data = user_data.model_dump(exclude_unset=True)
@@ -822,20 +751,14 @@ async def delete_my_organization_member(
     ).first()
 
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="找不到組織成員"
-        )
+        raise_msg(status.HTTP_404_NOT_FOUND, "ERR020001", entity="組織成員", id=user_id)
 
     # 保存刪除前資料用於日誌
     deleted_data = user_detail_to_dict(user)
 
     # 不能刪除自己
     if user.id == current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="不能刪除自己的帳號"
-        )
+        raise_msg(status.HTTP_400_BAD_REQUEST, "ERR100002", user_id=current_user.id)
 
     # 軟刪除
     user.is_active = False

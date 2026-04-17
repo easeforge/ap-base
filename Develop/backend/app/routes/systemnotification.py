@@ -14,6 +14,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 from app.core.database import get_db
 from app.core.deps import get_current_user
 from app.core.permissions import check_permission
+from app.core.message_codes import raise_msg
 from app.models.user import User
 from app.models.systemnotification import SystemNotification, NotificationCloseDate
 from app.schemas.systemnotification import (
@@ -185,10 +186,7 @@ async def get_notification(
     ).first()
 
     if not notification:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="找不到系統通知"
-        )
+        raise_msg(status.HTTP_404_NOT_FOUND, "ERR020001", entity="系統通知", id=notification_id)
 
     # 記錄 Read 日誌（資料檢視記錄）
     try:
@@ -224,10 +222,7 @@ async def create_notification(
 
     # 驗證時間範圍
     if notification_data.notice_end_at <= notification_data.notice_start_at:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="結束時間必須晚於開始時間"
-        )
+        raise_msg(status.HTTP_400_BAD_REQUEST, "ERR200002")
 
     # 建立通知
     notification = SystemNotification(
@@ -277,10 +272,7 @@ async def create_notification(
         except Exception as log_error:
             logger.error(f"錯誤日誌記錄失敗: {log_error}")
 
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"建立系統通知失敗: {str(e)}"
-        )
+        raise_msg(status.HTTP_500_INTERNAL_SERVER_ERROR, "ERR020004", operation="建立系統通知", detail=str(e))
 
 
 @router.put("/{notification_id}", response_model=SystemNotificationResponse, summary="更新系統通知")
@@ -304,10 +296,7 @@ async def update_notification(
     ).first()
 
     if not notification:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="找不到系統通知"
-        )
+        raise_msg(status.HTTP_404_NOT_FOUND, "ERR020001", entity="系統通知", id=notification_id)
 
     # 保存原始資料（用於日誌）
     original_data = notification_to_dict(notification)
@@ -319,10 +308,7 @@ async def update_notification(
     start_time = update_data.get('notice_start_at', notification.notice_start_at)
     end_time = update_data.get('notice_end_at', notification.notice_end_at)
     if end_time and start_time and end_time <= start_time:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="結束時間必須晚於開始時間"
-        )
+        raise_msg(status.HTTP_400_BAD_REQUEST, "ERR200002")
 
     for key, value in update_data.items():
         setattr(notification, key, value)
@@ -375,10 +361,7 @@ async def update_notification(
         except Exception as log_error:
             logger.error(f"錯誤日誌記錄失敗: {log_error}")
 
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"更新系統通知失敗: {str(e)}"
-        )
+        raise_msg(status.HTTP_500_INTERNAL_SERVER_ERROR, "ERR020004", operation="更新系統通知", detail=str(e))
 
 
 @router.delete("/{notification_id}", status_code=status.HTTP_204_NO_CONTENT, summary="刪除系統通知")
@@ -402,10 +385,7 @@ async def delete_notification(
     ).first()
 
     if not notification:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="找不到系統通知"
-        )
+        raise_msg(status.HTTP_404_NOT_FOUND, "ERR020001", entity="系統通知", id=notification_id)
 
     # 保存刪除資料（用於日誌）
     deleted_data = notification_to_dict(notification)
@@ -450,10 +430,7 @@ async def delete_notification(
         except Exception as log_error:
             logger.error(f"錯誤日誌記錄失敗: {log_error}")
 
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"刪除系統通知失敗: {str(e)}"
-        )
+        raise_msg(status.HTTP_500_INTERNAL_SERVER_ERROR, "ERR020004", operation="刪除系統通知", detail=str(e))
 
 
 @router.patch("/{notification_id}/toggle-active", response_model=SystemNotificationResponse, summary="切換通知啟用狀態")
@@ -476,10 +453,7 @@ async def toggle_notification_active(
     ).first()
 
     if not notification:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="找不到系統通知"
-        )
+        raise_msg(status.HTTP_404_NOT_FOUND, "ERR020001", entity="系統通知", id=notification_id)
 
     # 保存原始資料
     original_data = notification_to_dict(notification)
@@ -516,10 +490,7 @@ async def toggle_notification_active(
     except Exception as e:
         db.rollback()
         logger.error(f"切換通知狀態失敗: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"切換通知狀態失敗: {str(e)}"
-        )
+        raise_msg(status.HTTP_500_INTERNAL_SERVER_ERROR, "ERR020004", operation="切換通知狀態", detail=str(e))
 
 
 @router.post("/close-today", status_code=status.HTTP_204_NO_CONTENT, summary="標記今日不再顯示通知")
@@ -565,7 +536,4 @@ async def close_notifications_today(
     except Exception as e:
         db.rollback()
         logger.error(f"標記今日關閉通知失敗: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"標記失敗: {str(e)}"
-        )
+        raise_msg(status.HTTP_500_INTERNAL_SERVER_ERROR, "ERR020004", operation="標記通知", detail=str(e))

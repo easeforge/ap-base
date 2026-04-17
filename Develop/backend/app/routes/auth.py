@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.security import verify_password, create_access_token
 from app.core.deps import get_current_user, session_id_ctx
+from app.core.message_codes import to_env_code, raise_msg
 from app.models.user import User
 from app.schemas.auth import LoginRequest, Token
 from app.schemas.user import UserProfile
@@ -54,33 +55,21 @@ async def login(
     # 驗證 CAPTCHA
     from app.core.captcha import verify_captcha
     if not verify_captcha(login_data.captcha_key, login_data.captcha_code):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="驗證碼錯誤或已過期"
-        )
+        raise_msg(status.HTTP_400_BAD_REQUEST, "ERR010002", key=login_data.captcha_key)
 
     # 查詢使用者
     user = db.query(User).filter(User.account == login_data.account).first()
 
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="帳號或密碼錯誤"
-        )
+        raise_msg(status.HTTP_401_UNAUTHORIZED, "ERR010001", account=login_data.account)
 
     # 驗證密碼
     if not verify_password(login_data.password, user.password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="帳號或密碼錯誤"
-        )
+        raise_msg(status.HTTP_401_UNAUTHORIZED, "ERR010001", account=login_data.account)
 
     # 檢查帳號是否啟用
     if not user.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="帳號已停用"
-        )
+        raise_msg(status.HTTP_403_FORBIDDEN, "ERR010003", id=user.id)
 
     # 更新最後登入時間與 IP
     user.last_login_at = datetime.now(timezone.utc).astimezone(timezone(timedelta(hours=8)))
@@ -170,10 +159,7 @@ async def login(
 
     if not session_created:
         logger.error(f"Redis Session 建立失敗: {session_id}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="系統錯誤：無法建立 Session"
-        )
+        raise_msg(status.HTTP_500_INTERNAL_SERVER_ERROR, "ERR010006", detail="Redis write failed")
 
     # 建立 JWT Token（只放 session_id，不放 user_id）
     access_token = create_access_token(data={

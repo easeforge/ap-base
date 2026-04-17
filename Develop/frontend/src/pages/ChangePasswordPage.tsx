@@ -7,6 +7,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useMessage } from '../contexts/MessageContext';
 import { usePermission } from '../hooks/usePermission';
 import { useTransactionToken } from '../hooks/useTransactionToken';
 import TransactionExtendDialog from '../components/TransactionExtendDialog';
@@ -19,6 +20,7 @@ const ChangePasswordPage: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { showSuccess, showError, showApiError } = useMessage();
   const hasInitialized = useRef(false);
 
   const { hasPermission, loading: permissionLoading } = usePermission();
@@ -43,32 +45,33 @@ const ChangePasswordPage: React.FC = () => {
   // Check permission on mount
   useEffect(() => {
     if (!permissionLoading && !hasPermission('change_password', 'update')) {
-      alert(t('common.noPermission', '您沒有權限訪問此頁面'));
+      showError('ERR020003', { action: 'access change password page' });
       navigate(-1);
     }
-  }, [permissionLoading, hasPermission, t, navigate]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [permissionLoading, hasPermission, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // Validation
     if (formData.newPassword !== formData.confirmPassword) {
-      alert(t('changePassword.passwordMismatch', '新密碼與確認密碼不符'));
+      showError('ERR100005');
       return;
     }
 
     if (formData.newPassword.length < 6) {
-      alert(t('changePassword.passwordTooShort', '密碼長度至少需要 6 個字元'));
+      showError('ERR100006', { min: '6' });
       return;
     }
 
     if (formData.newPassword === formData.oldPassword) {
-      alert(t('changePassword.samePassword', '新密碼不可與舊密碼相同'));
+      showError('ERR100007');
       return;
     }
 
     if (!user?.id) {
-      alert(t('changePassword.noUser', '無法取得使用者資訊'));
+      showError('ERR020001', { entity: '使用者資料' });
       return;
     }
 
@@ -89,7 +92,7 @@ const ChangePasswordPage: React.FC = () => {
         { user_id: user.id, action: 'password_changed', timestamp: new Date().toISOString() }
       );
 
-      alert(t('changePassword.success', '密碼變更成功'));
+      showSuccess('SYS010003');
 
       // Clear form
       setFormData({
@@ -112,7 +115,7 @@ const ChangePasswordPage: React.FC = () => {
         errorMsg
       );
 
-      alert(errorMsg);
+      showApiError(error);
     }
   };
 

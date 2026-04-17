@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.deps import get_current_user
+from app.core.message_codes import raise_msg
 from app.models.systemcode import SystemCode
 from app.models.user import User
 from app.schemas.systemcode import (
@@ -61,10 +62,7 @@ async def get_system_code(
     """取得系統代碼資訊"""
     code = SystemCodeService.get_by_id(db, code_id)
     if not code:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"找不到 ID 為 {code_id} 的系統代碼"
-        )
+        raise_msg(status.HTTP_404_NOT_FOUND, "ERR020001", entity="系統代碼", id=code_id)
     return code
 
 
@@ -80,10 +78,7 @@ async def create_system_code(
         return new_code
     except Exception as e:
         logger.error(f"[SystemCode] Create failed: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"建立系統代碼失敗: {str(e)}"
-        )
+        raise_msg(status.HTTP_400_BAD_REQUEST, "ERR020004", operation="建立系統代碼", detail=str(e))
 
 
 @router.put("/{code_id}", response_model=SystemCodeResponse, summary="更新系統代碼")
@@ -96,20 +91,14 @@ async def update_system_code(
     """更新系統代碼"""
     original_code = SystemCodeService.get_by_id(db, code_id)
     if not original_code:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"找不到 ID 為 {code_id} 的系統代碼"
-        )
+        raise_msg(status.HTTP_404_NOT_FOUND, "ERR020001", entity="系統代碼", id=code_id)
 
     try:
         updated_code = SystemCodeService.update(db, code_id, code_data, current_user.id)
         return updated_code
     except Exception as e:
         logger.error(f"[SystemCode] Update failed: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"更新系統代碼失敗: {str(e)}"
-        )
+        raise_msg(status.HTTP_400_BAD_REQUEST, "ERR020004", operation="更新系統代碼", detail=str(e))
 
 
 @router.delete("/{code_id}", summary="刪除系統代碼")
@@ -121,28 +110,19 @@ async def delete_system_code(
     """刪除系統代碼"""
     original_code = SystemCodeService.get_by_id(db, code_id)
     if not original_code:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"找不到 ID 為 {code_id} 的系統代碼"
-        )
+        raise_msg(status.HTTP_404_NOT_FOUND, "ERR020001", entity="系統代碼", id=code_id)
 
     try:
         success = SystemCodeService.delete(db, code_id)
         if success:
             return {"message": "刪除成功"}
         else:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="刪除失敗"
-            )
+            raise_msg(status.HTTP_400_BAD_REQUEST, "ERR020004", operation="刪除系統代碼", detail="未知錯誤")
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"[SystemCode] Delete failed: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"刪除系統代碼失敗: {str(e)}"
-        )
+        raise_msg(status.HTTP_400_BAD_REQUEST, "ERR020004", operation="刪除系統代碼", detail=str(e))
 
 
 @router.get("/type/{code_type}", response_model=List[SystemCodeResponse], summary="根據代碼類別查詢")

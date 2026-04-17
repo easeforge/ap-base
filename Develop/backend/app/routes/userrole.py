@@ -13,6 +13,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 
 from app.core.database import get_db
 from app.core.deps import get_current_user
+from app.core.message_codes import raise_msg
 from app.models.userrole import UserRole
 from app.models.user import User
 from app.schemas.userrole import UserRoleResponse, UserRoleCreate, UserRoleUpdate
@@ -94,10 +95,7 @@ async def get_user_roles(
     role = db.query(UserRole).filter(UserRole.id == role_id).first()
 
     if not role:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="找不到使用者角色"
-        )
+        raise_msg(status.HTTP_404_NOT_FOUND, "ERR020001", entity="使用者角色", id=role_id)
 
     return role
 
@@ -126,10 +124,7 @@ async def create_user_roles(
     else:
         existing = None
     if existing:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="角色名稱已存在"
-        )
+        raise_msg(status.HTTP_400_BAD_REQUEST, "ERR020002", field="角色名稱", value=en_name)
 
     # 建立角色
     role = UserRole(
@@ -165,10 +160,7 @@ async def update_user_roles(
     # 查詢角色
     role = db.query(UserRole).filter(UserRole.id == role_id).first()
     if not role:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="找不到使用者角色"
-        )
+        raise_msg(status.HTTP_404_NOT_FOUND, "ERR020001", entity="使用者角色", id=role_id)
 
     # 保存原始資料用於日誌
     original_data = user_roles_to_dict(role)
@@ -182,10 +174,7 @@ async def update_user_roles(
                 UserRole.role_name['en'].astext == en_name
             ).first()
             if existing:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="角色名稱已存在"
-                )
+                raise_msg(status.HTTP_400_BAD_REQUEST, "ERR020002", field="角色名稱", value=en_name)
 
     # 更新欄位
     update_data = role_data.model_dump(exclude_unset=True)
@@ -222,10 +211,7 @@ async def delete_user_roles(
     # 查詢角色
     role = db.query(UserRole).filter(UserRole.id == role_id).first()
     if not role:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="找不到使用者角色"
-        )
+        raise_msg(status.HTTP_404_NOT_FOUND, "ERR020001", entity="使用者角色", id=role_id)
 
     # 保存刪除前資料用於日誌
     deleted_data = user_roles_to_dict(role)
@@ -237,10 +223,8 @@ async def delete_user_roles(
     ).count()
 
     if users_with_role > 0:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"無法刪除：此角色仍有 {users_with_role} 位使用者使用"
-        )
+        raise_msg(status.HTTP_400_BAD_REQUEST, "ERR020007",
+                  entity="使用者角色", id=role_id, count=users_with_role, relation="使用者")
 
     # 真正刪除
     db.delete(role)

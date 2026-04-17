@@ -18,6 +18,7 @@ import { getI18nValue } from '../utils/i18nHelper';
 import { usePermission } from '../hooks/usePermission';
 import { useFunctionName } from '../hooks/useFunctionName';
 import { useSystem } from '../contexts/SystemContext';
+import { useMessage } from '../contexts/MessageContext';
 import { logView, logCreate, logUpdate, logDelete } from '../utils/userLogHelper';
 import { validateSession } from '../utils/sessionValidator';
 import FunctionPageHeader from '../components/FunctionPageHeader';
@@ -27,6 +28,7 @@ const UserRolesPage: React.FC = () => {
   const { t, i18n } = useTranslation();
   const { hasPermission, loading: permissionLoading } = usePermission();
   const { availableLanguages } = useSystem();
+  const { showSuccess, showApiError } = useMessage();
   const enabledLangs = availableLanguages.map(l => l.code);
   const pageTitle = useFunctionName('user_roles');
   const [roles, setRoles] = useState<UserRole[]>([]);
@@ -140,11 +142,11 @@ const UserRolesPage: React.FC = () => {
       if (editingRole) {
         const updatedRole = await updateUserRole(editingRole.id, formData);
         await logUpdate('user_roles', editingRole as any, updatedRole as any);
-        alert(t('message.saveSuccess'));
+        showSuccess('SYS020002', { name: pageTitle });
       } else {
         const newRole = await createUserRole(formData);
         await logCreate('user_roles', newRole as any);
-        alert(t('message.createSuccess'));
+        showSuccess('SYS020001', { name: pageTitle });
       }
       closeModal();
       loadRoles();
@@ -155,7 +157,7 @@ const UserRolesPage: React.FC = () => {
       } else {
         await logCreate('user_roles', formData, errorMsg);
       }
-      alert(errorMsg);
+      showApiError(err);
     }
   };
 
@@ -165,12 +167,12 @@ const UserRolesPage: React.FC = () => {
     try {
       await deleteUserRole(role.id);
       await logDelete('user_roles', role as any);
-      alert(t('message.deleteSuccess'));
+      showSuccess('SYS020003', { name: pageTitle });
       loadRoles();
     } catch (err: any) {
       const errorMsg = err.response?.data?.detail || t('common.error');
       await logDelete('user_roles', role as any, errorMsg);
-      alert(errorMsg);
+      showApiError(err);
     }
   };
 
@@ -182,7 +184,7 @@ const UserRolesPage: React.FC = () => {
       });
       loadRoles();
     } catch (err: any) {
-      alert(err.response?.data?.detail || t('common.error'));
+      showApiError(err);
     }
   };
 

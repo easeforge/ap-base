@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.security import decode_access_token
+from app.core.message_codes import to_env_code, raise_msg
 from app.models.user import User
 from app.services.session_service import SessionService
 
@@ -44,7 +45,7 @@ def get_current_user(
     """
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="無法驗證認證資訊",
+        detail=to_env_code("ERR010005"),
         headers={"WWW-Authenticate": "Bearer"},
     )
 
@@ -77,7 +78,7 @@ def get_current_user(
             if not user.is_active:
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
-                    detail="帳號已停用"
+                    detail=to_env_code("ERR010003")
                 )
 
             user.current_session_id = session_id
@@ -93,10 +94,11 @@ def get_current_user(
     session_data = SessionService.get_session(session_id)
     if not session_data:
         logger.warning(f"Session 不存在或已過期: {session_id}")
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Session 已過期，請重新登入",
+        raise_msg(
+            status.HTTP_401_UNAUTHORIZED,
+            "ERR010004",
             headers={"WWW-Authenticate": "Bearer"},
+            id=session_id,
         )
 
     # 從 Session 資料取得 user_id
@@ -117,10 +119,7 @@ def get_current_user(
         logger.warning(f"帳號已停用: {user_id}")
         # 刪除已停用使用者的 Session
         SessionService.delete_session(session_id)
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="帳號已停用"
-        )
+        raise_msg(status.HTTP_403_FORBIDDEN, "ERR010003", id=user_id)
 
     # 將 Session 中的角色資料存到非 ORM 屬性（避免污染 ORM dirty tracking）
     # 注意：不可直接覆寫 user.user_role，否則 db.commit() 的 auto-flush

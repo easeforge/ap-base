@@ -14,6 +14,7 @@ import {
 } from '../services/roleRightsService';
 import { getUserRoles, UserRole } from '../services/userRoleService';
 import { usePermission } from '../hooks/usePermission';
+import { useMessage } from '../contexts/MessageContext';
 import FunctionPageHeader from '../components/FunctionPageHeader';
 import { logView, logUpdate } from '../utils/userLogHelper';
 import { validateSession } from '../utils/sessionValidator';
@@ -23,6 +24,7 @@ import '../styles/RoleRightsPage.css';
 const RoleRightsPage: React.FC = () => {
   const { t, i18n } = useTranslation();
   const { hasPermission, loading: permissionLoading } = usePermission();
+  const { showSuccess, showError, showApiError } = useMessage();
 
   // 狀態管理
   const [roles, setRoles] = useState<UserRole[]>([]);
@@ -203,13 +205,13 @@ const RoleRightsPage: React.FC = () => {
   // 儲存權限設定
   const handleSave = async () => {
     if (!selectedRoleId) {
-      alert(t('roleRight.pleaseSelectRole'));
+      showError('ERR020006', { field: t('userRoles.roleName', '角色'), detail: t('roleRight.pleaseSelectRole') });
       return;
     }
 
     // 檢查是否有修改權限
     if (!canUpdate) {
-      alert(t('common.noUpdatePermission') || '您只有讀取權限，無法修改');
+      showError('ERR020003', { action: 'update role rights' });
       return;
     }
 
@@ -249,7 +251,7 @@ const RoleRightsPage: React.FC = () => {
       // 重新載入功能列表，以顯示最新的功能
       await loadFunctions(selectedRoleId);
 
-      alert(t('roleRight.saveSuccess'));
+      showSuccess('SYS020004', { name: t('roleRight.title', '角色權限設定') });
 
       // 更新原始資料為新資料
       setOriginalRights(new Map(rights));
@@ -264,7 +266,7 @@ const RoleRightsPage: React.FC = () => {
         console.error('[RoleRightsPage] Failed to log error:', logErr);
       }
 
-      alert(errorMsg);
+      showApiError(error);
     } finally {
       setLoading(false);
     }

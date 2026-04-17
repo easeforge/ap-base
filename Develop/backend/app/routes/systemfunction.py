@@ -12,6 +12,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 
 from app.core.database import get_db
 from app.core.deps import get_current_user
+from app.core.message_codes import raise_msg
 from app.models.systemfunction import SystemFunction
 from app.models.user import User
 from app.schemas.systemfunction import (
@@ -152,10 +153,7 @@ async def get_function_by_code(
     """
     function = db.query(SystemFunction).filter(SystemFunction.func_code == func_code).first()
     if not function:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"找不到系統功能: {func_code}"
-        )
+        raise_msg(status.HTTP_404_NOT_FOUND, "ERR020001", entity="系統功能", id=func_code)
 
     return function
 
@@ -175,7 +173,7 @@ async def get_function(
     """
     function = db.query(SystemFunction).filter(SystemFunction.id == function_id).first()
     if not function:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="找不到系統功能")
+        raise_msg(status.HTTP_404_NOT_FOUND, "ERR020001", entity="系統功能", id=function_id)
 
     return function
 
@@ -198,7 +196,7 @@ async def create_function(
     # 檢查 func_code 是否已存在
     existing = db.query(SystemFunction).filter(SystemFunction.func_code == function_data.func_code).first()
     if existing:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="功能代碼已存在")
+        raise_msg(status.HTTP_400_BAD_REQUEST, "ERR020002", field="功能代碼", value=function_data.func_code)
 
     # 建立新功能
     new_function = SystemFunction(
@@ -237,7 +235,7 @@ async def update_function(
 
     function = db.query(SystemFunction).filter(SystemFunction.id == function_id).first()
     if not function:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="找不到系統功能")
+        raise_msg(status.HTTP_404_NOT_FOUND, "ERR020001", entity="系統功能", id=function_id)
 
     # 保存原始資料用於日誌
     original_data = system_function_to_dict(function)
@@ -246,7 +244,7 @@ async def update_function(
     if function_data.func_code and function_data.func_code != function.func_code:
         existing = db.query(SystemFunction).filter(SystemFunction.func_code == function_data.func_code).first()
         if existing:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="功能代碼已存在")
+            raise_msg(status.HTTP_400_BAD_REQUEST, "ERR020002", field="功能代碼", value=function_data.func_code)
 
     # 更新資料
     update_data = function_data.model_dump(exclude_unset=True)
@@ -285,24 +283,19 @@ async def delete_function(
 
     function = db.query(SystemFunction).filter(SystemFunction.id == function_id).first()
     if not function:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="找不到系統功能")
+        raise_msg(status.HTTP_404_NOT_FOUND, "ERR020001", entity="系統功能", id=function_id)
 
     # 檢查是否有子功能
     children = db.query(SystemFunction).filter(SystemFunction.upper_func_id == function_id).count()
     if children > 0:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="此功能下還有子功能，無法刪除"
-        )
+        raise_msg(status.HTTP_400_BAD_REQUEST, "ERR200003", id=function_id, count=children)
 
     # 檢查是否有角色權限參照此功能
     from app.models.roleright import RoleRight
     role_rights_count = db.query(RoleRight).filter(RoleRight.system_function_id == function_id).count()
     if role_rights_count > 0:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"此功能已被 {role_rights_count} 個角色使用，無法刪除。請先移除角色權限設定。"
-        )
+        raise_msg(status.HTTP_400_BAD_REQUEST, "ERR020007",
+                  entity="系統功能", id=function_id, count=role_rights_count, relation="角色")
 
     # 保存刪除前資料用於日誌
     deleted_data = system_function_to_dict(function)

@@ -12,6 +12,7 @@ from sqlalchemy.sql import func
 from app.core.database import get_db
 from app.core.deps import get_current_user
 from app.core.permissions import check_permission  # 保留用於資料層級安全控制
+from app.core.message_codes import raise_msg
 from app.models.organization import Organization
 from app.models.user import User
 from app.schemas.organization import OrganizationResponse, OrganizationCreate, OrganizationUpdate
@@ -112,18 +113,12 @@ async def get_organization(
     organization = db.query(Organization).filter(Organization.id == organization_id).first()
 
     if not organization:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="找不到組織單位"
-        )
+        raise_msg(status.HTTP_404_NOT_FOUND, "ERR020001", entity="組織單位", id=organization_id)
 
     # 資料層級安全控制:檢查是否有權限查看此組織
     has_full_permission = check_permission(db, current_user, "organizations", "read")
     if not has_full_permission and organization.id != current_user.organization_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="無權限讀取此組織資訊"
-        )
+        raise_msg(status.HTTP_403_FORBIDDEN, "ERR020003", action="read organization", user_id=current_user.id)
 
     return organization
 
@@ -146,10 +141,7 @@ async def create_organization(
     # 檢查組織代碼是否已存在
     existing = db.query(Organization).filter(Organization.org_code == organization_data.org_code).first()
     if existing:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="組織代碼已存在"
-        )
+        raise_msg(status.HTTP_400_BAD_REQUEST, "ERR020002", field="組織代碼", value=organization_data.org_code)
 
     # 建立組織單位
     organization = Organization(
@@ -187,18 +179,12 @@ async def update_organization(
     # 查詢組織單位
     organization = db.query(Organization).filter(Organization.id == organization_id).first()
     if not organization:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="找不到組織單位"
-        )
+        raise_msg(status.HTTP_404_NOT_FOUND, "ERR020001", entity="組織單位", id=organization_id)
 
     # 資料權限檢查:如果沒有完整的 organizations 權限,只能更新自己的組織
     has_full_permission = check_permission(db, current_user, "organizations", "update")
     if not has_full_permission and organization_id != current_user.organization_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="無權限修改此組織資料"
-        )
+        raise_msg(status.HTTP_403_FORBIDDEN, "ERR020003", action="update organization", user_id=current_user.id)
 
     # 如果更新組織代碼，檢查是否重複
     if organization_data.org_code and organization_data.org_code != organization.org_code:
@@ -207,10 +193,7 @@ async def update_organization(
             Organization.id != organization_id
         ).first()
         if existing:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="組織代碼已存在"
-            )
+            raise_msg(status.HTTP_400_BAD_REQUEST, "ERR020002", field="組織代碼", value=organization_data.org_code)
 
     # 更新組織單位資料
     update_data = organization_data.model_dump(exclude_unset=True)
@@ -247,10 +230,7 @@ async def delete_organization(
     # 查詢組織單位
     organization = db.query(Organization).filter(Organization.id == organization_id).first()
     if not organization:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="找不到組織單位"
-        )
+        raise_msg(status.HTTP_404_NOT_FOUND, "ERR020001", entity="組織單位", id=organization_id)
 
     # 檢查是否有使用者使用此組織（包含已停用的）
     users_count = db.query(User).filter(
@@ -258,10 +238,8 @@ async def delete_organization(
     ).count()
 
     if users_count > 0:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"無法刪除：此組織單位仍有 {users_count} 位使用者"
-        )
+        raise_msg(status.HTTP_400_BAD_REQUEST, "ERR020007",
+                  entity="組織單位", id=organization_id, count=users_count, relation="使用者")
 
     # 真正刪除
     db.delete(organization)
@@ -294,10 +272,7 @@ async def get_my_organization_profile(
     ).first()
 
     if not organization:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="找不到組織資料"
-        )
+        raise_msg(status.HTTP_404_NOT_FOUND, "ERR020001", entity="組織", id=current_user.organization_id)
 
     return organization
 
@@ -325,10 +300,7 @@ async def update_my_organization_profile(
     ).first()
 
     if not organization:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="找不到組織資料"
-        )
+        raise_msg(status.HTTP_404_NOT_FOUND, "ERR020001", entity="組織", id=current_user.organization_id)
 
     # 如果更新組織代碼，檢查是否重複
     if organization_data.org_code and organization_data.org_code != organization.org_code:
@@ -337,10 +309,7 @@ async def update_my_organization_profile(
             Organization.id != current_user.organization_id
         ).first()
         if existing:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="組織代碼已存在"
-            )
+            raise_msg(status.HTTP_400_BAD_REQUEST, "ERR020002", field="組織代碼", value=organization_data.org_code)
 
     # 更新組織資料
     update_data = organization_data.model_dump(exclude_unset=True)

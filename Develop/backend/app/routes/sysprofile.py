@@ -11,6 +11,7 @@ from sqlalchemy.sql import func
 from app.core.database import get_db
 from app.core.deps import get_current_user
 from app.core.permissions import check_permission
+from app.core.message_codes import raise_msg
 from app.models.sysprofile import SysProfile
 from app.models.user import User
 from app.schemas.sysprofile import SysProfileResponse, SysProfileUpdate
@@ -55,10 +56,7 @@ async def get_sys_profile(
     profile = db.query(SysProfile).filter(SysProfile.id == 1).first()
 
     if not profile:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="系統設定不存在"
-        )
+        raise_msg(status.HTTP_404_NOT_FOUND, "ERR020001", entity="系統設定", id=1)
 
     return profile
 
@@ -81,10 +79,7 @@ async def update_sys_profile(
     # 查詢系統設定
     profile = db.query(SysProfile).filter(SysProfile.id == 1).first()
     if not profile:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="系統設定不存在"
-        )
+        raise_msg(status.HTTP_404_NOT_FOUND, "ERR020001", entity="系統設定", id=1)
 
     # 保存原始資料用於日誌
     original_data = sys_profile_to_dict(profile)
@@ -95,10 +90,7 @@ async def update_sys_profile(
         try:
             update_timezone(profile_data.sys_timezone)
         except ValueError:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"無效的時區設定: {profile_data.sys_timezone}"
-            )
+            raise_msg(status.HTTP_400_BAD_REQUEST, "ERR200001", tz=profile_data.sys_timezone)
 
     # 更新欄位
     update_data = profile_data.model_dump(exclude_unset=True)

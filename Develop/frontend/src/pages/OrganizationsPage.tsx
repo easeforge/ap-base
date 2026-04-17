@@ -15,6 +15,7 @@ import {
 } from '../services/organizationService';
 import { usePermission } from '../hooks/usePermission';
 import { useFunctionName } from '../hooks/useFunctionName';
+import { useMessage } from '../contexts/MessageContext';
 import { logView, logCreate, logUpdate, logDelete } from '../utils/userLogHelper';
 import FunctionPageHeader from '../components/FunctionPageHeader';
 import '../styles/DataTable.css';
@@ -23,6 +24,7 @@ const OrganizationsPage: React.FC = () => {
   const { t } = useTranslation();
   const { hasPermission, loading: permissionLoading } = usePermission();
   const pageTitle = useFunctionName('organizations');
+  const { showSuccess, showApiError } = useMessage();
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -151,23 +153,19 @@ const OrganizationsPage: React.FC = () => {
       if (editingOrg) {
         // 修改組織
         const updatedOrg = await updateOrganization(editingOrg.id, formData);
-        // 記錄成功的更新操作 - 使用舊資料和新回傳的完整資料
         await logUpdate('organizations', editingOrg as any, updatedOrg as any);
-        alert(t('message.saveSuccess'));
+        showSuccess('SYS020002', { name: pageTitle });
       } else {
         // 新增組織
         const newOrg = await createOrganization(formData);
-        // 記錄成功的新增操作 - 使用後端回傳的完整資料
         await logCreate('organizations', newOrg as any);
-        alert(t('message.createSuccess'));
+        showSuccess('SYS020001', { name: pageTitle });
       }
       closeModal();
       loadOrganizations();
     } catch (err: any) {
-      // 記錄失敗的操作
+      // 記錄失敗日誌（保留詳細錯誤字串給日誌）
       const errorMsg = err.response?.data?.detail || err.message || t('common.error');
-
-      // 先記錄失敗日誌
       try {
         if (editingOrg) {
           await logUpdate('organizations', editingOrg as any, formData, errorMsg);
@@ -178,8 +176,8 @@ const OrganizationsPage: React.FC = () => {
         console.error('[OrganizationsPage] Failed to log error:', logErr);
       }
 
-      // 顯示錯誤訊息（確保一定會執行）
-      alert(errorMsg);
+      // 顯示錯誤訊息（自動解析 ERR 代碼 + 參數）
+      showApiError(err);
     }
   };
 
@@ -188,15 +186,13 @@ const OrganizationsPage: React.FC = () => {
 
     try {
       await deleteOrganization(org.id);
-      // 記錄成功的刪除操作
       await logDelete('organizations', org as any);
-      alert(t('message.deleteSuccess'));
+      showSuccess('SYS020003', { name: pageTitle });
       loadOrganizations();
     } catch (err: any) {
-      // 記錄失敗的刪除操作
       const errorMsg = err.response?.data?.detail || t('common.error');
       await logDelete('organizations', org as any, errorMsg);
-      alert(errorMsg);
+      showApiError(err);
     }
   };
 
