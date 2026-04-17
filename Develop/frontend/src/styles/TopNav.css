@@ -6,8 +6,7 @@
   background: var(--topnav-bg, #ffffff);
   border-bottom: 1px solid #e0e0e0;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
-  position: sticky;
-  top: 70px; /* 位於 header(70px) 下方 */
+  flex-shrink: 0; /* 固定高度，不被 flex 壓縮（main-content flex column）*/
   z-index: 200; /* 高於 content-area，避免下拉被遮住 */
   width: 100%;
   overflow: visible; /* 允許下拉選單溢出 */
