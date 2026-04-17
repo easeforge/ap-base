@@ -30,10 +30,11 @@
 18. [操作日誌整合](#18-操作日誌整合)
 19. [多語系整合](#19-多語系整合)
 20. [I18N 翻譯檔案規範](#20-i18n-翻譯檔案規範)
-21. [完整範例：公告管理模組](#21-完整範例公告管理模組)
-22. [進階檢核清單](#22-進階檢核清單)
-23. [常見問題 FAQ](#23-常見問題-faq)
-24. [附錄 A：實戰參考 — system_functions 系統功能管理](#附錄-a實戰參考--system_functions-系統功能管理)
+21. [系統訊息代碼整合](#21-系統訊息代碼整合)
+22. [完整範例：公告管理模組](#22-完整範例公告管理模組)
+23. [進階檢核清單](#23-進階檢核清單)
+24. [常見問題 FAQ](#24-常見問題-faq)
+25. [附錄 A：實戰參考 — system_functions 系統功能管理](#附錄-a實戰參考--system_functions-系統功能管理)
 
 ---
 
@@ -1534,7 +1535,113 @@ t('message.recordCount', { count: data.length })
 
 ---
 
-## 21. 完整範例：公告管理模組
+## 21. 系統訊息代碼整合
+
+> 所有系統回應訊息（成功、錯誤、資料處理等）統一透過 `sys_message_code` 進行代碼化管理，不在程式中硬編碼訊息文字。
+> 詳細規格請參閱 [系統訊息分類設計.md](系統訊息分類設計.md)。
+
+### 21.1 代碼編碼規則
+
+```
+{PREFIX}{分類碼}{訊息碼}
+  3碼    2碼     4碼     = 共 9 碼
+
+範例：ERR010001（錯誤-認證模組-第1號）
+```
+
+| 前綴 | 說明 | 用途 |
+|------|------|------|
+| `SYS` | 系統訊息 | 系統狀態、成功回應、一般提示 |
+| `ERR` | 錯誤訊息 | 操作失敗、驗證錯誤、例外狀況 |
+| `DAT` | 資料處理 | 匯入匯出、資料驗證、批次處理結果 |
+
+**分類碼區間**：正式環境 01~49、開發測試環境 51~99（差 50 對應）
+
+### 21.2 新增功能模組時的訊息代碼處理
+
+當新增應用功能模組時，需同步規劃該模組的系統訊息代碼：
+
+#### Step 1：分配分類碼
+
+從預留區間中選擇未使用的分類碼，正式與開發各取一組：
+
+| 環境 | 區間 | 範例 |
+|------|------|------|
+| 正式環境 | 30~49 | 選定 `31` 作為新模組分類碼 |
+| 開發環境 | 80~99 | 對應 `81`（31 + 50） |
+
+#### Step 2：登記分類定義
+
+在 `system_codes` 中新增分類記錄（code_type = `sys_message_category`）：
+
+```
+code_type: sys_message_category
+code:      31
+code_name: {"zh-TW":"公告管理","zh-CN":"公告管理","en":"Bulletin Management"}
+note1:     production
+```
+
+```
+code_type: sys_message_category
+code:      81
+code_name: {"zh-TW":"公告管理（開發）","zh-CN":"公告管理（开发）","en":"Bulletin Management (Dev)"}
+note1:     development
+```
+
+#### Step 3：建立訊息代碼
+
+在 `system_codes` 中新增訊息記錄（code_type = `sys_message_code`）：
+
+```
+# 正式環境 — 使用者看到的訊息（簡潔、不洩漏細節）
+SYS310001: {"zh-TW":"{name}儲存成功","zh-CN":"{name}储存成功","en":"{name} saved successfully"}
+SYS310002: {"zh-TW":"{name}刪除成功","zh-CN":"{name}删除成功","en":"{name} deleted successfully"}
+ERR310001: {"zh-TW":"{name}儲存失敗","zh-CN":"{name}储存失败","en":"Failed to save {name}"}
+
+# 開發環境 — 開發人員看到的訊息（含技術細節）
+ERR810001: {"zh-TW":"{name}儲存失敗：{detail}","zh-CN":"{name}储存失败：{detail}","en":"Failed to save {name}: {detail}"}
+```
+
+#### Step 4：後端回傳代碼
+
+在後端 Route 中使用代碼取代硬編碼訊息：
+
+```python
+from app.core.config import settings
+
+# 依環境回傳不同精細度的代碼
+if settings.ENVIRONMENT == "production":
+    raise HTTPException(status_code=400, detail="ERR310001")
+else:
+    raise HTTPException(status_code=400, detail="ERR810001")
+```
+
+#### Step 5：前端顯示訊息
+
+```typescript
+const { getMessageByCode } = useSystem();
+
+// 後端回傳的代碼 → 翻譯為使用者語系的訊息
+// 無參數
+setError(getMessageByCode(err.response?.data?.detail));
+// → 系統訊息：(ERR310001)公告管理儲存失敗
+
+// 帶參數（{name} 等佔位符替換）
+alert(getMessageByCode("SYS310001", { name: t('bulletins.title') }));
+// → 系統訊息：(SYS310001)公告管理儲存成功
+```
+
+### 21.3 注意事項
+
+1. **不在程式碼中硬編碼訊息文字**：所有使用者可見的系統回應都應使用訊息代碼
+2. **正式環境不回傳開發代碼**：分類碼 50~99 僅限開發環境使用
+3. **代碼只增不減**：已廢棄的代碼設定 `is_active = false`，不刪除、不複用
+4. **透過管理介面維護**：在系統代碼設定頁面（code_type = `sys_message_code`）管理，無需改程式碼
+5. **多語系同步**：新增代碼時，`code_name` JSONB 須包含所有啟用語系的翻譯
+
+---
+
+## 22. 完整範例：公告管理模組
 
 ### 建置步驟總整理
 
@@ -1555,7 +1662,7 @@ t('message.recordCount', { count: data.length })
 
 ---
 
-## 22. 進階檢核清單
+## 23. 進階檢核清單
 
 建置新功能模組前，請逐項確認：
 
@@ -1625,9 +1732,23 @@ t('message.recordCount', { count: data.length })
 ### 第四階段：I18N 驗證
 
 - [ ] 切換繁體中文顯示正確
+- [ ] 切換簡體中文顯示正確
 - [ ] 切換英文顯示正確
 - [ ] 無遺漏翻譯（無顯示 key 值的情況）
 - [ ] JSONB 多語系欄位依語系正確取值
+
+### 第四階段：系統訊息代碼驗證
+
+- [ ] 已分配分類碼（正式 + 開發各一組）
+- [ ] 分類定義已登記至 `sys_message_category`
+- [ ] 所有訊息代碼已建立至 `sys_message_code`（含所有啟用語系翻譯）
+- [ ] `note1` 已標記環境（`production` / `development`）
+- [ ] 正式碼 `note2` 已填寫對應的開發代碼
+- [ ] 後端回傳代碼（非硬編碼文字），依 `ENVIRONMENT` 區分正式/開發代碼
+- [ ] 前端使用 `getMessageByCode()` 顯示訊息
+- [ ] 訊息格式正確：`系統訊息：(代碼)說明`
+- [ ] 帶參數的訊息（`{name}` 等）替換正確
+- [ ] 切換語系後訊息正確翻譯
 
 ### 第五階段：上線前
 
@@ -1637,7 +1758,7 @@ t('message.recordCount', { count: data.length })
 
 ---
 
-## 23. 常見問題 FAQ
+## 24. 常見問題 FAQ
 
 ### Q1: API 呼叫出現 307 Temporary Redirect？
 

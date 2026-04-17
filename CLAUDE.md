@@ -9,7 +9,7 @@
 - Port: Backend 10181, Frontend 10180
 - DB: PostgreSQL (設定於 backend/.env)
 
-## 目前開發狀態（2026-04-11）
+## 目前開發狀態（2026-04-18）
 
 ### 已完成
 - 基底平台從 P-PA6.4 提取並清理完成
@@ -36,6 +36,34 @@
   - 新增隱藏功能（my_profile, change_password, logout）
   - Language 語系代碼 + sys_languages 初始資料
   - 翻譯資料(lang_data)不包含，需另行匯入
+- **Phase 12**: 系統訊息代碼系統（sys_message_code）
+  - 69 筆訊息代碼（21 SYS + 48 ERR），存於 system_codes 表
+  - 編碼規則：{SYS|ERR|DAT}{2碼分類}{4碼流水} = 9 碼
+  - 正式環境（分類 01~49）與開發環境（51~99，分類碼+50）雙軌
+  - 後端 helper `app.core.message_codes.raise_msg(status, code, **params)` 依 ENVIRONMENT 自動切換
+  - 支援參數替換：`{name}`、`{entity}`、`{id}` 等佔位符
+  - 前端統一顯示格式：`系統訊息：(代碼)說明`
+  - 公開端點 `GET /api/system/message-codes?lang=zh-TW`
+  - 所有 routes 硬編碼 Chinese detail 字串已全部清除（86 處，13 個檔案）
+  - 詳細規格：[系統設計/系統訊息分類設計.md](系統設計/系統訊息分類設計.md)
+- **Phase 13**: Toast 通知系統
+  - `MessageContext` + `useMessage()` hook
+  - 方法：`showSuccess / showError / showWarning / showInfo / showApiError`
+  - `showApiError(err)` 自動解析後端 detail（字串代碼 或 {code, params} 物件）
+  - 替換所有 pages 的 `alert()`（94 處 → 0）
+  - 使用 MUI Snackbar + Alert，頂端中央顯示，依 severity 自動關閉
+- **Phase 14**: 橫式版面支援
+  - 新增 `sys_profiles.layout_mode` 欄位（vertical / horizontal）
+  - 直式：左側 Sidebar（原行為）
+  - 橫式：頂部 TopNav 導覽列 + hover 下拉子選單（支援巢狀）
+  - 由 SysProfilePage 切換，儲存後重整生效
+- **Phase 15**: 首頁 Dashboard
+  - `GET /api/system/stats` 回傳 users/orgs/logins/notifications 統計 + 最近 10 筆活動
+  - 頁面路由合併（刪除 DashboardPage，統一使用 HomePage 於 `/home`）
+  - 麵包屑首頁指向 `/home`
+- **Phase 16**: i18n 清理
+  - 移除 34 個無人使用的 i18n key（三語系共 102 筆）
+  - 訊息統一走 sys_message_code，靜態翻譯 key 只留下標籤與表單文字
 
 ## 資料庫表結構（11 張表）
 | 表名 | 說明 | JSONB 多語系欄位 |
@@ -75,6 +103,21 @@ const title = getI18nValue(profile?.sys_title, i18n.language, 'fallback');
 - 系統設計/system_codes_系統代碼設計規格.md
 - 系統設計/TWN_Area_台灣行政區域設計規格.md
 - 系統設計/Language_語系管理設計規格.md
+- 系統設計/系統訊息分類設計.md  ← 訊息代碼系統規格
+- 系統設計/Base_AP_應用系統建置指引.md  ← 新建應用模組的 SOP
+
+## 新增應用模組時的訊息處理
+- 不要在 routes 中寫 `raise HTTPException(detail="中文字串")`
+- 改用 `raise_msg(status.HTTP_XXX, "ERR020001", entity="資料名稱", id=xxx)`
+- 通用錯誤使用分類 02（`ERR020001~020007`），不需新建
+- 模組特定業務規則才新建代碼（例如密碼政策、時區驗證等）
+- 詳見「系統訊息分類設計.md」第 3 章代碼範例
+
+## 前端頁面的訊息處理
+- 成功：`showSuccess('SYS020001', { name: pageTitle })`
+- 錯誤（API）：`catch (err) { showApiError(err); }`
+- 表單驗證錯誤：`showError('ERR020006', { field, detail })`
+- 不要用 `alert()`
 
 ## 啟動方式
 ```bash
