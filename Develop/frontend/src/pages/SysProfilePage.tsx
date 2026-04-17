@@ -16,6 +16,7 @@ import {
 import { getOrganizations, Organization } from '../services/organizationService';
 import { usePermission } from '../hooks/usePermission';
 import { useSystem } from '../contexts/SystemContext';
+import { useMessage } from '../contexts/MessageContext';
 import FunctionPageHeader from '../components/FunctionPageHeader';
 import { logView, logUpdate } from '../utils/userLogHelper';
 import { I18nField } from '../types';
@@ -73,6 +74,7 @@ const SysProfilePage: React.FC = () => {
   const { t, i18n } = useTranslation();
   const { hasPermission, loading: permissionLoading } = usePermission();
   const { refreshSystemProfile } = useSystem();
+  const { showSuccess, showError, showApiError } = useMessage();
   const hasInitialized = useRef(false);
   const [profile, setProfile] = useState<SysProfile | null>(null);
   const [organizations, setOrganizations] = useState<Organization[]>([]);
@@ -103,6 +105,7 @@ const SysProfilePage: React.FC = () => {
         sys_languages: langs,
         login_bg: data.login_bg || 'default',
         color_theme: data.color_theme || 'classic-blue',
+        layout_mode: data.layout_mode || 'vertical',
       });
     } catch (err: any) {
       setError(err.response?.data?.detail || t('common.error'));
@@ -157,7 +160,7 @@ const SysProfilePage: React.FC = () => {
     } else {
       // 至少保留一個語系
       if (enabledLangs.length <= 1) {
-        alert(t('sysProfile.atLeastOneLanguage', '至少需要啟用一個語系'));
+        showError('ERR200004', { count: String(enabledLangs.length) });
         return;
       }
       newLangs = enabledLangs.filter(l => l !== langCode);
@@ -201,12 +204,12 @@ const SysProfilePage: React.FC = () => {
       setSyncing(true);
       const response = await axios.post('/api/sys_languages/sync-translations');
       const data = response.data;
-      const details = Object.entries(data.details || {})
-        .map(([lang, info]: [string, any]) => `${lang}: +${info.added} (${t('sysProfile.syncTotal', '共')} ${info.total})`)
-        .join('\n');
-      alert(`${data.message}\n\n${details}`);
+      const totalAdded = Object.values(data.details || {}).reduce(
+        (sum: number, info: any) => sum + (info.added || 0), 0
+      );
+      showSuccess('SYS200002', { count: String(totalAdded) });
     } catch (err: any) {
-      alert(err.response?.data?.detail || t('message.saveFailed'));
+      showApiError(err);
     } finally {
       setSyncing(false);
     }
@@ -226,7 +229,7 @@ const SysProfilePage: React.FC = () => {
       // 重新載入全域系統設定（立即更新 Title、版權宣告和語系切換器）
       await refreshSystemProfile();
 
-      alert(t('message.saveSuccess'));
+      showSuccess('SYS200001');
     } catch (err: any) {
       const errorMsg = err.response?.data?.detail || t('message.saveFailed');
 
@@ -236,7 +239,7 @@ const SysProfilePage: React.FC = () => {
         console.error('[SysProfilePage] Failed to log error:', logErr);
       }
 
-      alert(errorMsg);
+      showApiError(err);
     } finally {
       setSaving(false);
     }
@@ -534,6 +537,105 @@ const SysProfilePage: React.FC = () => {
                     </label>
                   );
                 })}
+              </div>
+            </div>
+
+            {/* 版面模式設定 */}
+            <div className="form-group full-width" style={{
+              background: '#f8f9fa',
+              border: '1px solid #dee2e6',
+              borderRadius: '8px',
+              padding: '16px'
+            }}>
+              <label style={{ fontWeight: 600, fontSize: '15px', marginBottom: '12px', display: 'block' }}>
+                {t('sysProfile.layoutMode', '版面模式')}
+              </label>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
+                {[
+                  { key: 'vertical',   label: t('sysProfile.layoutVertical', '直式（左側選單）') },
+                  { key: 'horizontal', label: t('sysProfile.layoutHorizontal', '橫式（頂部導覽）') },
+                ].map((opt) => {
+                  const isSelected = (formData.layout_mode || 'vertical') === opt.key;
+                  const isVertical = opt.key === 'vertical';
+                  return (
+                    <label
+                      key={opt.key}
+                      style={{
+                        cursor: canUpdate ? 'pointer' : 'default',
+                        border: isSelected ? '3px solid #333' : '3px solid transparent',
+                        borderRadius: '10px',
+                        overflow: 'hidden',
+                        transition: 'all 0.2s ease',
+                        opacity: canUpdate ? 1 : 0.7,
+                        boxShadow: isSelected ? '0 4px 12px rgba(0,0,0,0.2)' : '0 2px 6px rgba(0,0,0,0.1)',
+                      }}
+                    >
+                      <input
+                        type="radio"
+                        name="layout_mode"
+                        value={opt.key}
+                        checked={isSelected}
+                        onChange={() => setFormData({ ...formData, layout_mode: opt.key })}
+                        disabled={!canUpdate}
+                        style={{ display: 'none' }}
+                      />
+                      <div style={{ width: '220px' }}>
+                        {/* 版面預覽 */}
+                        <div style={{
+                          display: 'flex',
+                          flexDirection: isVertical ? 'row' : 'column',
+                          height: '110px',
+                          background: '#f5f7fa',
+                        }}>
+                          {isVertical ? (
+                            <>
+                              <div style={{ width: '55px', background: '#2c3e50', padding: '8px 6px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                <div style={{ height: '6px', background: 'rgba(255,255,255,0.6)', borderRadius: '2px' }} />
+                                <div style={{ height: '6px', background: 'rgba(255,255,255,0.4)', borderRadius: '2px' }} />
+                                <div style={{ height: '6px', background: 'rgba(255,255,255,0.4)', borderRadius: '2px' }} />
+                                <div style={{ height: '6px', background: 'rgba(255,255,255,0.4)', borderRadius: '2px' }} />
+                              </div>
+                              <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                                <div style={{ height: '22px', background: 'linear-gradient(135deg, #2c3e50, #3498db)' }} />
+                                <div style={{ flex: 1, padding: '8px' }}>
+                                  <div style={{ height: '8px', background: '#ddd', borderRadius: '2px', marginBottom: '6px', width: '80%' }} />
+                                  <div style={{ height: '8px', background: '#ddd', borderRadius: '2px', width: '60%' }} />
+                                </div>
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              <div style={{ height: '22px', background: 'linear-gradient(135deg, #2c3e50, #3498db)' }} />
+                              <div style={{ height: '20px', background: '#fff', borderBottom: '1px solid #e0e0e0', display: 'flex', alignItems: 'center', gap: '10px', padding: '0 10px' }}>
+                                <div style={{ height: '5px', background: '#3498db', borderRadius: '2px', width: '30px' }} />
+                                <div style={{ height: '5px', background: '#aaa', borderRadius: '2px', width: '30px' }} />
+                                <div style={{ height: '5px', background: '#aaa', borderRadius: '2px', width: '30px' }} />
+                                <div style={{ height: '5px', background: '#aaa', borderRadius: '2px', width: '30px' }} />
+                              </div>
+                              <div style={{ flex: 1, padding: '8px' }}>
+                                <div style={{ height: '8px', background: '#ddd', borderRadius: '2px', marginBottom: '6px', width: '90%' }} />
+                                <div style={{ height: '8px', background: '#ddd', borderRadius: '2px', width: '70%' }} />
+                              </div>
+                            </>
+                          )}
+                        </div>
+                        <div style={{
+                          textAlign: 'center',
+                          padding: '6px 0',
+                          fontSize: '13px',
+                          fontWeight: isSelected ? 600 : 400,
+                          color: isSelected ? '#333' : '#495057',
+                          background: '#fff',
+                        }}>
+                          {opt.label}
+                        </div>
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+              <div style={{ marginTop: '10px', fontSize: '12px', color: '#6c757d' }}>
+                {t('sysProfile.layoutModeHint', '儲存後重新載入頁面即生效')}
               </div>
             </div>
 

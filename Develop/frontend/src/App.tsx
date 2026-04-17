@@ -6,11 +6,11 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { SystemProvider } from './contexts/SystemContext';
 import { AuthProvider } from './contexts/AuthContext';
+import { MessageProvider } from './contexts/MessageContext';
 import { useSystem } from './contexts/SystemContext';
 import { useDocumentTitle } from './hooks/useDocumentTitle';
 import MaintenancePage from './pages/MaintenancePage';
 import LoginPage from './pages/LoginPage';
-import DashboardPage from './pages/DashboardPage';
 import OrganizationsPage from './pages/OrganizationsPage';
 import SysProfilePage from './pages/SysProfilePage';
 import UserRolesPage from './pages/UserRolesPage';
@@ -76,7 +76,6 @@ const AppRoutes: React.FC = () => {
         <Route index element={<Navigate to="/home" replace />} />
         {/* ===== 基底平台路由（Base AP — 請勿修改此區塊）===== */}
         <Route path="home" element={<HomePage />} />
-        <Route path="dashboard" element={<DashboardPage />} />
         {/* 系統管理 */}
         <Route path="organizations" element={<OrganizationsPage />} />
         <Route path="sys_profile" element={<SysProfilePage />} />
@@ -113,9 +112,11 @@ const App: React.FC = () => {
   return (
     <BrowserRouter>
       <SystemProvider>
-        <AuthProvider>
-          <AppRoutes />
-        </AuthProvider>
+        <MessageProvider>
+          <AuthProvider>
+            <AppRoutes />
+          </AuthProvider>
+        </MessageProvider>
       </SystemProvider>
     </BrowserRouter>
   );

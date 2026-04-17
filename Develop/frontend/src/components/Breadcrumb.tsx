@@ -48,11 +48,11 @@ const Breadcrumb: React.FC = () => {
     // 首頁
     crumbs.push({
       label: i18n.language === 'en' ? 'Home' : '首頁',
-      path: '/dashboard'
+      path: '/home'
     });
 
     // 如果不是首頁，查找對應的選單項目
-    if (path !== '/' && path !== '/dashboard') {
+    if (path !== '/' && path !== '/home') {
       const findMenuItem = (items: SystemFunction[], targetPath: string): SystemFunction | null => {
         for (const item of items) {
           // 檢查當前項目（使用 func_code 匹配前端路由）

@@ -178,6 +178,7 @@ CREATE TABLE IF NOT EXISTS sys_profiles (
     sys_languages JSONB NOT NULL DEFAULT '["zh-TW"]',
     login_bg VARCHAR(50) NOT NULL DEFAULT 'default',
     color_theme VARCHAR(50) NOT NULL DEFAULT 'classic-blue',
+    layout_mode VARCHAR(50) NOT NULL DEFAULT 'vertical',
     edit_by INTEGER NOT NULL REFERENCES users(id),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP,
@@ -195,6 +196,7 @@ COMMENT ON COLUMN sys_profiles.sys_timezone IS '系統時區';
 COMMENT ON COLUMN sys_profiles.sys_languages IS '啟用的語系代碼陣列（JSONB）';
 COMMENT ON COLUMN sys_profiles.login_bg IS '登入頁背景圖代碼';
 COMMENT ON COLUMN sys_profiles.color_theme IS '內頁配色主題代碼';
+COMMENT ON COLUMN sys_profiles.layout_mode IS '版面模式：vertical 或 horizontal';
 
 -- ============================================
 -- 6. 角色權限設定表 (role_rights)
@@ -391,6 +393,7 @@ VALUES
 (14, 'my_profile',       0, '{"zh-TW":"個人資料","en":"My Profile"}',         2, 1, 'AccountCircle', 'my_profile',       '["Read","Update"]', '個人資料維護', FALSE, TRUE, 1),
 (15, 'change_password',  0, '{"zh-TW":"密碼變更","en":"Change Password"}',    2, 2, 'VpnKey',        'change_password',  '["Read","Update"]', '密碼變更',     FALSE, TRUE, 1),
 (16, 'logout',           0, '{"zh-TW":"登出","en":"Logout"}',                 2, 3, NULL,            'logout',           '["Read"]',          '登出系統',     FALSE, TRUE, 1),
+(18, 'home',             0, '{"zh-TW":"首頁","en":"Home"}',                   2, 4, 'Home',          'home',             '["Read"]',          '系統首頁',     FALSE, TRUE, 1),
 -- 系統管理後台 (節點)
 (1,  'system_mana',      0, '{"zh-TW":"系統管理後台","en":"System Management"}',          1, 10,   '🗂️', NULL,                   '[]', '', TRUE, TRUE, 1),
 (2,  'sys_profile',      1, '{"zh-TW":"系統設定資料","en":"System Profile"}',              2, 1010, '🏷️', 'sys_profile',          '["Create","Read","Update","Delete","Print","File"]', '', TRUE, TRUE, 1),
@@ -409,12 +412,12 @@ VALUES
 ON CONFLICT (id) DO NOTHING;
 
 -- 5. 預設系統設定
-INSERT INTO sys_profiles (id, is_service, sys_url, sys_title, sys_copyright, sys_organization, sys_mana_email, sys_timezone, sys_languages, login_bg, color_theme, edit_by)
+INSERT INTO sys_profiles (id, is_service, sys_url, sys_title, sys_copyright, sys_organization, sys_mana_email, sys_timezone, sys_languages, login_bg, color_theme, layout_mode, edit_by)
 VALUES (1, TRUE, 'http://localhost:10180',
     '{"zh-TW":"後臺管理基底平台","en":"Base AP Management System"}',
     '{"zh-TW":"版權所有","en":"All Rights Reserved"}',
     1, 'admin@system.com', 'Asia/Taipei',
-    '["zh-TW","en"]', 'default', 'classic-blue', 1)
+    '["zh-TW","en"]', 'default', 'classic-blue', 'vertical', 1)
 ON CONFLICT (id) DO NOTHING;
 
 -- 6. 預設角色權限 (系統管理員擁有所有功能的完整權限)
@@ -436,6 +439,17 @@ INSERT INTO system_codes (code_type, code_type_name, code, code_name, "order", i
 VALUES
 ('Language', '{"zh-TW":"語系","en":"Language"}', 'zh-TW', '{"zh-TW":"繁體中文","en":"Traditional Chinese"}', 1, TRUE, '繁中', 1),
 ('Language', '{"zh-TW":"語系","en":"Language"}', 'en',    '{"zh-TW":"英文","en":"English"}',                 2, TRUE, 'EN',   1)
+ON CONFLICT DO NOTHING;
+
+-- 9. 系統錯誤代碼（ERROR_CODES）
+INSERT INTO system_codes (code_type, code_type_name, code, code_name, "order", is_active, edit_by)
+VALUES
+('ERROR_CODES', '{"zh-TW":"系統錯誤代碼","en":"System Error Codes"}', 'CAPTCHA_INVALID',       '{"zh-TW":"驗證碼錯誤或已過期","en":"Verification code is incorrect or expired"}',   1, TRUE, 1),
+('ERROR_CODES', '{"zh-TW":"系統錯誤代碼","en":"System Error Codes"}', 'INVALID_CREDENTIALS',   '{"zh-TW":"帳號或密碼錯誤","en":"Invalid account or password"}',                     2, TRUE, 1),
+('ERROR_CODES', '{"zh-TW":"系統錯誤代碼","en":"System Error Codes"}', 'ACCOUNT_DISABLED',      '{"zh-TW":"帳號已停用","en":"Account has been disabled"}',                          3, TRUE, 1),
+('ERROR_CODES', '{"zh-TW":"系統錯誤代碼","en":"System Error Codes"}', 'SESSION_EXPIRED',       '{"zh-TW":"Session 已過期，請重新登入","en":"Session expired, please login again"}', 4, TRUE, 1),
+('ERROR_CODES', '{"zh-TW":"系統錯誤代碼","en":"System Error Codes"}', 'AUTH_INVALID',          '{"zh-TW":"無法驗證認證資訊","en":"Authentication failed"}',                         5, TRUE, 1),
+('ERROR_CODES', '{"zh-TW":"系統錯誤代碼","en":"System Error Codes"}', 'SESSION_CREATE_FAILED', '{"zh-TW":"系統錯誤：無法建立 Session","en":"System error: failed to create session"}', 6, TRUE, 1)
 ON CONFLICT DO NOTHING;
 
 -- 重設序列

@@ -29,9 +29,12 @@ interface SystemContextType {
   getCopyright: () => string;
   getLoginBg: () => string;
   getColorTheme: () => string;
+  getLayoutMode: () => string; // 'vertical' | 'horizontal'
   // 語系相關
   availableLanguages: LanguageOption[];
   defaultLanguage: string;
+  // 系統訊息代碼對應（支援參數替換）
+  getMessageByCode: (code: string, params?: Record<string, string>) => string;
 }
 
 const SystemContext = createContext<SystemContextType | undefined>(undefined);
@@ -41,7 +44,7 @@ interface SystemProviderProps {
 }
 
 export const SystemProvider: React.FC<SystemProviderProps> = ({ children }) => {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [systemProfile, setSystemProfile] = useState<SystemProfile | null>(null);
   const [sysProfile, setSysProfile] = useState<SysProfile | null>(null);
   const [isService, setIsService] = useState(true);
@@ -50,6 +53,20 @@ export const SystemProvider: React.FC<SystemProviderProps> = ({ children }) => {
   // 語系狀態
   const [availableLanguages, setAvailableLanguages] = useState<LanguageOption[]>([]);
   const [defaultLanguage, setDefaultLanguage] = useState<string>('zh-TW');
+
+  // 系統訊息代碼對應表（從 system_codes 的 sys_message_code 載入）
+  const [messageCodes, setMessageCodes] = useState<Record<string, string>>({});
+
+  // 載入系統訊息代碼對應表（公開端點，不需認證）
+  const loadMessageCodes = async (lang?: string) => {
+    try {
+      const currentLang = lang || i18n.language || 'zh-TW';
+      const response = await axios.get(`/api/system/message-codes?lang=${currentLang}`);
+      setMessageCodes(response.data || {});
+    } catch (error) {
+      console.error('載入系統訊息代碼對應表失敗:', error);
+    }
+  };
 
   // 載入啟用語系（公開端點，不需認證）
   const loadActiveLanguages = async () => {
@@ -95,9 +112,14 @@ export const SystemProvider: React.FC<SystemProviderProps> = ({ children }) => {
           console.error('載入完整系統設定失敗:', err);
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('載入系統設定失敗:', error);
-      setIsService(false);
+      // 只有 API 明確回傳維護狀態才顯示維護頁
+      // 網路錯誤（後端暫時不可用）不應顯示維護頁
+      if (error?.response?.data?.is_service === false) {
+        setIsService(false);
+      }
+      // 網路錯誤時保留 isService=true（預設值），顯示正常頁面
     } finally {
       setIsLoading(false);
     }
@@ -107,6 +129,7 @@ export const SystemProvider: React.FC<SystemProviderProps> = ({ children }) => {
   const refreshSystemProfile = async () => {
     await loadSystemProfile();
     await loadActiveLanguages();
+    await loadMessageCodes();
   };
 
   // 取得系統標題
@@ -131,10 +154,30 @@ export const SystemProvider: React.FC<SystemProviderProps> = ({ children }) => {
     return systemProfile?.color_theme || 'classic-blue';
   };
 
-  // 初始化：載入系統設定 + 語系資訊
+  // 取得版面模式（vertical = 直式側邊欄, horizontal = 橫式頂部導覽）
+  const getLayoutMode = (): string => {
+    return systemProfile?.layout_mode || 'vertical';
+  };
+
+  // 取得系統訊息代碼對應的格式化訊息：「系統訊息：(代碼)說明」
+  // 支援參數替換：getMessageByCode("SYS100001", { name: "使用者設定" })
+  const getMessageByCode = (code: string, params?: Record<string, string>): string => {
+    const label = t('common.systemMessage', '系統訊息');
+    let description = messageCodes[code] || code;
+    // 替換 {參數名} 佔位符
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        description = description.replace(new RegExp(`\\{${key}\\}`, 'g'), value);
+      });
+    }
+    return `${label}：(${code})${description}`;
+  };
+
+  // 初始化：載入系統設定 + 語系資訊 + 錯誤代碼
   useEffect(() => {
     loadSystemProfile();
     loadActiveLanguages();
+    loadMessageCodes();
   }, []);
 
   // 套用配色主題到 document
@@ -143,12 +186,13 @@ export const SystemProvider: React.FC<SystemProviderProps> = ({ children }) => {
     document.documentElement.setAttribute('data-theme', theme);
   }, [systemProfile]);
 
-  // 監聽語系變更，更新網頁 Title
+  // 監聽語系變更，更新網頁 Title + 重新載入錯誤代碼
   useEffect(() => {
     if (sysProfile) {
       const title = getI18nValue(sysProfile.sys_title, i18n.language);
       document.title = title;
     }
+    loadMessageCodes(i18n.language);
   }, [i18n.language, sysProfile]);
 
   return (
@@ -163,8 +207,10 @@ export const SystemProvider: React.FC<SystemProviderProps> = ({ children }) => {
         getCopyright,
         getLoginBg,
         getColorTheme,
+        getLayoutMode,
         availableLanguages,
         defaultLanguage,
+        getMessageByCode,
       }}
     >
       {children}

@@ -18,6 +18,7 @@ export interface SystemProfile {
   sys_languages: string[];
   login_bg?: string;
   color_theme?: string;
+  layout_mode?: string; // 'vertical' | 'horizontal'
 }
 
 // 系統檢查回應

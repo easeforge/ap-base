@@ -9,6 +9,7 @@ import { authService } from '../api/authService';
 interface AuthContextType {
   user: UserProfile | null;
   isAuthenticated: boolean;
+  isAuthLoading: boolean;
   login: (token: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
@@ -23,6 +24,7 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
 
   // 載入使用者資料
   const loadUser = async () => {
@@ -38,6 +40,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       localStorage.removeItem('access_token');
       setUser(null);
       setIsAuthenticated(false);
+    } finally {
+      setIsAuthLoading(false);
     }
   };
 
@@ -75,6 +79,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       value={{
         user,
         isAuthenticated,
+        isAuthLoading,
         login,
         logout,
         refreshUser,

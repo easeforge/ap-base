@@ -13,6 +13,11 @@ import translationZhTW from './locales/zh-TW/translation.json';
 import translationEn from './locales/en/translation.json';
 import translationZhCN from './locales/zh-CN/translation.json';
 
+// API 基底 URL（與 axios.ts 相同邏輯）
+const API_BASE_URL = process.env.REACT_APP_API_URL === undefined
+  ? 'http://localhost:10181'   // 開發環境（沒設定 .env）
+  : process.env.REACT_APP_API_URL; // 生產：'' → 相對路徑；自訂：絕對 URL
+
 const fallbackResources: Record<string, any> = {
   'zh-TW': translationZhTW,
   'en': translationEn,
@@ -52,8 +57,8 @@ i18n
 
     // HTTP 後端設定
     backend: {
-      // 從後端 API 載入語系翻譯資料
-      loadPath: '/api/sys_languages/{{lng}}',
+      // 從後端 API 載入語系翻譯資料（使用完整 URL，dev/prod 皆正確）
+      loadPath: `${API_BASE_URL}/api/sys_languages/{{lng}}`,
 
       // 自訂解析：API 回傳的是 SysLanguageResponse，翻譯資料在 lang_data 欄位
       parse: (data: string) => {

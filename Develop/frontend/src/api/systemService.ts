@@ -3,7 +3,24 @@
  */
 
 import axios from './axios';
-import { SystemProfile, SystemCheckResponse, SystemFunction } from '../types';
+import { SystemProfile, SystemCheckResponse, SystemFunction, I18nField } from '../types';
+
+export interface RecentActivity {
+  id: number;
+  username: string;
+  module_item: string;
+  func_name: I18nField | null;
+  action_at: string | null;
+  has_error: boolean;
+}
+
+export interface SystemStats {
+  users_count: number;
+  organizations_count: number;
+  recent_logins_7d: number;
+  active_notifications: number;
+  recent_activities: RecentActivity[];
+}
 
 export const systemService = {
   /**
@@ -27,6 +44,14 @@ export const systemService = {
    */
   getFunctions: async (): Promise<SystemFunction[]> => {
     const response = await axios.get('/api/system/functions');
+    return response.data;
+  },
+
+  /**
+   * 取得首頁統計資料
+   */
+  getStats: async (): Promise<SystemStats> => {
+    const response = await axios.get('/api/system/stats');
     return response.data;
   },
 };

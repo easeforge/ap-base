@@ -42,6 +42,9 @@ class SysProfile(Base):
     # 內頁配色主題
     color_theme = Column(String(50), nullable=False, default='classic-blue', comment="內頁配色主題代碼")
 
+    # 版面模式 (vertical = 直式側邊欄, horizontal = 橫式頂部導覽)
+    layout_mode = Column(String(50), nullable=False, default='vertical', comment="版面模式：vertical 或 horizontal")
+
     # 系統欄位
     edit_by = Column(Integer, ForeignKey("users.id"), nullable=False)
     created_at = Column(TIMESTAMP, nullable=False, server_default=func.current_timestamp())

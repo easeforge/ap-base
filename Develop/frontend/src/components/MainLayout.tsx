@@ -23,6 +23,7 @@ import { getSystemFunctions } from '../services/systemFunctionsService';
 import type { SystemFunction } from '../types/systemFunctions';
 import { getI18nValue } from '../utils/i18nHelper';
 import Sidebar from './Sidebar';
+import TopNav from './TopNav';
 import LanguageSwitcher from './LanguageSwitcher';
 import Breadcrumb from './Breadcrumb';
 import '../styles/MainLayout.css';
@@ -55,7 +56,9 @@ const MainLayout: React.FC = () => {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const { user, logout } = useAuth();
-  const { systemProfile, getCopyright } = useSystem();
+  const { systemProfile, getCopyright, getLayoutMode } = useSystem();
+  const layoutMode = getLayoutMode();
+  const isHorizontal = layoutMode === 'horizontal';
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
   const [sidebarWidth, setSidebarWidth] = useState(() => {
     const saved = localStorage.getItem('sidebarWidth');
@@ -161,27 +164,31 @@ const MainLayout: React.FC = () => {
   }, [isResizing, sidebarWidth, isSidebarCollapsed]);
 
   return (
-    <div className="main-layout">
-      {/* 左側選單 */}
-      <Sidebar
-        isCollapsed={isSidebarCollapsed}
-        onToggle={toggleSidebar}
-        width={sidebarWidth}
-      />
-
-      {/* 拖拽調整寬度的分隔線 */}
-      {!isSidebarCollapsed && (
-        <div
-          className="sidebar-resize-handle"
-          onMouseDown={handleMouseDown}
-          style={{ left: `${sidebarWidth}px` }}
-        />
+    <div className={`main-layout layout-${layoutMode}`}>
+      {/* 直式模式：左側選單 + 可拖拽分隔線 */}
+      {!isHorizontal && (
+        <>
+          <Sidebar
+            isCollapsed={isSidebarCollapsed}
+            onToggle={toggleSidebar}
+            width={sidebarWidth}
+          />
+          {!isSidebarCollapsed && (
+            <div
+              className="sidebar-resize-handle"
+              onMouseDown={handleMouseDown}
+              style={{ left: `${sidebarWidth}px` }}
+            />
+          )}
+        </>
       )}
 
-      {/* 右側內容區 */}
+      {/* 內容區（橫式時不留左側邊距） */}
       <div
         className={`main-content ${isSidebarCollapsed ? 'expanded' : ''}`}
-        style={{ marginLeft: isSidebarCollapsed ? '70px' : `${sidebarWidth}px` }}
+        style={{
+          marginLeft: isHorizontal ? 0 : (isSidebarCollapsed ? '70px' : `${sidebarWidth}px`)
+        }}
       >
         {/* 上方使用者資訊列 */}
         <header className="top-header">
@@ -265,6 +272,9 @@ const MainLayout: React.FC = () => {
             </Menu>
           </div>
         </header>
+
+        {/* 橫式模式：在 header 下方顯示頂部導覽 */}
+        {isHorizontal && <TopNav />}
 
         {/* 中間內容區域 */}
         <main className="content-area">

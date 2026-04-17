@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.deps import get_current_user
+from app.core.message_codes import raise_msg
 from app.models.user import User
 from app.models.sysprofile import SysProfile
 from app.models.systemfunction import SystemFunction
@@ -31,10 +32,7 @@ async def get_system_profile(db: Session = Depends(get_db)):
     profile = db.query(SysProfile).filter(SysProfile.id == 1).first()
 
     if not profile:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="系統設定不存在"
-        )
+        raise_msg(status.HTTP_404_NOT_FOUND, "ERR020001", entity="系統設定", id=1)
 
     return {
         "id": profile.id,
@@ -46,7 +44,8 @@ async def get_system_profile(db: Session = Depends(get_db)):
         "sys_mana_email": profile.sys_mana_email,
         "sys_languages": profile.sys_languages,
         "login_bg": profile.login_bg or "default",
-        "color_theme": profile.color_theme or "classic-blue"
+        "color_theme": profile.color_theme or "classic-blue",
+        "layout_mode": profile.layout_mode or "vertical"
     }
 
 
@@ -66,6 +65,103 @@ async def get_active_languages(db: Session = Depends(get_db)):
         "default_language": default_lang,
         "languages": languages
     }
+
+
+@router.get("/stats", summary="取得首頁統計資料")
+async def get_stats(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    首頁 dashboard 使用的統計資料
+
+    回傳：
+    - users_count: 啟用中的使用者總數
+    - organizations_count: 啟用中的組織總數
+    - recent_logins_7d: 近 7 日登入次數
+    - active_notifications: 目前有效的系統通知數
+    - recent_activities: 最近 10 筆操作日誌
+    """
+    from datetime import datetime, timedelta, timezone
+    from app.models.organization import Organization
+    from app.models.userlog import UserLog
+    from app.models.systemnotification import SystemNotification
+
+    users_count = db.query(User).filter(User.is_active == True).count()
+    organizations_count = db.query(Organization).filter(Organization.is_active == True).count()
+
+    seven_days_ago = datetime.now(timezone.utc) - timedelta(days=7)
+    recent_logins_7d = db.query(UserLog).filter(
+        UserLog.module_item == 'Login',
+        UserLog.action_at >= seven_days_ago,
+        UserLog.err_detail.is_(None)
+    ).count()
+
+    now = datetime.now(timezone.utc)
+    active_notifications = db.query(SystemNotification).filter(
+        SystemNotification.is_active == True,
+        SystemNotification.notice_start_at <= now,
+        SystemNotification.notice_end_at >= now
+    ).count()
+
+    # 最近 10 筆活動（含使用者名稱 + 功能名稱）
+    recent_logs = db.query(UserLog).order_by(UserLog.action_at.desc()).limit(10).all()
+    recent_activities = []
+    for log in recent_logs:
+        log_user = db.query(User).filter(User.id == log.user_id).first()
+        username = log_user.username if log_user else f'user#{log.user_id}'
+        func = db.query(SystemFunction).filter(SystemFunction.id == log.system_function_id).first()
+        func_name = func.func_name if func else None
+
+        recent_activities.append({
+            'id': log.id,
+            'username': username,
+            'module_item': log.module_item,
+            'func_name': func_name,
+            'action_at': log.action_at.isoformat() if log.action_at else None,
+            'has_error': bool(log.err_detail)
+        })
+
+    return {
+        'users_count': users_count,
+        'organizations_count': organizations_count,
+        'recent_logins_7d': recent_logins_7d,
+        'active_notifications': active_notifications,
+        'recent_activities': recent_activities
+    }
+
+
+@router.get("/message-codes", summary="取得系統訊息代碼對應表")
+async def get_message_codes(
+    lang: str = "zh-TW",
+    db: Session = Depends(get_db)
+):
+    """
+    取得系統訊息代碼對應表（公開端點，不需登入）
+
+    依指定語系回傳 {訊息代碼: 訊息說明} 的映射字典
+
+    用於前端將後端回傳的系統訊息代碼（SYS######）轉換為可讀的訊息文字
+    """
+    from app.models.systemcode import SystemCode
+    codes = db.query(SystemCode).filter(
+        SystemCode.code_type == "sys_message_code",
+        SystemCode.is_active == True
+    ).order_by(SystemCode.order).all()
+
+    result = {}
+    for code in codes:
+        code_name = code.code_name or {}
+        # 依序嘗試：指定語系 → zh-TW → 第一個可用值 → 代碼本身
+        message = (
+            code_name.get(lang)
+            or code_name.get("zh-TW")
+            or next(iter(code_name.values()), None)
+            or code.code
+        )
+        result[code.code] = message
+
+    return result
 
 
 @router.get("/check", summary="系統檢查")

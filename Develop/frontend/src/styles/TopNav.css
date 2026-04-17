@@ -1,0 +1,155 @@
+/**
+ * 橫式頂部導覽樣式
+ */
+
+.topnav {
+  background: var(--topnav-bg, #ffffff);
+  border-bottom: 1px solid #e0e0e0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+  position: sticky;
+  top: 70px; /* 位於 header(70px) 下方 */
+  z-index: 200; /* 高於 content-area，避免下拉被遮住 */
+  width: 100%;
+  overflow: visible; /* 允許下拉選單溢出 */
+}
+
+.topnav-list {
+  list-style: none;
+  margin: 0;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap; /* 寬度不夠時換行，而非被裁切 */
+  min-height: 48px;
+  overflow: visible;
+}
+
+.topnav-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 48px;
+  white-space: nowrap;
+}
+
+.topnav-trigger {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 16px;
+  height: 100%;
+  cursor: pointer;
+  color: #333;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  border-bottom: 3px solid transparent;
+  transition: all 0.15s ease;
+}
+
+.topnav-trigger:hover {
+  color: var(--primary-color, #1976d2);
+  background: rgba(25, 118, 210, 0.04);
+}
+
+.topnav-item.active > .topnav-trigger {
+  color: var(--primary-color, #1976d2);
+  border-bottom-color: var(--primary-color, #1976d2);
+}
+
+.topnav-icon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.topnav-arrow {
+  font-size: 10px;
+  margin-left: 2px;
+  opacity: 0.6;
+}
+
+/* === 下拉選單 === */
+.topnav-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 220px;
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+  padding: 6px 0;
+  z-index: 300; /* 高於 topnav 自身與 content-area */
+  animation: topnav-dropdown-fade 0.15s ease;
+}
+
+@keyframes topnav-dropdown-fade {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.topnav-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  color: #333;
+  text-decoration: none;
+  font-size: 14px;
+  transition: background 0.1s ease;
+}
+
+.topnav-dropdown-item:hover {
+  background: rgba(25, 118, 210, 0.08);
+  color: var(--primary-color, #1976d2);
+}
+
+.topnav-dropdown-item.active {
+  background: rgba(25, 118, 210, 0.12);
+  color: var(--primary-color, #1976d2);
+  font-weight: 500;
+}
+
+/* 巢狀群組 */
+.topnav-dropdown-group {
+  padding: 4px 0;
+}
+
+.topnav-dropdown-group + .topnav-dropdown-group {
+  border-top: 1px solid #f0f0f0;
+  margin-top: 4px;
+  padding-top: 4px;
+}
+
+.topnav-dropdown-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.topnav-dropdown-children .topnav-dropdown-item {
+  padding-left: 24px;
+}
+
+/* 響應式：在小螢幕允許水平捲動 */
+@media (max-width: 768px) {
+  .topnav-list {
+    padding: 0 10px;
+  }
+  .topnav-trigger {
+    padding: 0 12px;
+    font-size: 13px;
+  }
+}

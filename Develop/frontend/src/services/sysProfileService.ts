@@ -22,6 +22,7 @@ export interface SysProfile {
   sys_languages: string[];
   login_bg: string;
   color_theme: string;
+  layout_mode: string;
   edit_by: number;
   created_at: string;
   updated_at?: string;
@@ -38,6 +39,7 @@ export interface SysProfileUpdate {
   sys_languages?: string[];
   login_bg?: string;
   color_theme?: string;
+  layout_mode?: string;
 }
 
 /**

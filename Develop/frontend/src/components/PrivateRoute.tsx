@@ -12,7 +12,12 @@ interface PrivateRouteProps {
 }
 
 const PrivateRoute: React.FC<PrivateRouteProps> = ({ children }) => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isAuthLoading } = useAuth();
+
+  // 認證狀態初始化中，等待完成再判斷
+  if (isAuthLoading) {
+    return null;
+  }
 
   if (!isAuthenticated) {
     // 未登入，導向登入頁面
