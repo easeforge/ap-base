@@ -48,6 +48,14 @@ generic_codes = [
     ('ERR520007', {'zh-TW': '{entity}（id={id}）尚有 {count} 筆 {relation} 關聯，無法刪除',
                    'zh-CN': '{entity}（id={id}）尚有 {count} 笔 {relation} 关联，无法删除',
                    'en':    '{entity} (id={id}) has {count} {relation} records, cannot delete'},                                               'development', 'ERR020007'),
+
+    # 系統未預期錯誤（general_exception_handler 使用）
+    ('ERR020008', {'zh-TW': '系統發生未預期錯誤，請稍後再試',
+                   'zh-CN': '系统发生未预期错误，请稍后再试',
+                   'en':    'An unexpected server error occurred, please try again later'},                                                   'production',  'ERR520008'),
+    ('ERR520008', {'zh-TW': '系統發生未預期錯誤：{type}: {detail}',
+                   'zh-CN': '系统发生未预期错误：{type}: {detail}',
+                   'en':    'Unexpected server error: {type}: {detail}'},                                                                     'development', 'ERR020008'),
 ]
 
 # === 分類 20 / 70：系統管理/設定 業務規則特定 ===
