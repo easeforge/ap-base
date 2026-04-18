@@ -84,7 +84,10 @@ async def get_license_info():
          "customer_name": "Example Corp", "expires_at": "2027-04-18T00:00:00+00:00", ...}
     """
     from app.core.license import LicenseManager
-    return LicenseManager.info()
+    from app.core.plugin import is_ee_loaded
+    info = LicenseManager.info()
+    info["ee_loaded"] = is_ee_loaded()
+    return info
 
 
 @router.get("/stats", summary="取得首頁統計資料")

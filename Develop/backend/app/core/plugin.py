@@ -38,6 +38,7 @@ _startup_hooks: List[Callable] = []
 _shutdown_hooks: List[Callable] = []
 _route_registrations: List[Dict[str, Any]] = []
 _menu_extensions: List[Dict[str, Any]] = []
+_ee_loaded: bool = False
 
 
 def register_startup(fn: Callable) -> None:
@@ -138,6 +139,15 @@ def get_registered_menus() -> List[Dict[str, Any]]:
     return list(_menu_extensions)
 
 
+def is_ee_loaded() -> bool:
+    """
+    是否成功載入 EE 套件（由 load_ee_if_present 記錄）
+
+    CE 環境永遠回傳 False。EE 環境於啟動成功載入 app.ee 後回傳 True。
+    """
+    return _ee_loaded
+
+
 def load_ee_if_present() -> bool:
     """
     嘗試匯入 app.ee 套件（存在於 ap-base-ee repo 的商用版模組）
@@ -149,15 +159,19 @@ def load_ee_if_present() -> bool:
         True 成功載入 EE 套件
         False CE 環境（無 app.ee）
     """
+    global _ee_loaded
     try:
         import importlib
         importlib.import_module('app.ee')
+        _ee_loaded = True
         logger.info("Enterprise Edition modules loaded")
         return True
     except ImportError as e:
         # CE 環境預期狀態
+        _ee_loaded = False
         logger.debug(f"No Enterprise Edition found (CE mode): {e}")
         return False
     except Exception as e:
+        _ee_loaded = False
         logger.error(f"Failed to load Enterprise Edition: {e}", exc_info=True)
         return False

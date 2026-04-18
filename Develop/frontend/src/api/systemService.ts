@@ -32,6 +32,7 @@ export interface LicenseInfo {
   max_users: number | null;
   max_organizations: number | null;
   load_error: string | null;
+  ee_loaded: boolean;
 }
 
 export const systemService = {
