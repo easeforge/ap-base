@@ -56,7 +56,7 @@ const MainLayout: React.FC = () => {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const { user, logout } = useAuth();
-  const { systemProfile, getCopyright, getLayoutMode } = useSystem();
+  const { systemProfile, getCopyright, getLayoutMode, license } = useSystem();
   const layoutMode = getLayoutMode();
   const isHorizontal = layoutMode === 'horizontal';
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
@@ -196,6 +196,9 @@ const MainLayout: React.FC = () => {
             <img src="/logo.png" alt="Logo" className="header-logo" />
             <span className="header-system-title">
               {getI18nValue(systemProfile?.sys_title, i18n.language, 'Base AP Management System')}
+              {license && !license.ee_loaded && (
+                <span className="header-edition-badge"> (CE)</span>
+              )}
             </span>
           </div>
           <div className="header-right">
