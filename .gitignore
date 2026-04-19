@@ -83,3 +83,8 @@ Develop/backend/license_keys/
 
 # Claude Code 工具設定（含本機開發指令快取，可能含敏感參數）
 .claude/
+
+# 內部 / 本機部署檔案（含密碼、內網 IP，不公開）
+docker-compose.nas.yml
+copy_ssh_key.py
+系統設計/資安掃描平台建置規格.pdf
