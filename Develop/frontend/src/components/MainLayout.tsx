@@ -293,7 +293,7 @@ const MainLayout: React.FC = () => {
           <div className="footer-content">
             <p className="copyright-text">
               {getCopyright() || (i18n.language === 'en'
-                ? 'Copyright © 2026 porscheworld'
+                ? 'Copyright © 2026 EaseForge'
                 : 'Copyright © 2026 匠耘有限公司')}
             </p>
           </div>

@@ -1,99 +1,163 @@
-# Base AP - Backend Administration Platform
+# Base AP — Backend Administration Platform
 
-**Version 1.0.0** | Python Edition
+> **化繁為簡，匠心為先 · Craft simplified.**
 
 A production-ready backend administration platform providing essential infrastructure for management systems. Designed as a reusable foundation — fork it, extend it, ship your product.
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688.svg)](https://fastapi.tiangolo.com/)
+[![React](https://img.shields.io/badge/React-18-61DAFB.svg)](https://react.dev/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-336791.svg)](https://www.postgresql.org/)
+
+By **EaseForge (匠耘有限公司)**
+
+---
+
+## Why Base AP
+
+Building yet another admin dashboard from scratch wastes weeks. Base AP gives you the **boring-but-essential** foundation already done:
+
+- ✅ Auth with CAPTCHA + JWT + Redis sessions + transaction tokens
+- ✅ Multi-tenant organization & user management
+- ✅ Role-based access control with per-function permission matrix
+- ✅ Three-language support (zh-TW / zh-CN / en) via JSONB
+- ✅ System-wide message code system (no hardcoded strings)
+- ✅ Toast notification system with i18n
+- ✅ Vertical sidebar / horizontal top-nav switching
+- ✅ Activity logging on every CRUD
+- ✅ Plugin system for adding commercial extensions
+
+**Plug your business modules in. The plumbing is done.**
+
+---
+
+## Quick Start (5 minutes)
+
+### Prerequisites
+- Python 3.11+
+- Node.js 18+
+- PostgreSQL 15+
+- Redis 7+
+
+### 1. Clone
+```bash
+git clone https://github.com/easeforge/ap-base.git
+cd ap-base
+```
+
+### 2. Database
+```sql
+CREATE DATABASE "baseAP" OWNER admin;
+\c baseAP
+\i Develop/backend/init_db.sql
+```
+
+### 3. Backend
+```bash
+cd Develop/backend
+python -m venv venv
+source venv/bin/activate          # macOS/Linux
+# venv\Scripts\activate           # Windows
+
+pip install -r requirements.txt
+
+# Copy and edit env
+cp .env.example .env              # set DATABASE_URL, REDIS_HOST, etc.
+
+uvicorn app.main:app --host 0.0.0.0 --port 10181 --reload
+```
+
+### 4. Frontend
+```bash
+cd Develop/frontend
+npm install --legacy-peer-deps
+npm start                          # http://localhost:10180
+```
+
+### 5. Login
+- Account: `admin`
+- Password: `Admin1234`
+- ⚠️ **Change this in production!**
 
 ---
 
 ## Features
 
 ### Authentication & Security
-- JWT-based authentication with access token
-- CAPTCHA verification on login
-- Transaction token (X-Txn-Token) for write operations — per-function permission validation
-- Session management with login tracking
-- Password hashing (bcrypt)
+- JWT-based auth with access token + Redis session
+- Image CAPTCHA on login
+- Transaction token (X-Txn-Token) — per-function permission verification for write operations
+- bcrypt password hashing (version-pinned)
 - CORS configuration
 
 ### Organization & Multi-tenancy
-- Organization (tenant) management with CRUD
-- Organization types: Government / Company / Individual
-- System management company designation (is_mana)
+- Organization (tenant) management
 - Tenant-scoped user management
-- Tenant profile self-service
-
-### User Management
-- User CRUD with organization association
-- Multi-role assignment (JSONB array)
-- Department / Job title / Phone fields
-- Login history tracking (last login time & IP)
-- Account activation/deactivation
-- Password change (self-service)
-- Personal profile editing
+- Three org types: Government / Company / Individual
+- System administration designation (`is_mana`)
 
 ### Role-Based Access Control (RBAC)
-- Role management with CRUD
-- System admin role designation (is_mana)
+- Multi-role assignment per user (JSONB array)
 - Per-function permission matrix: Create / Read / Update / Delete / Print / File
-- Permission inheritance through multi-role assignment (OR logic)
-- Frontend permission hook (`usePermission`)
-- Backend token-based permission verification
-
-### System Functions
-- Tree-structured function menu (Node / Function types)
-- Dynamic sidebar menu generation from database
-- Function code-based routing (`func_code` maps to frontend route)
-- Module code for permission grouping
-- Configurable permission items per function
-- Hidden functions (func_order 1-9) for user menu items
-- Personal function node for user dropdown menu
+- Multi-role union (OR) logic
+- Frontend `usePermission` hook + backend token verification
 
 ### Internationalization (i18n)
-- **JSONB multi-language fields** — all display names stored as `{"zh-TW": "...", "en": "...", "zh-CN": "..."}`
-- **Base language: English** — fallback when translation is missing
-- **Dynamic language loading** — i18next-http-backend loads translations from API
-- **Static file fallback** — bundled translations for offline/API-unavailable scenarios
-- **Language switcher** — auto-adapts: hidden (1 lang), buttons (2 langs), dropdown (3+ langs)
-- **Translation key sync** — one-click scan & fill missing keys across all languages
-  - zh-CN: auto Traditional-to-Simplified conversion (opencc)
-  - Other languages: copy from English base
-- **System settings** — enable/disable languages with checkbox, dynamic input fields per enabled language
-- **5 JSONB tables**: system_codes, system_functions, sys_profiles, user_roles, system_notifications
+- **JSONB multi-language fields** — `{"zh-TW": "...", "en": "...", "zh-CN": "..."}`
+- **Three languages out of the box**: Traditional Chinese, Simplified Chinese, English
+- **Dynamic language loading** — `i18next-http-backend` from API + static fallback
+- **Adaptive language switcher** — auto: 1 lang hidden, 2 buttons, 3+ dropdown
+- **Auto translation key sync** — fill missing keys (zh-CN auto-converts from zh-TW via opencc)
+
+### Message Code System
+- **All system messages** unified through `sys_message_code` table
+- Format: `{SYS|ERR|DAT}{2-digit category}{4-digit number}` (e.g., `ERR010001`)
+- Production codes (01~49) return safe messages; development codes (51~99) include details
+- Backend `raise_msg(status, code, **params)` helper with parameter substitution
+- Frontend `useMessage()` hook with toast notification (MUI Snackbar)
+- 60+ pre-defined codes for auth, CRUD, and validation
+
+### Layout Modes
+- **Vertical** (default): collapsible sidebar with drag-to-resize
+- **Horizontal**: top navigation bar with hover dropdowns
+- Switchable via System Settings (admin only)
+
+### System Functions
+- Tree-structured menu (`func_type`: Node / Page / API / Background Task)
+- Dynamic sidebar from database
+- Function code (`func_code`) maps to frontend route
+- Hidden functions (order < 10) for header user dropdown
 
 ### System Codes
-- Flexible code management for dropdown lists, categories, classifications
-- Code type + code structure (e.g., Language, Country_Codes_2, TWN_Area)
-- JSONB multi-language names for code types and code values
-- 5 auxiliary note fields (note1-5) for additional metadata
-- Pre-loaded: ISO 3166-1 Country Codes (249 countries) + Taiwan Administrative Areas (390 entries)
-- Keyword search across all fields
+- Flexible code management for dropdowns / lookup tables
+- 5 auxiliary `note` fields per code
+- Pre-loaded: ISO 3166-1 country codes (249) + Taiwan administrative areas (390)
 
 ### System Notifications
-- Announcement management with start/end time scheduling
-- JSONB multi-language subject and description (rich text)
-- Priority ordering
-- Dashboard notification modal with pagination (previous/next)
-- "Don't show today" feature with close date tracking
-- Active/inactive toggle
+- Scheduled announcements with start/end time
+- JSONB multi-language subject + rich text description
+- Login modal with paginated viewing
+- "Don't show today" with per-user dismissal tracking
 
-### User Activity Logs
-- Automatic logging for all CRUD operations
-- Per-function, per-action tracking (Create/Read/Update/Delete/Print/File/Login)
-- Before/after data capture for update operations
+### Activity Logging
+- Auto-log every CRUD operation
+- Before/after data capture (look_data / change_data JSONB)
+- Per-function, per-action filtering
 - Session ID correlation
-- Error detail recording
-- Filterable log viewer (by user, function, operation, date range, status)
+- Filterable log viewer
 
-### System Settings
-- Single-record system profile (id=1)
-- Service status toggle (maintenance mode)
-- System URL, title, copyright (JSONB multi-language)
-- Organization assignment
-- Admin email
-- Timezone configuration
-- Language settings (enable/disable with checkbox)
-- Translation key sync button
+### Home Dashboard
+- Live statistics: users / organizations / 7-day logins / active notifications
+- Recent 10 activity log entries with status badges
+- Welcome card with user info + organization
+- System notification modal
+
+### CE / EE Plugin Architecture
+- Open-source Community Edition includes plugin hooks
+- Optional commercial Enterprise Edition adds: scheduling, AI integration, SSO, etc.
+- License-key based feature activation (Ed25519 signed)
+- See [ARCHITECTURE.md](ARCHITECTURE.md) for details
 
 ---
 
@@ -101,186 +165,213 @@ A production-ready backend administration platform providing essential infrastru
 
 | Layer | Technology |
 |-------|-----------|
-| Backend | Python 3.11+ / FastAPI / SQLAlchemy / Pydantic v2 |
-| Frontend | React 18 / TypeScript / Material-UI / i18next |
-| Database | PostgreSQL 15+ (JSONB for multi-language fields) |
-| Cache | Redis (session management) |
-| Auth | JWT (access token) + Transaction token + CAPTCHA |
+| Backend | Python 3.11+ / FastAPI / SQLAlchemy 2 / Pydantic v2 |
+| Frontend | React 18 / TypeScript 5 / Material-UI 7 / i18next |
+| Database | PostgreSQL 15+ (JSONB for i18n) |
+| Cache | Redis 7+ (session + captcha) |
+| Auth | JWT + Transaction Token + CAPTCHA |
+| Build | Docker + docker-compose |
+
+---
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────┐
+│  Frontend (React + TypeScript)              │
+│  ├── i18next (3 languages)                  │
+│  ├── MessageContext (Toast)                 │
+│  ├── SystemContext (license, layout, ...)   │
+│  └── 14 admin pages                         │
+└──────────────────┬──────────────────────────┘
+                   │ HTTP/JSON
+┌──────────────────▼──────────────────────────┐
+│  Backend (FastAPI)                          │
+│  ├── /api/auth      — JWT + CAPTCHA         │
+│  ├── /api/system    — public endpoints      │
+│  ├── /api/...       — CRUD modules          │
+│  └── /api/ee/...    — EE modules (if EE)    │
+└──────────────────┬──────────────────────────┘
+                   │
+        ┌──────────┴──────────┐
+┌───────▼────────┐    ┌───────▼────────┐
+│  PostgreSQL    │    │  Redis         │
+│  • 11 tables   │    │  • sessions    │
+│  • JSONB i18n  │    │  • captchas    │
+└────────────────┘    └────────────────┘
+```
+
+Detailed architecture: [ARCHITECTURE.md](ARCHITECTURE.md)
 
 ---
 
 ## Database Schema
 
-11 tables with JSONB multi-language support:
+11 tables, JSONB for multi-language fields:
 
-| Table | Description | JSONB Fields |
-|-------|-------------|-------------|
-| organizations | Tenant/organization management | - |
-| users | User accounts | user_role (role ID array) |
-| user_roles | Role definitions | role_name |
-| system_functions | Menu & function registry | func_name, module_item |
-| sys_profiles | System settings (single record) | sys_title, sys_copyright, sys_languages |
-| role_rights | Role-function permission matrix | - |
-| system_codes | Configurable code tables | code_type_name, code_name |
-| system_notifications | System announcements | notice_subject, notice_description |
-| notification_closedates | Notification dismissal tracking | - |
-| user_logs | User activity audit trail | look_data, change_data |
-| sys_languages | Language management & translations | lang_data (full translation JSON) |
+| Table | Description |
+|-------|-------------|
+| organizations | Tenants |
+| users | User accounts (with `user_role` JSONB array) |
+| user_roles | Role definitions |
+| system_functions | Menu & function registry |
+| sys_profiles | Singleton system settings |
+| role_rights | Role × function permission matrix |
+| system_codes | Configurable code tables (incl. `sys_message_code`) |
+| system_notifications | Scheduled announcements |
+| notification_closedates | "Don't show today" tracking |
+| user_logs | Activity audit trail |
+| sys_languages | Language definitions + full translation JSON |
 
 ---
 
 ## Project Structure
 
 ```
-Develop/
-├── backend/
-│   ├── app/
-│   │   ├── core/           # Config, database, auth, timezone, dependencies
-│   │   ├── models/         # SQLAlchemy models (11 tables)
-│   │   ├── schemas/        # Pydantic request/response schemas
-│   │   ├── routes/         # FastAPI route handlers
-│   │   └── services/       # Business logic services
-│   ├── init_db.sql         # Database initialization script (v2.0.0)
-│   └── requirements.txt
-│
-├── frontend/
-│   ├── src/
-│   │   ├── api/            # Axios instance & system API
-│   │   ├── components/     # Reusable UI components
-│   │   ├── contexts/       # React contexts (Auth, System)
-│   │   ├── hooks/          # Custom hooks (permission, functionName, etc.)
-│   │   ├── locales/        # Translation files (zh-TW, en, zh-CN)
-│   │   ├── pages/          # Page components (14 pages)
-│   │   ├── services/       # API service layer
-│   │   ├── styles/         # CSS stylesheets
-│   │   ├── types/          # TypeScript type definitions
-│   │   └── utils/          # Helper utilities (i18n, session, userLog)
-│   └── package.json
+ap-base/
+├── LICENSE                      # MIT
+├── README.md                    # This file
+├── ARCHITECTURE.md              # CE/EE architecture
+├── 系統設計/                    # Design specs (Chinese)
+├── 開發紀錄/                    # Dev logs (Chinese)
+└── Develop/
+    ├── backend/
+    │   ├── app/
+    │   │   ├── core/            # Config, db, auth, license, plugin
+    │   │   ├── models/          # SQLAlchemy models
+    │   │   ├── schemas/         # Pydantic schemas
+    │   │   ├── routes/          # FastAPI routes
+    │   │   └── services/        # Business logic
+    │   ├── tools/               # CLI helpers (insert codes, sign license)
+    │   ├── init_db.sql          # DB initialization
+    │   └── Dockerfile
+    └── frontend/
+        ├── src/
+        │   ├── api/             # Axios + service modules
+        │   ├── components/      # Reusable UI
+        │   ├── contexts/        # React contexts
+        │   ├── hooks/           # Custom hooks
+        │   ├── locales/         # zh-TW / zh-CN / en
+        │   ├── pages/           # 14 admin pages
+        │   ├── services/        # API services
+        │   ├── styles/          # CSS
+        │   ├── types/           # TS types
+        │   └── utils/           # Helpers
+        └── Dockerfile
 ```
-
----
-
-## Quick Start
-
-### Prerequisites
-- Python 3.11+
-- Node.js 18+
-- PostgreSQL 15+
-- Redis
-
-### Database Setup
-```sql
-CREATE DATABASE "baseAP" OWNER admin;
-\c baseAP
-\i Develop/backend/init_db.sql
-```
-
-### Backend
-```bash
-cd Develop/backend
-python -m venv venv
-venv/Scripts/activate        # Windows
-# source venv/bin/activate   # Linux/Mac
-pip install -r requirements.txt
-uvicorn app.main:app --host 0.0.0.0 --port 10181 --reload
-```
-
-### Frontend
-```bash
-cd Develop/frontend
-npm install
-npm start    # Development server on port 10180
-```
-
-### Default Login
-- Account: `admin`
-- Password: `admin123`
-
----
-
-## API Documentation
-
-After starting the backend, visit:
-- Swagger UI: http://localhost:10181/docs
-- ReDoc: http://localhost:10181/redoc
-
-### API Endpoints Overview
-
-| Prefix | Module | Description |
-|--------|--------|-------------|
-| /api/auth | Authentication | Login, logout, CAPTCHA, transaction token |
-| /api/system | System | Profile, health check, functions menu, languages |
-| /api/sys_profiles | System Profile | System settings CRUD |
-| /api/organizations | Organizations | Organization CRUD |
-| /api/users | Users | User management + my profile + password change |
-| /api/user_roles | User Roles | Role CRUD |
-| /api/role_rights | Role Rights | Permission matrix management |
-| /api/system_functions | System Functions | Function registry CRUD + tree |
-| /api/system_codes | System Codes | Code table CRUD + type query |
-| /api/system_notifications | Notifications | Notification CRUD + home notifications |
-| /api/sys_languages | Languages | Language management + translation sync |
-| /api/user_logs | User Logs | Activity log query |
-| /api/permissions | Permissions | Transaction token verification |
 
 ---
 
 ## Pages
 
-| Page | Route | Description |
-|------|-------|-------------|
-| Login | /login | User login with CAPTCHA |
-| Dashboard | /dashboard | Welcome page with notification modal |
-| System Profile | /sys_profile | System settings & language configuration |
-| Organizations | /organizations | Organization management (admin) |
-| User Roles | /user_roles | Role management |
-| Users | /users | User management (admin) |
-| System Functions | /system_functions | Function menu registry |
-| Role Rights | /role_rights | Role-function permission matrix |
-| System Codes | /system_codes | Code table management |
-| System Notifications | /system_notifications | Announcement management |
-| User Logs | /user_logs | Activity log viewer |
-| Tenant Profile | /tenant_profile | Organization self-service (tenant) |
-| Tenant Users | /tenant_users | Member management (tenant) |
-| My Profile | /my_profile | Personal profile editing |
-| Change Password | /change_password | Password change |
-| Maintenance | /maintenance | System maintenance page |
+| Page | Route | Purpose |
+|------|-------|---------|
+| Login | `/login` | Authentication with CAPTCHA |
+| Home | `/home` | Dashboard with stats + notifications |
+| System Profile | `/sys_profile` | System settings (admin only) |
+| Organizations | `/organizations` | Tenant management (admin) |
+| User Roles | `/user_roles` | Role definitions |
+| Users | `/users` | User management (admin) |
+| System Functions | `/system_functions` | Function registry (admin) |
+| Role Rights | `/role_rights` | Permission matrix (admin) |
+| System Codes | `/system_codes` | Code table management |
+| System Notifications | `/system_notifications` | Announcement management |
+| User Logs | `/user_logs` | Activity audit viewer |
+| Tenant Profile | `/tenant_profile` | Org self-service (tenant) |
+| Tenant Users | `/tenant_users` | Member management (tenant) |
+| My Profile | `/my_profile` | Personal profile |
+| Change Password | `/change_password` | Self-service password change |
 
 ---
 
 ## Extending the Platform
 
-### Adding a New Business Module
+### Adding a Business Module
 
-1. **Backend**: Create model, schema, route, (optional) service under `app/`
-2. **Frontend**: Create service, page component, add route in `App.tsx`
-3. **Register**: Add to system_functions via UI — set function code, name, permissions
-4. **Authorize**: Set role permissions via Role Rights page
+1. **Backend** — create model, schema, route, (optional) service under `app/`
+2. **Frontend** — create service, page component, add route to `App.tsx`
+3. **Register** — add to `system_functions` (via UI or migration)
+4. **Authorize** — assign permission via Role Rights page
 
-The sidebar menu, breadcrumb, permission checks, and activity logging will work automatically.
+The sidebar menu, breadcrumbs, permission checks, and activity logging are derived automatically.
+
+### Using the Message Code System
+
+```python
+# backend
+from app.core.message_codes import raise_msg
+
+if not user:
+    raise_msg(status.HTTP_404_NOT_FOUND, "ERR020001",
+              entity="使用者", id=user_id)
+```
+
+```typescript
+// frontend
+const { showSuccess, showApiError } = useMessage();
+
+try {
+  await createOrganization(formData);
+  showSuccess('SYS020001', { name: pageTitle });
+} catch (err) {
+  showApiError(err);
+}
+```
+
+See [系統設計/系統訊息分類設計.md](系統設計/系統訊息分類設計.md) for full code list.
 
 ### Adding a New Language
 
-1. Create translation file: `src/locales/{lang_code}/translation.json`
-2. Add to database: `sys_languages` record + `system_codes` Language entry
-3. Enable in System Settings (checkbox)
-4. Click "Sync Translation Keys" to fill missing keys from English base
-5. Refine translations through language management
+1. Add to `sys_languages` table
+2. Enable in System Settings (checkbox)
+3. Click "Sync Translation Keys" to fill from English base
 
 ---
 
-## Design Decisions
+## Roadmap
 
-- **JSONB for i18n** — Small data volume, high flexibility, no JOIN needed
-- **Base language: English** — All code and fallback values in English
-- **Business tables don't need i18n** — Users write content in their target language
-- **Language data: add-only** — Disable = hide, never delete
-- **Transaction token** — Write operations require function-specific permission token
-- **Function-driven architecture** — Sidebar, permissions, logging all derive from system_functions table
+| Phase | Status | Description |
+|-------|--------|-------------|
+| 1~11 | ✅ | Core platform, JSONB i18n, function registry |
+| 12 | ✅ | Message code system (60+ codes, 3 languages) |
+| 13 | ✅ | Toast notification system |
+| 14 | ✅ | Horizontal layout mode |
+| 15 | ✅ | Home dashboard with live data |
+| 16 | ✅ | Plugin system for CE/EE separation |
+| EE | 🚧 | Scheduler, AI integration, SSO (Enterprise Edition) |
+
+---
+
+## Contributing
+
+We welcome issues, PRs, and feedback. Please see:
+- [CONTRIBUTING.md](CONTRIBUTING.md) — how to contribute
+- [SECURITY.md](SECURITY.md) — vulnerability reporting
+- [CHANGELOG.md](CHANGELOG.md) — version history
+
+For Chinese-language design discussion, see [系統設計/](系統設計/).
 
 ---
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE).
+[MIT](LICENSE) — Copyright (c) 2026 匠耘有限公司 (EaseForge)
 
-Copyright (c) 2026 JiangYun Co., Ltd.
+Use it freely for any purpose, including commercial products. We'd love to hear how you use it — open an issue or discussion to share!
+
+The Enterprise Edition (extra modules: scheduling, AI, SSO) is distributed under a separate commercial license. See [ARCHITECTURE.md](ARCHITECTURE.md).
+
+---
+
+## Acknowledgements
+
+Built with ❤️ in Taipei, leveraging:
+- [FastAPI](https://fastapi.tiangolo.com/) by Sebastián Ramírez
+- [SQLAlchemy](https://www.sqlalchemy.org/)
+- [React](https://react.dev/)
+- [Material-UI](https://mui.com/)
+- [i18next](https://www.i18next.com/)
+- [PostgreSQL](https://www.postgresql.org/)
+- [Redis](https://redis.io/)
+
+Special thanks to the open-source community.
