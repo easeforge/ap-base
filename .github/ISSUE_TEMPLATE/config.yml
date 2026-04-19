@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Questions / Discussions
+    url: https://github.com/easeforge/ap-base/discussions
+    about: For general questions, ideas, or community discussion — please use Discussions instead of Issues.
+  - name: 🔒 Security Vulnerability
+    url: https://github.com/easeforge/ap-base/blob/main/SECURITY.md
+    about: Please report security issues privately following our SECURITY.md — do NOT open a public issue.
