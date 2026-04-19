@@ -135,10 +135,14 @@ CREATE TABLE IF NOT EXISTS system_functions (
     edit_by INTEGER NOT NULL REFERENCES users(id),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP,
-    CONSTRAINT chk_system_functions_type CHECK (func_type IN (1, 2)),
+    -- func_type 值域（與 app/core/func_type.py FuncType 一致）
+    --   1 = 節點（選單資料夾），2 = 功能頁（有 UI）
+    --   3 = API 服務（EE Phase 4），4 = 背景任務（EE Phase 3）
+    -- 新增類型時同時更新 app/core/func_type.py 與 frontend 對應的 funcType.ts
+    CONSTRAINT chk_system_functions_type CHECK (func_type IN (1, 2, 3, 4)),
     CONSTRAINT chk_system_functions_module CHECK (
-        (func_type = 1 AND module_code IS NULL) OR
-        (func_type = 2 AND module_code IS NOT NULL)
+        (func_type IN (1) AND module_code IS NULL) OR
+        (func_type IN (2, 3, 4) AND module_code IS NOT NULL)
     )
 );
 

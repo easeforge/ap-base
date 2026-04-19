@@ -22,6 +22,7 @@ import { useSystem } from '../contexts/SystemContext';
 import { getSystemFunctions } from '../services/systemFunctionsService';
 import type { SystemFunction } from '../types/systemFunctions';
 import { getI18nValue } from '../utils/i18nHelper';
+import { FuncType } from '../utils/funcType';
 import Sidebar from './Sidebar';
 import TopNav from './TopNav';
 import LanguageSwitcher from './LanguageSwitcher';
@@ -84,7 +85,7 @@ const MainLayout: React.FC = () => {
         if (personalNode) {
           // 取得該節點下的子功能，依 func_order 排序
           const children = functions
-            .filter(f => f.upper_func_id === personalNode.id && f.func_type === 2)
+            .filter(f => f.upper_func_id === personalNode.id && f.func_type === FuncType.PAGE)
             .sort((a, b) => a.func_order - b.func_order);
           setUserMenuItems(children);
         }
