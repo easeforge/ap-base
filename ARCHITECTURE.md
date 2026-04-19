@@ -6,7 +6,7 @@ Base AP 採雙軌發行：
 
 | | Community Edition | Enterprise Edition |
 |---|---|---|
-| Repo | `ap-base`（git.lab.taipei/porsche/ap-base） | `ap-base-ee`（private） |
+| Repo | `ap-base`（公開）| `ap-base-ee`（私有商用版）|
 | 授權 | MIT（自由使用、商用、修改）| 商用授權契約 |
 | 發布方式 | 原始碼 + release | 原始碼僅供授權客戶 + license.key |
 | 功能範圍 | 完整的基底後臺平台（使用者/組織/角色/系統功能/訊息/多語系/橫式版面等）| CE + 進階商用功能（排程、AI、SSO 等） |

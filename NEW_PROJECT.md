@@ -4,29 +4,29 @@
 
 ---
 
-## Step 1：GitLab 建立空 repo
+## Step 1：在你的 Git 平台建立空 repo
 
-1. 開啟 https://git.lab.taipei
-2. 左上角 **「+」** → **New project** → **Create blank project**
-3. 填入專案名稱（如 `P-Inventory`），Visibility 選 **Private**
-4. **取消勾選** "Initialize repository with a README"
-5. 點 **Create project**，記下 HTTPS clone URL
+1. 在你的 Git 平台（GitHub / GitLab / Gitea 等）建立新 repo
+2. 命名為你的專案（如 `P-Inventory`）
+3. **不要** 勾選 "Initialize with README / LICENSE / .gitignore"（會干擾後續 clone）
+4. 記下 clone URL（HTTPS 或 SSH 皆可）
 
 ---
 
 ## Step 2：本地建立專案（複製貼上即可）
 
 ```bash
-# ① 改這兩個變數就好
+# ① 改這三個變數就好
 PROJECT_NAME="P-Inventory"
-PROJECT_URL="https://git.lab.taipei/porsche/P-Inventory.git"
+PROJECT_URL="<你的新專案 clone URL>"
+BASE_URL="<ap-base 上游 URL>"
 
 # ② 以下不用改，直接執行
-cd D:\_Develop
-git clone https://git.lab.taipei/porsche/ap-base.git $PROJECT_NAME
+cd /your/workspace
+git clone $BASE_URL $PROJECT_NAME
 cd $PROJECT_NAME
 git remote set-url origin $PROJECT_URL
-git remote add upstream https://git.lab.taipei/porsche/ap-base.git
+git remote add upstream $BASE_URL
 git fetch upstream
 ```
 
@@ -66,7 +66,7 @@ git remote -v
 基於 Base AP 基底平台開發的{系統說明}應用系統。
 
 ## 基底平台
-- 來源: https://git.lab.taipei/porsche/ap-base.git (upstream)
+- 來源: <ap-base 上游 URL> (upstream)
 - 基底版本: v1.0.0
 - 同步方式: git fetch upstream && git merge upstream/main
 
@@ -132,9 +132,9 @@ git log upstream/main --oneline -5           # 基底最近更新
 ## 專案目錄結構
 
 ```
-D:\_Develop\
-├── ap.base\          ← 基底平台（不要在這裡開發應用功能）
-├── P-Inventory\      ← 應用專案 A
-├── P-NextProject\    ← 應用專案 B
+/your/workspace/
+├── ap-base/          ← 基底平台（不要在這裡開發應用功能）
+├── P-Inventory/      ← 應用專案 A
+├── P-NextProject/    ← 應用專案 B
 └── ...
 ```

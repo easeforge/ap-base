@@ -23,12 +23,18 @@
   --pair    對應的另一環境代碼（正式↔開發配對）
 """
 
+import os
 import sys
 import json
 import argparse
 import psycopg2
 
-DB_DSN = 'postgresql://admin:DC1qaz2wsx@10.1.0.20:5433/baseAP'
+# 從環境變數讀取 DB 連線（與 backend .env 的 DATABASE_URL 同步）
+# 若未設定，預設指向本機 PostgreSQL，請依實際環境調整
+DB_DSN = os.environ.get(
+    'DATABASE_URL',
+    'postgresql://postgres:postgres@localhost:5432/baseAP'
+)
 
 TYPE_NAME = {
     'zh-TW': '系統訊息代碼',

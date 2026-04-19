@@ -1,4 +1,19 @@
-"""Upload ap.base project to NAS via SFTP, skipping venv/node_modules/build."""
+"""
+Upload project to remote host via SFTP, skipping venv/node_modules/build.
+
+設定（環境變數 or 預設值）：
+    DEPLOY_LOCAL_BASE   本機專案目錄         (預設：當前目錄)
+    DEPLOY_REMOTE_BASE  遠端目錄             (預設：/home/<user>/ap.base)
+    DEPLOY_HOST         遠端 host            (預設：localhost)
+    DEPLOY_USER         SSH 使用者           (預設：當前使用者)
+    DEPLOY_KEY_FILE     SSH 金鑰路徑         (預設：~/.ssh/id_ed25519)
+
+例：
+    set DEPLOY_HOST=server.example.com
+    set DEPLOY_USER=deploy
+    set DEPLOY_REMOTE_BASE=/srv/myapp
+    python deploy_to_nas.py
+"""
 import paramiko
 import os
 import sys
@@ -8,12 +23,11 @@ IGNORE_EXTS = {'.pyc', '.pyo', '.pem'}
 IGNORE_FILES = {'.env', '.env.local', '.env.development', '.env.development.local',
                 'license.key'}
 
-LOCAL_BASE = r'D:\_Develop\ap.base'
-REMOTE_BASE = '/home/porsche/ap.base'
-
-KEY_FILE = r'C:\Users\USER\.ssh\id_ed25519'
-HOST = '10.1.0.254'
-USER = 'porsche'
+LOCAL_BASE = os.environ.get('DEPLOY_LOCAL_BASE', os.getcwd())
+USER = os.environ.get('DEPLOY_USER', os.environ.get('USER') or os.environ.get('USERNAME') or 'deploy')
+REMOTE_BASE = os.environ.get('DEPLOY_REMOTE_BASE', f'/home/{USER}/ap.base')
+HOST = os.environ.get('DEPLOY_HOST', 'localhost')
+KEY_FILE = os.environ.get('DEPLOY_KEY_FILE', os.path.expanduser('~/.ssh/id_ed25519'))
 
 def should_skip(name):
     return (
@@ -47,6 +61,11 @@ UPLOAD_TARGETS = [
 UPLOAD_FILES = [
     (os.path.join(LOCAL_BASE, 'docker-compose.nas.yml'), REMOTE_BASE + '/docker-compose.nas.yml'),
 ]
+
+print(f'Deploying to {USER}@{HOST}:{REMOTE_BASE}')
+print(f'  Local:    {LOCAL_BASE}')
+print(f'  Key file: {KEY_FILE}')
+print()
 
 key = paramiko.Ed25519Key.from_private_key_file(KEY_FILE)
 client = paramiko.SSHClient()

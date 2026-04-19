@@ -80,3 +80,6 @@ license.key
 Develop/backend/license.key
 Develop/backend/license_keys/
 *.pem
+
+# Claude Code 工具設定（含本機開發指令快取，可能含敏感參數）
+.claude/

@@ -10,13 +10,16 @@ TDD 測試：ERR010006 系統錯誤（Session 建立失敗）
   venv/Scripts/python tools/test_err010006.py
 """
 
+import os
 import sys
 import requests
 from unittest.mock import patch
 
 sys.stdout.reconfigure(encoding='utf-8')
 
-BACKEND_URL = 'http://localhost:10181'
+BACKEND_URL = os.environ.get('BACKEND_URL', 'http://localhost:10181')
+TEST_ADMIN_ACCOUNT = os.environ.get('TEST_ADMIN_ACCOUNT', 'admin')
+TEST_ADMIN_PASSWORD = os.environ.get('TEST_ADMIN_PASSWORD', 'change-me')
 
 
 def get_captcha_with_code():
@@ -47,8 +50,8 @@ def test_normal_login():
     print('=' * 60)
     key, code = get_captcha_with_code()
     r = requests.post(f'{BACKEND_URL}/api/auth/login', json={
-        'account': 'admin',
-        'password': 'Admin1234',
+        'account': TEST_ADMIN_ACCOUNT,
+        'password': TEST_ADMIN_PASSWORD,
         'captcha_key': key,
         'captcha_code': code,
     })
