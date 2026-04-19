@@ -256,10 +256,12 @@ async def get_system_functions(
     # 建立功能字典和樹狀結構
     func_dict = {}
 
+    from app.core.func_type import is_node_type, is_menu_type
+
     # 第一次遍歷：建立字典（只包含有權限的功能）
     for func in functions:
-        # 節點類型(func_type=1)或有讀取權限的功能才加入
-        if func.func_type == 1 or func.id in authorized_func_ids:
+        # 節點類型保留（沒權限概念），其他類型需有讀取權限
+        if is_node_type(func.func_type) or func.id in authorized_func_ids:
             func_dict[func.id] = {
                 "id": func.id,
                 "func_code": func.func_code,
@@ -284,20 +286,27 @@ async def get_system_functions(
             # 子節點加入父節點
             func_dict[func_data["upper_func_id"]]["children"].append(func_data)
 
-    # 第三次遍歷：移除沒有子功能的節點
+    # 第三次遍歷：保留顯示在選單的類型、以及仍有可見子項的節點
     def filter_empty_nodes(node):
-        """遞迴過濾空節點"""
-        if node["func_type"] == 2:
-            # 功能類型，保留
+        """
+        遞迴過濾：
+        - 顯示在選單的葉節點（目前只有 PAGE, shows_in_menu=True）直接保留
+        - 節點類型（不是 leaf）要先過濾子項，若無可見子項則移除
+        - 其他非選單類型（API_SERVICE / TASK）不顯示於菜單
+        """
+        t = node["func_type"]
+        # 葉節點且要出現在選單 → 保留
+        if is_menu_type(t) and not is_node_type(t):
             return True
+        # 非節點也非選單項 → 過濾
+        if not is_node_type(t):
+            return False
 
-        # 節點類型，先過濾子節點
+        # 節點類型：先過濾子項
         node["children"] = [
             child for child in node["children"]
             if filter_empty_nodes(child)
         ]
-
-        # 如果節點下沒有子功能，則移除
         return len(node["children"]) > 0
 
     # 收集根節點並過濾
