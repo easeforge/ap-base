@@ -137,12 +137,12 @@ CREATE TABLE IF NOT EXISTS system_functions (
     updated_at TIMESTAMP,
     -- func_type 值域（與 app/core/func_type.py FuncType 一致）
     --   1 = 節點（選單資料夾），2 = 功能頁（有 UI）
-    --   3 = API 服務（EE Phase 4），4 = 背景任務（EE Phase 3）
-    -- 新增類型時同時更新 app/core/func_type.py 與 frontend 對應的 funcType.ts
-    CONSTRAINT chk_system_functions_type CHECK (func_type IN (1, 2, 3, 4)),
+    -- 商業化模組（EE）會在啟動時透過 register_func_type() 註冊額外類型
+    -- 並以 ALTER TABLE 重建下列兩個 CHECK 約束（見模組的 _ensure_func_type_check_synced）
+    CONSTRAINT chk_system_functions_type CHECK (func_type IN (1, 2)),
     CONSTRAINT chk_system_functions_module CHECK (
-        (func_type IN (1) AND module_code IS NULL) OR
-        (func_type IN (2, 3, 4) AND module_code IS NOT NULL)
+        (func_type = 1 AND module_code IS NULL) OR
+        (func_type = 2 AND module_code IS NOT NULL)
     )
 );
 

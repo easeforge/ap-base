@@ -290,9 +290,9 @@ async def get_system_functions(
     def filter_empty_nodes(node):
         """
         遞迴過濾：
-        - 顯示在選單的葉節點（目前只有 PAGE, shows_in_menu=True）直接保留
-        - 節點類型（不是 leaf）要先過濾子項，若無可見子項則移除
-        - 其他非選單類型（API_SERVICE / TASK）不顯示於菜單
+        - 顯示在選單的葉節點（CE 的 PAGE、以及任何 shows_in_menu=True 的商業類型）直接保留
+        - 節點類型（NODE）要先過濾子項，若無可見子項則移除
+        - 其他非選單類型（由商業模組註冊、shows_in_menu=False）不顯示於菜單
         """
         t = node["func_type"]
         # 葉節點且要出現在選單 → 保留
