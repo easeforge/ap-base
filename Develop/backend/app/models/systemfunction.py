@@ -24,7 +24,7 @@ class SystemFunction(Base):
     upper_func_id = Column(Integer, nullable=False, default=0, index=True, comment="上層功能ID（0表示根節點）")
     func_name = Column(JSONB, nullable=False, default=dict, comment="功能名稱（多語系 JSONB）")
     func_type = Column(Integer, nullable=False, index=True,
-                       comment="功能類型（參見 app.core.func_type.FuncType: 1=節點 2=功能 3=API服務 4=背景任務）")
+                       comment="功能類型（CE 預設 1=節點、2=功能；其他類型由商業模組以 register_func_type() 註冊）")
     func_order = Column(Integer, nullable=False, index=True, comment="排序順序")
     func_icon = Column(String(200), comment="圖示")
 

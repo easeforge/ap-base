@@ -1,20 +1,19 @@
 /**
- * system_functions.func_type 集中控制元件（前端對應後端 app/core/func_type.py）
+ * system_functions.func_type 前端對應常數（對應後端 app/core/func_type.py）
  *
- * 新增類型時：同時更新後端 Python 模組與本檔案。
+ * **設計原則**
  *
- * 類型說明：
- *   NODE        1  選單節點（資料夾）
- *   PAGE        2  功能頁（有 UI）
- *   API_SERVICE 3  API 服務（EE Phase 4，API Key 認證）
- *   TASK        4  背景任務（EE Phase 3，Scheduler 呼叫）
+ * CE（社群版）只定義兩種 func_type：
+ *   NODE (1) 選單節點（資料夾）
+ *   PAGE (2) 功能頁（有 UI）
+ *
+ * 商業化模組（EE）額外使用的類型（例如 API 服務、背景任務）
+ * 由模組自身程式碼以整數 literal 直接判斷，不污染 CE 基底檔。
  */
 
 export const FuncType = {
   NODE: 1,
   PAGE: 2,
-  API_SERVICE: 3,
-  TASK: 4,
 } as const;
 
 export type FuncTypeValue = typeof FuncType[keyof typeof FuncType];
@@ -27,10 +26,8 @@ interface FuncTypeMeta {
 }
 
 export const FUNC_TYPE_META: Record<number, FuncTypeMeta> = {
-  [FuncType.NODE]:        { name_zh_tw: '節點',     shows_in_menu: true,  is_leaf: false, edition: 'ce' },
-  [FuncType.PAGE]:        { name_zh_tw: '功能頁',   shows_in_menu: true,  is_leaf: true,  edition: 'ce' },
-  [FuncType.API_SERVICE]: { name_zh_tw: 'API 服務', shows_in_menu: false, is_leaf: true,  edition: 'ee' },
-  [FuncType.TASK]:        { name_zh_tw: '背景任務', shows_in_menu: false, is_leaf: true,  edition: 'ee' },
+  [FuncType.NODE]: { name_zh_tw: '節點',   shows_in_menu: true, is_leaf: false, edition: 'ce' },
+  [FuncType.PAGE]: { name_zh_tw: '功能頁', shows_in_menu: true, is_leaf: true,  edition: 'ce' },
 };
 
 export const isMenuType = (t: number): boolean =>
