@@ -266,6 +266,7 @@
     "sysTimezone": "系统时区",
     "sysCopyright": "版权宣告",
     "sysManaEmail": "管理员信箱",
+    "sysManaEmailHint": "多位收件人请以逗号分隔，例如：admin@a.com, ops@a.com",
     "sysCCopyright": "中文版权宣告",
     "sysECopyright": "英文版权宣告",
     "serviceEnabled": "服务启用",

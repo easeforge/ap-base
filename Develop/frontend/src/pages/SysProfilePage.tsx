@@ -720,12 +720,14 @@ const SysProfilePage: React.FC = () => {
             <div className="form-group">
               <label>{t('sysProfile.sysManaEmail')} *</label>
               <input
-                type="email"
+                type="text"
                 value={formData.sys_mana_email || ''}
                 onChange={(e) => setFormData({ ...formData, sys_mana_email: e.target.value })}
                 required
                 disabled={!canUpdate}
+                placeholder="admin@example.com, other@example.com"
               />
+              <small className="form-hint">{t('sysProfile.sysManaEmailHint')}</small>
             </div>
 
             {/* 系統時區 */}

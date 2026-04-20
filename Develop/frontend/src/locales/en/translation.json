@@ -266,6 +266,7 @@
     "sysTimezone": "System Timezone",
     "sysCopyright": "Copyright",
     "sysManaEmail": "Admin Email",
+    "sysManaEmailHint": "Separate multiple recipients with commas, e.g. admin@a.com, ops@a.com",
     "sysCCopyright": "Chinese Copyright",
     "sysECopyright": "English Copyright",
     "serviceEnabled": "Enabled",
